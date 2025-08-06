@@ -1,0 +1,338 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f4f7f6; /* 부드러운 배경색 */
+}
+
+.main-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  min-height: 100vh;
+  box-sizing: border-box;
+
+
+}
+
+.main-header {
+  text-align: center;
+  margin-bottom: 40px;
+  color: #333;
+  /*text-shadow: 2px 2px 4px rgba(28, 15, 15, 0.6); /* 텍스트 그림자 효과 */
+}
+
+.main-header h1 {
+  font-size: 2.5rem;
+  margin: 0;
+}
+
+.main-header p {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.main-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* 버튼 사이의 간격 */
+  width: 100%;
+  max-width: 400px;
+  
+}
+
+/* 전체 레이아웃 */
+.main-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  position: relative; /* 햄버거 버튼의 위치 기준점 */
+}
+
+.menu-button {
+  
+  width: 100%; /* 너비를 부모 요소에 꽉 채움 */
+  max-width: 400px; /* 최대 너비는 유지 */
+  box-sizing: border-box; /* 패딩을 너비 계산에 포함 */
+  padding: 20px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
+  background-color: #466D1D;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-decoration: none; /* 링크 밑줄 제거 */
+  text-align: center; /* 텍스트 중앙 정렬 */
+}
+
+.menu-button:hover {
+  background-color: #6b8e68; /* 마우스를 올렸을 때 색상 변경 */
+}
+
+.menu-button {
+  text-decoration: none; /* 링크 밑줄 제거 */
+}
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+  max-width: 350px;
+  padding: 20px;
+}
+
+.login-input {
+  padding: 15px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.social-login {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* 버튼 사이 간격 */
+  width: 100%;
+  max-width: 350px;
+  margin-top: 20px;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.social-button {
+  padding: 15px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.social-button:hover {
+  opacity: 0.9;
+}
+
+/* ... 다른 css 코드 ... */
+.social-button:hover {
+  opacity: 0.9;
+}
+
+/* 이제 google 클래스는 사용하지 않으므로 삭제하거나 남겨두어도 됩니다. */
+.google {
+  background-color: #DB4437;
+}
+
+
+/* 햄버거 아이콘 스타일 */
+.hamburger-menu {
+  position: absolute;
+  top: 20px;
+  left: 20px; /* 왼쪽 상단 */
+  font-size: 2rem;
+  background: none;
+  border: none;
+  color: #333; /* 아이콘 색상 */
+  cursor: pointer;
+  z-index: 1001; /* 다른 요소들 위에 보이도록 설정 */
+}
+
+/* 메뉴 패널 스타일 */
+.menu-panel {
+  position: fixed; /* 화면에 고정 */
+  top: 0;
+  left: 0; /* 왼쪽에서 나타나도록 설정 */
+  width: 250px; /* 메뉴 너비 */
+  height: 100%;
+  background-color: white;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1); /* 그림자 효과 */
+  padding: 60px 20px 20px 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  z-index: 1000; /* 햄버거 아이콘 바로 아래에 위치 */
+}
+
+
+/* 채팅 컨테이너 (메인 콘텐츠 영역) */
+.chat-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column; /* 자식 요소들을 세로로 정렬 */
+  height: 100vh;
+  background-color: #f0f4f9; /* 연한 배경색 */
+  padding: 0 20px; /* 좌우 여백 */
+  box-sizing: border-box;
+}
+
+/* 1. 상단 공백 영역 */
+.chat-header {
+  flex-shrink: 0; /* 높이가 줄어들지 않도록 설정 */
+  height: 15vh; /* 화면 높이의 15% 만큼 공백 (조절 가능) */
+}
+
+
+.message-list {
+  flex-grow: 1;
+  overflow-y: auto;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column-reverse; /* 이 줄을 다시 추가해주세요 */
+}
+
+/* 개별 메시지 버블 (기존과 유사) */
+.message {
+  padding: 12px 18px;
+  border-radius: 20px;
+  max-width: 75%;
+  word-wrap: break-word;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.message.ai {
+  background-color: #ffffff;
+  color: #333;
+  align-self: flex-start;
+  border: 1px solid #e0e0e0;
+}
+
+.message.user {
+  background-color: #d8e6ff;
+  color: #1f1f1f;
+  align-self: flex-end; /* 이 줄을 다시 추가해주세요 */
+}
+
+/* 메시지 입력 폼: Gemini 스타일의 입력창 */
+.message-form {
+  flex-shrink: 0; /* 높이가 줄어들지 않도록 설정 */
+  display: flex;
+  align-items: center;
+  padding: 20px 0 40px 0; /* 위아래 여백 */
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto; /* 중앙 정렬 */
+  box-sizing: border-box;
+  position: relative; 
+}
+
+/* 메시지 입력창 스타일 수정 */
+.message-input {
+  width: 100%; /* 부모 요소(.input-wrapper)의 전체 너비를 차지하도록 설정 */
+  box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
+  border: none;
+  background-color: #e9eef3;
+  border-radius: 25px;
+  padding: 18px 25px;
+  font-size: 1rem;
+  outline: none;
+}
+
+.send-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 10px;
+  margin-left: 10px;
+  color: #555;
+}
+
+/* 파일 첨부(+) 버튼 스타일 */
+.attachment-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background-color: #e9eef3;
+  font-size: 1.8rem;
+  font-weight: 300;
+  color: #555;
+  cursor: pointer;
+  margin-right: 10px;
+  flex-shrink: 0; /* 크기가 줄어들지 않도록 설정 */
+}
+
+/* 파일 첨부 팝업 메뉴 스타일 */
+.attachment-menu {
+  position: absolute;
+  bottom: 100%; /* 입력창 바로 위에 위치 */
+  left: 0;
+  margin-bottom: 10px; /* 입력창과의 간격 */
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 10;
+}
+
+.attachment-menu button {
+  background-color: transparent;
+  border: none;
+  padding: 10px 15px;
+  text-align: left;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap; /* 글자가 줄바꿈되지 않도록 */
+}
+
+.attachment-menu button:hover {
+  background-color: #f0f4f9;
+}
+
+.file-preview video {
+  max-height: 80px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+/* 일반 파일 미리보기 아이콘 스타일 */
+.file-icon {
+  background-color: #f0f4f9;
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+/* 입력창을 감싸는 wrapper 스타일 (새로 추가) */
+.input-wrapper {
+  flex-grow: 1; /* 남는 공간을 모두 차지하도록 설정 */
+  position: relative;
+}
+
