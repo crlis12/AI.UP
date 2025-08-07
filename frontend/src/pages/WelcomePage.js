@@ -1,9 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom'; // useNavigate 훅을 import 합니다.
+import { useNavigate, Link } from 'react-router-dom'; // Link 컴포넌트를 import 합니다.
 import logo from '../assets/background1.png'; // 로고 이미지 경로를 확인해주세요.
 import '../App.css';
-import { Link } from 'react-router-dom'; // Link 컴포넌트를 import 합니다.
-
 
 // onSeenWelcome 함수를 props로 받도록 수정합니다.
 function WelcomePage({ onSeenWelcome }) {
