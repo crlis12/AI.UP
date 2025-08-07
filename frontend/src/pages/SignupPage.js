@@ -1,6 +1,12 @@
+// src/pages/SignupPage.js (디자인 복구)
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../App.css';
+// 아이콘 임포트
+import { FaCheck, FaRegEye, FaRegEyeSlash } from "react-icons/fa";
+
+// 백엔드 API 기본 URL (EmailLoginPage.js와 동일하게 설정)
+const BACKEND_API_URL = 'http://localhost:3001'; 
 
 function SignupPage() {
   const navigate = useNavigate();
@@ -14,6 +20,8 @@ function SignupPage() {
   
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // 비밀번호 보이기/숨기기 상태
+  const [signupError, setSignupError] = useState(''); // 회원가입 오류 메시지 상태
 
   // 입력값 변경 핸들러
   const handleInputChange = (e) => {
@@ -70,7 +78,7 @@ function SignupPage() {
 
   // 회원가입 처리
   const handleSignup = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // 폼 기본 제출 동작 방지
     
     if (!validateForm()) {
       return;
@@ -79,7 +87,8 @@ function SignupPage() {
     setIsLoading(true);
     
     try {
-      const response = await fetch('http://localhost:3001/auth/signup', {
+      // 백엔드 API 호출 경로에 /api/auth 추가
+      const response = await fetch(`${BACKEND_API_URL}/api/auth/signup`, { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,108 +102,163 @@ function SignupPage() {
 
       const data = await response.json();
 
-      if (data.success) {
-        alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');
-        navigate('/login');
-      } else {
-        // 서버에서 온 에러 메시지 표시
+      if (response.ok) { // 응답이 성공적일 경우 (HTTP 상태 코드 2xx)
+        console.log('Signup successful:', data);
+        alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.'); // 사용자에게 알림
+        navigate('/login/email'); // 로그인 페이지로 이동
+      } else { // 응답이 실패일 경우 (HTTP 상태 코드 4xx, 5xx)
+        // 서버에서 온 에러 메시지 표시 (구체적인 필드 에러 처리)
         if (data.message.includes('이메일')) {
-          setErrors({ email: data.message });
+          setErrors(prev => ({ ...prev, email: data.message }));
         } else if (data.message.includes('비밀번호')) {
-          setErrors({ password: data.message });
+          setErrors(prev => ({ ...prev, password: data.message }));
         } else if (data.message.includes('사용자명')) {
-          setErrors({ username: data.message });
+          setErrors(prev => ({ ...prev, username: data.message }));
         } else {
-          alert(data.message);
+          setSignupError(data.message); // 기타 서버 에러 메시지는 signupError 상태에 저장
         }
+        console.error('Signup failed:', data.message);
       }
     } catch (error) {
       console.error('회원가입 에러:', error);
-      alert('회원가입 요청 실패. 네트워크를 확인해주세요.');
+      setSignupError('회원가입 요청 실패. 네트워크를 확인해주세요.'); // 네트워크 오류 메시지
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="login-container">
-      <h1>마인드 아너스</h1>
-      <h2>회원가입</h2>
-      
-      <form onSubmit={handleSignup} className="login-form">
-        <div className="input-group">
-          <input
-            type="email"
-            name="email"
-            placeholder="이메일"
-            className={`login-input ${errors.email ? 'error' : ''}`}
-            value={formData.email}
-            onChange={handleInputChange}
-            disabled={isLoading}
-          />
-          {errors.email && <span className="error-message">{errors.email}</span>}
-        </div>
-
-        <div className="input-group">
-          <input
-            type="text"
-            name="username"
-            placeholder="사용자명"
-            className={`login-input ${errors.username ? 'error' : ''}`}
-            value={formData.username}
-            onChange={handleInputChange}
-            disabled={isLoading}
-          />
-          {errors.username && <span className="error-message">{errors.username}</span>}
-        </div>
-
-        <div className="input-group">
-          <input
-            type="password"
-            name="password"
-            placeholder="비밀번호 (최소 6자)"
-            className={`login-input ${errors.password ? 'error' : ''}`}
-            value={formData.password}
-            onChange={handleInputChange}
-            disabled={isLoading}
-          />
-          {errors.password && <span className="error-message">{errors.password}</span>}
-        </div>
-
-        <div className="input-group">
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="비밀번호 확인"
-            className={`login-input ${errors.confirmPassword ? 'error' : ''}`}
-            value={formData.confirmPassword}
-            onChange={handleInputChange}
-            disabled={isLoading}
-          />
-          {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
-        </div>
-
-        <button 
-          type="submit" 
-          className="menu-button"
-          disabled={isLoading}
-        >
-          {isLoading ? '처리중...' : '회원가입'}
+    // **디자인 복구: EmailLoginPage와 동일한 최상위 컨테이너 클래스 사용**
+    <div className="email-login-container"> 
+      <header className="page-header">
+        <button onClick={() => navigate(-1)} className="design-back-button">
+          &lt; 뒤로가기
         </button>
-      </form>
+      </header>
 
-      <div className="signup-link">
-        <p>
-          이미 계정이 있으신가요?{' '}
+      {/* **디자인 복구: 메인 컨텐츠 영역 클래스 사용** */}
+      <div className="login-content-wrapper"> 
+        <h1 className="login-title">회원가입</h1> {/* h1 태그에 login-title 클래스 사용 */}
+
+        {/* **디자인 복구: 폼 컨테이너 클래스 사용** */}
+        <div className="login-form-container"> 
+          {/* 이메일 입력 */}
+          <div className="input-group">
+            <label htmlFor="signup-email">이메일</label> 
+            <div className="input-wrapper"> 
+              <input
+                type="email"
+                id="signup-email"
+                name="email" 
+                placeholder="이메일을 입력하세요"
+                className={`login-input ${errors.email ? 'error' : ''}`}
+                value={formData.email}
+                onChange={handleInputChange}
+                disabled={isLoading}
+              />
+              {formData.email && !errors.email && <FaCheck className="input-icon check-icon" />} 
+            </div>
+            {errors.email && <span className="error-message">{errors.email}</span>}
+          </div>
+
+          {/* 사용자명 입력 */}
+          <div className="input-group">
+            <label htmlFor="signup-username">사용자명</label> 
+            <div className="input-wrapper"> 
+              <input
+                type="text"
+                id="signup-username"
+                name="username" 
+                placeholder="사용자명을 입력하세요"
+                className={`login-input ${errors.username ? 'error' : ''}`}
+                value={formData.username}
+                onChange={handleInputChange}
+                disabled={isLoading}
+              />
+              {formData.username && !errors.username && <FaCheck className="input-icon check-icon" />} 
+            </div>
+            {errors.username && <span className="error-message">{errors.username}</span>}
+          </div>
+
+          {/* 비밀번호 입력 */}
+          <div className="input-group">
+            <label htmlFor="signup-password">비밀번호</label> 
+            <div className="input-wrapper"> 
+              <input
+                type={showPassword ? "text" : "password"}
+                id="signup-password"
+                name="password" 
+                placeholder="비밀번호 (최소 6자)"
+                className={`login-input ${errors.password ? 'error' : ''}`}
+                value={formData.password}
+                onChange={handleInputChange}
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                className="input-icon eye-icon"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FaRegEyeSlash /> : <FaRegEye />}
+              </button>
+            </div>
+            {errors.password && <span className="error-message">{errors.password}</span>}
+          </div>
+
+          {/* 비밀번호 확인 입력 */}
+          <div className="input-group">
+            <label htmlFor="signup-confirm-password">비밀번호 확인</label> 
+            <div className="input-wrapper"> 
+              <input
+                type={showPassword ? "text" : "password"}
+                id="signup-confirm-password"
+                name="confirmPassword" 
+                placeholder="비밀번호를 다시 입력하세요"
+                className={`login-input ${errors.confirmPassword ? 'error' : ''}`}
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                className="input-icon eye-icon"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FaRegEyeSlash /> : <FaRegEye />}
+              </button>
+            </div>
+            {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
+          </div>
+
+          {/* 회원가입 오류 메시지 표시 */}
+          {isLoading && <p className="loading-message">처리중...</p>}
+          {signupError && <p className="error-message">{signupError}</p>} 
+
+          {/* 회원가입 버튼 */}
           <button 
-            type="button"
-            className="link-button"
-            onClick={() => navigate('/login')}
+            type="submit" 
+            className="form-login-button" // **디자인 복구: form-login-button 클래스 사용**
             disabled={isLoading}
+            onClick={handleSignup} 
           >
-            로그인하기
+            회원가입
           </button>
-        </p>
+        </div>
+
+        {/* 이미 계정이 있다면 로그인 링크 */}
+        <div className="signup-link">
+          <p>
+            이미 계정이 있으신가요?{' '}
+            <button 
+              type="button"
+              className="link-button"
+              onClick={() => navigate('/login/email')}
+              disabled={isLoading}
+            >
+              로그인하기
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );
