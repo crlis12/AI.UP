@@ -28,7 +28,7 @@ const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
 // LangChain 모델을 초기화합니다.
 const model = new ChatGoogleGenerativeAI({
   apiKey: GEMINI_API_KEY,
-  model: "gemini-pro",
+  model: "gemini-2.5-flash", // gemini-pro에서 gemini-2.5-flash로 변경
 });
 
 // 대화 히스토리를 위한 프롬프트 템플릿을 정의합니다.
@@ -102,21 +102,29 @@ function App() {
   return (
     <div className="App">
       <Routes>
+        {/* 앱의 초기 진입점: 로그인 상태에 따라 리다이렉트 */}
+        <Route 
+          path="/" 
+          element={isLoggedIn ? <Navigate to="/main" /> : <Navigate to="/login" />} 
+        />
+
         {/* 로그인 관련 라우트 */}
         <Route path="/login" element={<WelcomePage />} />
         <Route path="/login/email" element={<EmailLoginPage onLogin={handleLogin} />} />
 
-        {/* 보호된 라우트: 로그인 상태에 따라 리다이렉트 */}
+        {/* 메인 화면 라우트 (이제 '/main' 경로로 접근) */}
         <Route 
-          path="/" 
+          path="/main" 
           element={isLoggedIn ? <MainScreen onSendMessage={handleSendMessage} /> : <Navigate to="/login" />} 
         />
         
+        {/* 채팅 화면 라우트 */}
         <Route 
           path="/chat" 
           element={isLoggedIn ? <ChatWindow messages={messages} onSendMessage={handleSendMessage} isLoading={isLoading} /> : <Navigate to="/login" />} 
         />
 
+        {/* 기타 보호된 라우트 */}
         <Route path="/child-info" element={isLoggedIn ? <ChildInfoPage /> : <Navigate to="/login" />} />
         <Route path="/ai-analysis" element={isLoggedIn ? <AIAnalysisPage /> : <Navigate to="/login" />} />
       </Routes>
