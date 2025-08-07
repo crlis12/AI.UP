@@ -8,44 +8,7 @@ body {
   background-color: #f4f7f6; /* 부드러운 배경색 */
 }
 
-.main-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px 20px;
-  min-height: 100vh;
-  box-sizing: border-box;
-
-
-}
-
-.main-header {
-  text-align: center;
-  margin-bottom: 40px;
-  color: #333;
-  /*text-shadow: 2px 2px 4px rgba(28, 15, 15, 0.6); /* 텍스트 그림자 효과 */
-}
-
-.main-header h1 {
-  font-size: 2.5rem;
-  margin: 0;
-}
-
-.main-header p {
-  font-size: 1.1rem;
-  color: #666;
-}
-
-.main-menu {
-  display: flex;
-  flex-direction: column;
-  gap: 15px; /* 버튼 사이의 간격 */
-  width: 100%;
-  max-width: 400px;
-  
-}
-
-/* 전체 레이아웃 */
+/* --- 전체 레이아웃 --- */
 .main-layout {
   display: flex;
   height: 100vh;
@@ -53,32 +16,7 @@ body {
   position: relative; /* 햄버거 버튼의 위치 기준점 */
 }
 
-.menu-button {
-  
-  width: 100%; /* 너비를 부모 요소에 꽉 채움 */
-  max-width: 400px; /* 최대 너비는 유지 */
-  box-sizing: border-box; /* 패딩을 너비 계산에 포함 */
-  padding: 20px;
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: white;
-  background-color: #466D1D;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  text-decoration: none; /* 링크 밑줄 제거 */
-  text-align: center; /* 텍스트 중앙 정렬 */
-}
-
-.menu-button:hover {
-  background-color: #6b8e68; /* 마우스를 올렸을 때 색상 변경 */
-}
-
-.menu-button {
-  text-decoration: none; /* 링크 밑줄 제거 */
-}
-
+/* --- 로그인 페이지 관련 스타일 --- */
 .login-container {
   display: flex;
   flex-direction: column;
@@ -104,47 +42,10 @@ body {
   border-radius: 8px;
 }
 
-.social-login {
-  display: flex;
-  flex-direction: column;
-  gap: 10px; /* 버튼 사이 간격 */
-  width: 100%;
-  max-width: 350px;
-  margin-top: 20px;
-  padding: 0 20px;
-  box-sizing: border-box;
-}
-
-.social-button {
-  padding: 15px;
-  font-size: 1rem;
-  font-weight: bold;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.social-button:hover {
-  opacity: 0.9;
-}
-
-/* ... 다른 css 코드 ... */
-.social-button:hover {
-  opacity: 0.9;
-}
-
-/* 이제 google 클래스는 사용하지 않으므로 삭제하거나 남겨두어도 됩니다. */
-.google {
-  background-color: #DB4437;
-}
-
-
-/* 햄버거 아이콘 스타일 */
+/* --- 햄버거 메뉴 관련 스타일 --- */
 .hamburger-menu {
   position: absolute;
-  top: 20px;
+  top: 70px;
   left: 20px; /* 왼쪽 상단 */
   font-size: 2rem;
   background: none;
@@ -154,7 +55,6 @@ body {
   z-index: 1001; /* 다른 요소들 위에 보이도록 설정 */
 }
 
-/* 메뉴 패널 스타일 */
 .menu-panel {
   position: fixed; /* 화면에 고정 */
   top: 0;
@@ -171,24 +71,40 @@ body {
   z-index: 1000; /* 햄버거 아이콘 바로 아래에 위치 */
 }
 
+.menu-button {
+  
+  width: 80%;
+  padding: 15px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: white;
+  background-color: #466D1D;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+}
 
-/* 채팅 컨테이너 (메인 콘텐츠 영역) */
+.menu-button:hover {
+  background-color: #6b8e68;
+}
+
+/* --- 채팅 인터페이스 스타일 --- */
 .chat-container {
   flex-grow: 1;
   display: flex;
-  flex-direction: column; /* 자식 요소들을 세로로 정렬 */
+  flex-direction: column;
   height: 100vh;
-  background-color: #f0f4f9; /* 연한 배경색 */
-  padding: 0 20px; /* 좌우 여백 */
+  background-color: #f0f4f9;
+  padding: 0 20px;
   box-sizing: border-box;
 }
 
-/* 1. 상단 공백 영역 */
 .chat-header {
-  flex-shrink: 0; /* 높이가 줄어들지 않도록 설정 */
-  height: 15vh; /* 화면 높이의 15% 만큼 공백 (조절 가능) */
+  flex-shrink: 0;
+  height: 15vh;
 }
-
 
 .message-list {
   flex-grow: 1;
@@ -198,10 +114,9 @@ body {
   margin: 0 auto;
   padding: 0 20px;
   display: flex;
-  flex-direction: column-reverse; /* 이 줄을 다시 추가해주세요 */
+  flex-direction: column-reverse;
 }
 
-/* 개별 메시지 버블 (기존과 유사) */
 .message {
   padding: 12px 18px;
   border-radius: 20px;
@@ -221,26 +136,30 @@ body {
 .message.user {
   background-color: #d8e6ff;
   color: #1f1f1f;
-  align-self: flex-end; /* 이 줄을 다시 추가해주세요 */
+  align-self: flex-end;
+  margin-right: 30px;
 }
 
-/* 메시지 입력 폼: Gemini 스타일의 입력창 */
 .message-form {
-  flex-shrink: 0; /* 높이가 줄어들지 않도록 설정 */
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  padding: 20px 0 40px 0; /* 위아래 여백 */
+  padding: 20px 0 40px 0;
   width: 100%;
   max-width: 800px;
-  margin: 0 auto; /* 중앙 정렬 */
+  margin: 0 auto;
   box-sizing: border-box;
   position: relative; 
 }
 
-/* 메시지 입력창 스타일 수정 */
+.input-wrapper {
+  flex-grow: 1;
+  position: relative;
+}
+
 .message-input {
-  width: 100%; /* 부모 요소(.input-wrapper)의 전체 너비를 차지하도록 설정 */
-  box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
+  width: 100%;
+  box-sizing: border-box;
   border: none;
   background-color: #e9eef3;
   border-radius: 25px;
@@ -259,7 +178,6 @@ body {
   color: #555;
 }
 
-/* 파일 첨부(+) 버튼 스타일 */
 .attachment-button {
   display: flex;
   align-items: center;
@@ -274,15 +192,14 @@ body {
   color: #555;
   cursor: pointer;
   margin-right: 10px;
-  flex-shrink: 0; /* 크기가 줄어들지 않도록 설정 */
+  flex-shrink: 0;
 }
 
-/* 파일 첨부 팝업 메뉴 스타일 */
 .attachment-menu {
   position: absolute;
-  bottom: 100%; /* 입력창 바로 위에 위치 */
+  bottom: 100%;
   left: 0;
-  margin-bottom: 10px; /* 입력창과의 간격 */
+  margin-bottom: 10px;
   background-color: white;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -304,7 +221,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  white-space: nowrap; /* 글자가 줄바꿈되지 않도록 */
+  white-space: nowrap;
 }
 
 .attachment-menu button:hover {
@@ -317,7 +234,6 @@ body {
   border: 1px solid #ddd;
 }
 
-/* 일반 파일 미리보기 아이콘 스타일 */
 .file-icon {
   background-color: #f0f4f9;
   padding: 10px 15px;
@@ -330,9 +246,498 @@ body {
   max-width: 200px;
 }
 
-/* 입력창을 감싸는 wrapper 스타일 (새로 추가) */
-.input-wrapper {
-  flex-grow: 1; /* 남는 공간을 모두 차지하도록 설정 */
-  position: relative;
+.back-button-global {
+  background-color: transparent; /* 배경 없음 */
+  border: 1px solid #ccc;      /* 회색 테두리 */
+  border-radius: 8px;           /* 둥근 모서리 */
+  padding: 5px 12px;            /* 내부 여백 */
+  font-size: 1.5rem;            /* 아이콘 크기 */
+  cursor: pointer;              /* 마우스 커서 모양 */
+  line-height: 1;               /* 줄 간격 */
 }
+
+/* --- WelcomePage.js (첫 번째 로그인 화면) 최종 스타일 --- */
+.welcome-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  height: 100vh;
+  background-color: #f8f9fa;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+.welcome-top, .welcome-logo-section, .welcome-actions {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.welcome-top {
+  align-items: flex-start;
+}
+
+.welcome-title {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #466D1D;
+  margin: 0;
+}
+
+.welcome-logo-section {
+  text-align: center;
+  color: #495057;
+}
+
+.welcome-logo {
+  width: 500px;
+  margin-bottom: 10px;
+}
+
+.welcome-actions {
+  gap: 15px;
+}
+
+.welcome-login-button {
+  width: 100%;
+  padding: 15px;
+  background-color: #466D1D;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.welcome-links {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.welcome-links a {
+  color: #6c757d;
+  text-decoration: none;
+  margin: 0 5px;
+}
+
+/* --- EmailLoginPage.js (두 번째 로그인 화면) 스타일 --- */
+.login-page-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80px 20px 0 20px;
+  height: 100vh;
+  background-color: #ffffff;
+  box-sizing: border-box;
+}
+
+.login-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #343a40;
+  margin-bottom: 40px;
+  width: 100%;
+  max-width: 320px;
+  text-align: left;
+}
+
+.login-form-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 320px;
+  gap: 10px;
+}
+
+.login-form-container label {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #495057;
+  margin-bottom: 5px;
+}
+
+.login-form-container input {
+  padding: 12px;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.forgot-password-link {
+  text-align: right;
+  font-size: 0.8rem;
+  color: #007bff;
+  text-decoration: none;
+  margin-bottom: 20px;
+}
+
+.form-login-button {
+  width: 100%;
+  padding: 15px;
+  background-color: #466D1D;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.google-login-button-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+}/* --- EmailLoginPage.js (두 번째 로그인 화면) 최종 스타일 --- */
+
+/* 기존 .login-page-container 스타일은 삭제하고 아래 코드로 대체합니다. */
+.email-login-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f8f9fa; /* 시안과 유사한 밝은 회색 배경 */
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.page-header {
+  width: 100%;
+  max-width: 350px; /* 컨텐츠 너비와 맞춤 */
+  margin: 0 auto;
+  margin-bottom: 20px;
+}
+
+/* 시안에 맞는 새로운 뒤로가기 버튼 스타일 */
+.design-back-button {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: #333;
+  cursor: pointer;
+  padding: 0;
+}
+
+.login-content-wrapper {
+  width: 100%;
+  max-width: 350px; /* 폼의 최대 너비 설정 */
+  margin: 0 auto; /* 수평 중앙 정렬 */
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* 요소 간 간격 */
+}
+
+.login-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #1c542f; /* 시안의 진한 녹색 */
+  margin: 0;
+  text-align: left;
+}
+
+.login-form-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 8px; /* 레이블과 입력 필드 간의 간격 */
+}
+
+.login-form-container label {
+  font-size: 0.9rem;
+  font-weight: 500; /* 조금 얇게 */
+  color: #495057;
+  margin-top: 10px; /* 각 항목 간의 상단 여백 */
+}
+
+/* 입력 필드와 아이콘을 감싸는 래퍼 */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-form-container input {
+  width: 100%;
+  padding: 15px;
+  padding-right: 40px; /* 아이콘을 위한 공간 확보 */
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box; /* 패딩과 테두리를 너비에 포함 */
+}
+
+/* 입력 필드 내 아이콘 스타일 */
+.input-icon {
+  position: absolute;
+  right: 15px;
+  color: #adb5bd; /* 기본 아이콘 색상 */
+  background: none;
+  border: none;
+}
+
+.input-icon.check-icon {
+  color: #1c542f; /* 유효성 검사 통과 시 녹색 */
+}
+
+.input-icon.eye-icon {
+  cursor: pointer;
+  padding: 0;
+  font-size: 1.2rem;
+}
+
+
+.forgot-password-link {
+  text-align: right;
+  font-size: 0.9rem;
+  color: #E57C23; /* 시안의 주황/갈색 */
+  text-decoration: none;
+  margin-top: 5px;
+  margin-bottom: 25px;
+}
+
+.form-login-button {
+  width: 100%;
+  padding: 15px;
+  background-color: #1c542f;
+  color: white;
+  border: none;
+  border-radius: 50px; /* pill shape */
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.google-login-button-wrapper {
+  margin-top: 10px;
+  width: 100%;
+}
+/* Google 버튼의 테두리 색상과 텍스트를 커스텀하기 위한 추가 스타일 */
+.google-login-button-wrapper > div {
+  width: 100% !important; /* 너비를 100%로 강제 */
+  border-radius: 50px !important; /* pill shape 강제 */
+}
+
+/* --- PageLayout.js 스타일 (새로 추가된 부분) --- */
+
+.page-layout {
+  padding: 20px;
+}
+
+.page-header {
+  display: flex;
+  flex-direction: column; /* 아이템을 세로로 정렬 */
+  align-items: flex-start; /* 왼쪽 정렬 */
+  gap: 15px; /* 버튼 사이의 간격 */
+  margin-bottom: 20px;
+}
+
+/* 새로운 뒤로가기 버튼 스타일 */
+.back-button-global {
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* PageLayout 내부의 햄버거 메뉴 위치 조정 */
+.page-header .hamburger-menu {
+  position: static; /* absolute 속성 제거 */
+  font-size: 1.8rem;
+  padding: 0;
+  top: auto; /* 기존 top, left 값 초기화 */
+  left: auto;
+}
+
+.page-content {
+  /* 페이지 내용이 들어갈 공간 */
+}
+
+
+/* --- MainScreen.js 전용 스타일 (새로 추가) --- */
+
+/* --- MainScreen.js 전용 스타일 (최종 수정본) --- */
+
+.main-screen {
+  width: 100%;
+  max-width: 400px; /* 스마트폰 화면 너비 */
+  height: 100vh;
+  margin: 0 auto;
+  background-color: #f2f3f6;
+  display: flex;
+  flex-direction: column;
+  position: relative; /* 하단 채팅창 고정의 기준점 */
+  overflow: hidden;
+}
+
+.main-screen__scroll-view {
+  flex-grow: 1;
+  overflow-y: auto;
+  /* 채팅창 높이만큼 하단에 공간을 확보해서 스크롤이 가려지지 않게 함 */
+  padding-bottom: 80px; 
+}
+
+/* --- 상단 프로필 영역 --- */
+.main-screen__profile-container {
+  position: relative;
+  padding: 40px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.main-screen__profile-image {
+  width: 70%;
+  max-width: 230px;
+  z-index: 10;
+}
+
+.main-screen__arrow-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #aaa;
+  z-index: 20;
+  padding: 10px;
+}
+
+.main-screen__arrow-button:first-of-type {
+  left: 20px;
+}
+
+.main-screen__arrow-button:last-of-type {
+  right: 20px;
+}
+
+
+/* --- 하단 컨텐츠 영역 --- */
+.main-screen__content-box {
+  background-color: white;
+  border-radius: 30px 30px 0 0;
+  padding: 25px;
+  transform: translateY(-20px); 
+  z-index: 15;
+  margin-bottom: -50px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.main-screen__title-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.main-screen__badge {
+  background-color: #f0f2f5;
+  border-radius: 20px;
+  padding: 8px 15px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: none;
+}
+
+.main-screen__name {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.main-screen__subtitle {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #555;
+  margin: 0 0 10px 5px;
+}
+
+.main-screen__widgets-container {
+  display: flex;
+  gap: 15px;
+}
+
+.main-screen__widget {
+  flex: 1;
+  background-color: #f7f8fa;
+  border-radius: 15px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.main-screen__widget-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.main-screen__checkmark {
+  color: #34A853;
+  font-weight: bold;
+}
+
+.main-screen__widget-item-small {
+  font-size: 0.8rem;
+  color: #333;
+}
+
+
+/* --- 하단 채팅창 --- */
+.main-screen__chat-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  max-width: 400px; /* main-screen 너비와 동일하게 */
+  background-color: white;
+  padding: 10px 15px 20px 15px;
+  border-top: 1px solid #e9e9e9;
+  z-index: 20;
+  box-sizing: border-box;
+}
+
+/* MessageInput 컴포넌트에 적용될 스타일 */
+.new-chat-form {
+  display: flex; align-items: center; background-color: #f0f2f5; border-radius: 25px; padding: 5px;
+}
+.new-chat-button-plus {
+  background: none; border: none; font-size: 1.8rem; font-weight: 300; color: #555; cursor: pointer; padding: 0 10px;
+}
+.new-chat-input {
+  flex-grow: 1; border: none; background: transparent; padding: 10px 5px; font-size: 1rem; outline: none;
+}
+.new-chat-button-send {
+  background: none; border: none; font-size: 1.5rem; color: #555; cursor: pointer; padding: 0 12px;
+}
+
+/* --- ChatWindow.js 뒤로가기 버튼 스타일 (App.css에 추가) --- */
+
+.chat-window-header {
+  padding: 15px 20px 0 20px;
+}
+
+.chat-window-back-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  color: #555;
+  font-weight: 500;
+}
+
 
