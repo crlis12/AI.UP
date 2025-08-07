@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { Routes, Route, Link, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import ChildInfoPage from './pages/ChildInfoPage';
@@ -6,6 +5,7 @@ import AIAnalysisPage from './pages/AIAnalysisPage';
 import SideMenu from './components/SideMenu'; // 새로 추가
 import ChatWindow from './components/ChatWindow'; // 새로 추가
 import './App.css';
+import React, { useState, useEffect } from 'react';
 
 // MainScreen은 이제 레이아웃만 담당합니다.
 function MainScreen() {
@@ -19,11 +19,19 @@ function MainScreen() {
 
 // App 컴포넌트 (라우터 및 로그인 관리)
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    localStorage.getItem('isLoggedIn') === 'true'
+  );
 
   const handleLogin = () => {
     setIsLoggedIn(true);
+    localStorage.setItem('isLoggedIn', 'true');
   };
+
+  useEffect(() => {
+    const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    setIsLoggedIn(loggedIn);
+  }, []);
 
   return (
     <div className="App">
