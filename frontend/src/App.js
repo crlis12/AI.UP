@@ -44,24 +44,17 @@ const chain = RunnableSequence.from([prompt, model]);
 
 function App() {
   // 로그인 상태 관리 (localStorage에서 초기값 가져오기)
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    localStorage.getItem('isLoggedIn') === 'true'
-  );
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   // 모든 대화 내용을 저장할 'messages' 상태를 만듭니다.
   const [messages, setMessages] = useState([]);
   // 로딩 상태를 관리합니다.
   const [isLoading, setIsLoading] = useState(false);
 
-  // 컴포넌트 마운트 시 localStorage에서 로그인 상태를 확인 (백엔드 개발자님 코드에서 가져옴)
-  useEffect(() => {
-    const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    setIsLoggedIn(loggedIn);
-  }, []);
+
 
   // 로그인 처리 함수
   const handleLogin = () => {
     setIsLoggedIn(true);
-    localStorage.setItem('isLoggedIn', 'true');
   };
 
   // 새로운 메시지를 받아 대화 목록에 추가하고 LLM 응답을 받는 함수
