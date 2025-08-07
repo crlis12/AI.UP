@@ -137,6 +137,7 @@ body {
   background-color: #d8e6ff;
   color: #1f1f1f;
   align-self: flex-end;
+  margin-right: 30px;
 }
 
 .message-form {
@@ -720,6 +721,23 @@ body {
 }
 .new-chat-button-send {
   background: none; border: none; font-size: 1.5rem; color: #555; cursor: pointer; padding: 0 12px;
+}
+
+/* --- ChatWindow.js 뒤로가기 버튼 스타일 (App.css에 추가) --- */
+
+.chat-window-header {
+  padding: 15px 20px 0 20px;
+}
+
+.chat-window-back-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  color: #555;
+  font-weight: 500;
 }
 
 

@@ -1,13 +1,27 @@
-// src/components/MainScreen.js (이 코드로 교체하세요)
+// src/components/MainScreen.js (수정된 최종 버전)
 
 import React from "react";
 import '../App.css'; 
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
-// MessageInput을 실제로 사용하기 위해 import 합니다.
 import MessageInput from "./MessageInput";
 import babyProfile from '../assets/baby_image.png';
+// 1. 페이지 이동을 위한 useNavigate hook을 import 합니다.
+import { useNavigate } from "react-router-dom";
 
-export default function MainScreen(props) {
+
+// 2. props에서 onSendMessage 함수를 받도록 수정합니다.
+export default function MainScreen({ onSendMessage }) {
+    // 3. useNavigate를 초기화하여 페이지 이동 기능을 사용할 수 있게 합니다.
+    const navigate = useNavigate();
+
+    // 4. 메시지 전송과 페이지 이동을 함께 처리하는 함수를 만듭니다.
+    const handleInitialSend = (messageText) => {
+        // App.js에서 받은 함수를 실행 -> 대화 내용이 App.js에 저장됩니다.
+        onSendMessage(messageText); 
+        // '/chat' 페이지로 이동합니다.
+        navigate('/chat');
+    };
+
 	return (
 		<div className="main-screen">
 			{/* 스크롤되는 영역 */}
@@ -18,11 +32,10 @@ export default function MainScreen(props) {
 						<FiChevronLeft size={30} />
 					</button>
 					<img
-    src={babyProfile} // import한 이미지 변수를 사용
-    alt="Profile"
-    className="main-screen__profile-image"
-/>
-
+						src={babyProfile} // import한 이미지 변수를 사용
+						alt="Profile"
+						className="main-screen__profile-image"
+					/>
 					<button className="main-screen__arrow-button">
 						<FiChevronRight size={30} />
 					</button>
@@ -54,9 +67,9 @@ export default function MainScreen(props) {
 
 			{/* 하단 채팅 입력창 */}
 			<div className="main-screen__chat-bar">
-				{/* 임시 플레이스홀더를 실제 MessageInput 컴포넌트로 교체했습니다. */}
 				<MessageInput 
-                    onSendMessage={(message) => console.log("메시지 전송:", message)} 
+                    // 5. onSendMessage prop에 console.log 대신 새로 만든 함수를 연결합니다.
+                    onSendMessage={handleInitialSend} 
                     isLoading={false}
                 />
 			</div>

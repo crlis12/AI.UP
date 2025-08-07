@@ -36,7 +36,7 @@ function EmailLoginPage({ onLogin }) {
         <header className="page-header">
           {/* 디자인 시안과 같이 'Back' 텍스트를 추가합니다. BackButton 컴포넌트를 수정하거나 아래와 같이 직접 구현할 수 있습니다. */}
           <button onClick={() => navigate(-1)} className="design-back-button">
-            &lt; Back
+            &lt; 뒤로가기
           </button>
         </header>
 
@@ -68,7 +68,7 @@ function EmailLoginPage({ onLogin }) {
               </button>
             </div>
 
-            <a href="/forgot-password" className="forgot-password-link">Forgot password?</a>
+            <a href="/forgot-password" className="forgot-password-link">비밀번호 찾기</a>
 
             <button onClick={handleLogin} className="form-login-button">로그인</button>
 
