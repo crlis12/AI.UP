@@ -6,9 +6,11 @@ import './App.css';
 
 // 페이지 컴포넌트 임포트 (src/pages 폴더에 있다고 가정)
 import WelcomePage from './pages/WelcomePage';
-import EmailLoginPage from './pages/EmailLoginPage';
-import SignupPage from './pages/SignupPage'; 
+
+import SigninPage from './pages/SigninPage';
+import SignupPage from './pages/SignupPage';
 import ChildInfoPage from './pages/ChildInfoPage';
+import ChildDetailPage from './pages/ChildDetailPage';
 import AIAnalysisPage from './pages/AIAnalysisPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import VerifyCodePage from './pages/VerifyCodePage';
@@ -47,7 +49,12 @@ const chain = RunnableSequence.from([prompt, model]);
 
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); 
+
+  // 로그인 상태 관리 (localStorage에서 초기값 가져오기)
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // 초기값 false로 유지
+  // 사용자 정보 상태 관리
+  const [currentUser, setCurrentUser] = useState(null);
+  // **새로운 상태: 웰컴 화면을 이미 봤는지 여부**
   const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -57,6 +64,18 @@ function App() {
 
   // 2. localStorage와 연동하는 useEffect 추가
   useEffect(() => {
+
+    // 로그인 상태 확인 (기존 로직 유지)
+    const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    setIsLoggedIn(loggedIn);
+    
+    // 사용자 정보 확인
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+      setCurrentUser(JSON.parse(savedUser));
+    }
+    
+    // **새로운 로직: 웰컴 화면을 봤는지 확인**
     const seenWelcome = localStorage.getItem('hasSeenWelcome') === 'true';
     setHasSeenWelcome(seenWelcome);
 
@@ -67,14 +86,12 @@ function App() {
     }
   }, []);
 
-  // 3. 아이 정보를 저장하고 localStorage에 업데이트하는 함수
-  const handleSaveChildInfo = (info) => {
-    localStorage.setItem('childInfo', JSON.stringify(info));
-    setChildInfo(info);
-  };
-
-  const handleLogin = () => {
+  // 로그인 처리 함수
+  const handleLogin = (user) => {
     setIsLoggedIn(true);
+    setCurrentUser(user);
+    localStorage.setItem('isLoggedIn', 'true'); // 로그인 상태 유지 로직 유지
+    localStorage.setItem('currentUser', JSON.stringify(user)); // 사용자 정보 저장
   };
 
   const handleSeenWelcome = () => {
@@ -82,6 +99,15 @@ function App() {
     localStorage.setItem('hasSeenWelcome', 'true');
   };
 
+  // 로그아웃 처리 함수
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setCurrentUser(null);
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('currentUser');
+    // 메시지도 초기화
+    setMessages([]);
+  };
   // 새로운 메시지를 받아 대화 목록에 추가하고 LLM 응답을 받는 함수
   const handleSendMessage = async (messageText) => {
     // 이전에 요청을 처리 중이라면 중복 실행을 방지합니다.
@@ -132,16 +158,13 @@ function App() {
 
         {/* 로그인 관련 라우트 */}
         <Route path="/login" element={<WelcomePage onSeenWelcome={handleSeenWelcome} />} />
-        <Route path="/login/email" element={<EmailLoginPage onLogin={handleLogin} />} />
-        <Route path="/signup" element={<SignupPage />} /> 
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/verify-code" element={<VerifyCodePage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        {/* 보호된 라우트: 로그인 상태에 따라 리다이렉트 */}
-        <Route 
-          path="/main" 
-          element={isLoggedIn ? <MainScreen onSendMessage={handleSendMessage} childInfo={childInfo} /> : <Navigate to="/login" />} 
+        <Route path="/signin" element={<SigninPage onLogin={handleLogin} />} />
+        <Route path="/signup" element={<SignupPage />} />
+        {/* 메인 화면 라우트 (이제 '/main' 경로로 접근) */}
+        <Route
+          path="/main"
+          element={isLoggedIn ? <MainScreen onSendMessage={handleSendMessage} currentUser={currentUser} onLogout={handleLogout} /> : <Navigate to="/login" />}
         />
         
         <Route 
@@ -150,10 +173,10 @@ function App() {
         />
 
         {/* 기타 보호된 라우트 */}
-        <Route 
-          path="/child-info" 
-          element={isLoggedIn ? <ChildInfoPage onSave={handleSaveChildInfo} currentInfo={childInfo} /> : <Navigate to="/login" />} 
-        />
+
+        <Route path="/child-info" element={isLoggedIn ? <ChildInfoPage /> : <Navigate to="/login" />} />
+        <Route path="/child-detail/:childId" element={isLoggedIn ? <ChildDetailPage /> : <Navigate to="/login" />} />
+
         <Route path="/ai-analysis" element={isLoggedIn ? <AIAnalysisPage /> : <Navigate to="/login" />} />
       </Routes>
     </div>

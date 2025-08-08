@@ -15,7 +15,8 @@ function SignupPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    username: ''
+    username: '',
+    nickname: ''
   });
   
   const [errors, setErrors] = useState({});
@@ -58,6 +59,13 @@ function SignupPage() {
       newErrors.username = '사용자명은 최소 2자 이상이어야 합니다.';
     }
     
+    // 닉네임 검증
+    if (!formData.nickname) {
+      newErrors.nickname = '닉네임을 입력해주세요.';
+    } else if (formData.nickname.trim().length < 2) {
+      newErrors.nickname = '닉네임은 최소 2자 이상이어야 합니다.';
+    }
+    
     // 비밀번호 검증
     if (!formData.password) {
       newErrors.password = '비밀번호를 입력해주세요.';
@@ -96,24 +104,28 @@ function SignupPage() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          username: formData.username.trim()
+          username: formData.username.trim(),
+          nickname: formData.nickname.trim()
         }),
       });
 
       const data = await response.json();
 
-      if (response.ok) { // 응답이 성공적일 경우 (HTTP 상태 코드 2xx)
-        console.log('Signup successful:', data);
-        alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.'); // 사용자에게 알림
-        navigate('/login/email'); // 로그인 페이지로 이동
-      } else { // 응답이 실패일 경우 (HTTP 상태 코드 4xx, 5xx)
-        // 서버에서 온 에러 메시지 표시 (구체적인 필드 에러 처리)
+
+      if (data.success) {
+        alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');
+        navigate('/signin');
+      } else {
+        // 서버에서 온 에러 메시지 표시
         if (data.message.includes('이메일')) {
           setErrors(prev => ({ ...prev, email: data.message }));
         } else if (data.message.includes('비밀번호')) {
           setErrors(prev => ({ ...prev, password: data.message }));
         } else if (data.message.includes('사용자명')) {
-          setErrors(prev => ({ ...prev, username: data.message }));
+
+          setErrors({ username: data.message });
+        } else if (data.message.includes('닉네임')) {
+          setErrors({ nickname: data.message });
         } else {
           setSignupError(data.message); // 기타 서버 에러 메시지는 signupError 상태에 저장
         }
@@ -128,13 +140,85 @@ function SignupPage() {
   };
 
   return (
-    // **디자인 복구: EmailLoginPage와 동일한 최상위 컨테이너 클래스 사용**
-    <div className="email-login-container"> 
-      <header className="page-header">
-        <button onClick={() => navigate(-1)} className="design-back-button">
-          &lt; 뒤로가기
+
+    <div className="login-container">
+      <h1>AI.UP</h1>
+      <h2>회원가입</h2>
+      
+      <form onSubmit={handleSignup} className="login-form">
+        <div className="input-group">
+          <input
+            type="email"
+            name="email"
+            placeholder="이메일"
+            className={`login-input ${errors.email ? 'error' : ''}`}
+            value={formData.email}
+            onChange={handleInputChange}
+            disabled={isLoading}
+          />
+          {errors.email && <span className="error-message">{errors.email}</span>}
+        </div>
+
+        <div className="input-group">
+          <input
+            type="text"
+            name="username"
+            placeholder="사용자명 (실명)"
+            className={`login-input ${errors.username ? 'error' : ''}`}
+            value={formData.username}
+            onChange={handleInputChange}
+            disabled={isLoading}
+          />
+          {errors.username && <span className="error-message">{errors.username}</span>}
+        </div>
+
+        <div className="input-group">
+          <input
+            type="text"
+            name="nickname"
+            placeholder="닉네임 (앱에서 사용할 이름)"
+            className={`login-input ${errors.nickname ? 'error' : ''}`}
+            value={formData.nickname}
+            onChange={handleInputChange}
+            disabled={isLoading}
+          />
+          {errors.nickname && <span className="error-message">{errors.nickname}</span>}
+        </div>
+
+        <div className="input-group">
+          <input
+            type="password"
+            name="password"
+            placeholder="비밀번호 (최소 6자)"
+            className={`login-input ${errors.password ? 'error' : ''}`}
+            value={formData.password}
+            onChange={handleInputChange}
+            disabled={isLoading}
+          />
+          {errors.password && <span className="error-message">{errors.password}</span>}
+        </div>
+
+        <div className="input-group">
+          <input
+            type="password"
+            name="confirmPassword"
+            placeholder="비밀번호 확인"
+            className={`login-input ${errors.confirmPassword ? 'error' : ''}`}
+            value={formData.confirmPassword}
+            onChange={handleInputChange}
+            disabled={isLoading}
+          />
+          {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
+        </div>
+
+        <button 
+          type="submit" 
+          className="menu-button"
+          disabled={isLoading}
+        >
+          {isLoading ? '처리중...' : '회원가입'}
         </button>
-      </header>
+      </form>
 
       {/* **디자인 복구: 메인 컨텐츠 영역 클래스 사용** */}
       <div className="login-content-wrapper"> 
@@ -260,6 +344,7 @@ function SignupPage() {
           </p>
         </div>
       </div>
+
     </div>
   );
 }

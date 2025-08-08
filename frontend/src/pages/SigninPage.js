@@ -1,4 +1,4 @@
-// src/pages/EmailLoginPage.js (Google 로그인 기능 제거)
+
 
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -10,10 +10,8 @@ import '../App.css';
 import { FaCheck } from "react-icons/fa";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
-// 백엔드 API 기본 URL (직접 명시)
-const BACKEND_API_URL = 'http://localhost:3001'; 
 
-function EmailLoginPage({ onLogin }) {
+function SigninPage({ onLogin }) {
   const navigate = useNavigate();
   // 비밀번호 보이기/숨기기 상태 관리
   const [showPassword, setShowPassword] = useState(false);
@@ -38,13 +36,11 @@ function EmailLoginPage({ onLogin }) {
 
       const data = await response.json();
 
-      if (response.ok) { // 응답이 성공적일 경우 (HTTP 상태 코드 2xx)
-        console.log('Login successful:', data);
-        onLogin(); // App.js의 로그인 상태 업데이트
-        navigate('/'); // 메인 화면으로 이동 (App.js에서 /main으로 리다이렉트)
-      } else { // 응답이 실패일 경우 (HTTP 상태 코드 4xx, 5xx)
-        setLoginError(data.message || '로그인에 실패했습니다.'); // 백엔드에서 보낸 메시지 또는 기본 메시지
-        console.error('Login failed:', data.message);
+      if (data.success) {
+        onLogin(data.user); // 부모 컴포넌트에 유저 정보 전달
+        navigate('/'); // 메인 페이지로 이동
+      } else {
+        alert(data.message); // 에러 메시지 출력
       }
     } catch (error) { // 네트워크 오류 등 예외 발생 시
       setLoginError('네트워크 오류가 발생했습니다.');
@@ -149,4 +145,4 @@ function EmailLoginPage({ onLogin }) {
   );
 }
 
-export default EmailLoginPage;
+export default SigninPage;

@@ -22,6 +22,7 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+
 });
 // --- 설정 끝 ---
 
@@ -67,6 +68,7 @@ router.post('/forgot-password', (req, res) => {
             // 터미널에 상세 오류를 출력하는 코드 추가
             console.error('이메일 발송 오류:', mailErr);
             return res.status(500).json({ message: '이메일 발송에 실패했습니다.' });
+
           }
           res.status(200).json({ message: '인증 이메일이 발송되었습니다.' });
         });
