@@ -22,6 +22,12 @@ export default function MainScreen({ onSendMessage }) {
         navigate('/chat');
     };
 
+    const handleAttachFiles = (files) => {
+        // 파일 첨부 시에도 채팅 화면으로 이동하여 미리보기를 보여주기 위해
+        onSendMessage('', files);
+        navigate('/chat');
+    };
+
 	return (
 		<div className="main-screen">
 			{/* 스크롤되는 영역 */}
@@ -67,9 +73,10 @@ export default function MainScreen({ onSendMessage }) {
 
 			{/* 하단 채팅 입력창 */}
 			<div className="main-screen__chat-bar">
-				<MessageInput 
+                <MessageInput 
                     // 5. onSendMessage prop에 console.log 대신 새로 만든 함수를 연결합니다.
-                    onSendMessage={handleInitialSend} 
+                    onSendMessage={handleInitialSend}
+                    onAttachFiles={handleAttachFiles}
                     isLoading={false}
                 />
 			</div>

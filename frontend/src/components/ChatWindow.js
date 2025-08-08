@@ -7,10 +7,10 @@ import MessageInput from './MessageInput';
 import '../App.css'; // App.css를 import 합니다.
 import { FiChevronLeft } from 'react-icons/fi'; // 뒤로가기 아이콘
 
-// App.js에서 내려주는 messages와 onSendMessage를 props로 받습니다.
-function ChatWindow({ messages, onSendMessage }) {
+// App.js에서 내려주는 messages, isLoading, onSendMessage를 props로 받습니다.
+function ChatWindow({ messages, isLoading, onSendMessage }) {
   const navigate = useNavigate();
-  const isLoading = false; 
+  
 
   return (
     // 1. MainScreen과 동일한 클래스 이름을 사용합니다.
@@ -35,7 +35,11 @@ function ChatWindow({ messages, onSendMessage }) {
 
       {/* 4. 채팅 입력창도 MainScreen과 동일한 구조와 클래스 이름을 사용합니다. */}
       <div className="main-screen__chat-bar">
-        <MessageInput onSendMessage={onSendMessage} isLoading={isLoading} />
+        <MessageInput
+          onSendMessage={onSendMessage}
+          onAttachFiles={(files) => onSendMessage('', files)}
+          isLoading={isLoading}
+        />
       </div>
     </div>
   );

@@ -60,13 +60,27 @@ function App() {
     setHasSeenWelcome(true);
     localStorage.setItem('hasSeenWelcome', 'true');
   };
-  // 새로운 메시지를 받아 대화 목록에 추가하고 LLM 응답을 받는 함수
-  const handleSendMessage = async (messageText) => {
-    const userMessage = { text: messageText, sender: 'user' };
+  // 새로운 메시지를 받아 대화 목록에 추가하고 LLM 응답을 받는 함수 (첨부 지원)
+  const handleSendMessage = async (messageText, attachments) => {
+    const hasText = !!(messageText && messageText.trim());
+    const hasAttachments = Array.isArray(attachments) && attachments.length > 0;
+    if (!hasText && !hasAttachments) return;
+
+    const userMessage = {
+      text: hasText ? messageText : '',
+      sender: 'user',
+      attachments: hasAttachments ? attachments : [],
+    };
+
+    // 먼저 사용자 메시지를 추가
     setMessages(prevMessages => [...prevMessages, userMessage]);
+
+    // 텍스트가 없으면 LLM 호출은 생략 (첨부만 업로드/표시)
+    if (!hasText) return;
+
     setIsLoading(true);
     try {
-      const history = messages.map(msg =>
+      const history = [...messages, userMessage].map(msg =>
         msg.sender === 'user' ? new HumanMessage(msg.text) : new AIMessage(msg.text)
       );
       const response = await chain.invoke({
@@ -74,14 +88,12 @@ function App() {
         history: history,
       });
 
-      console.log("Gemini API 응답:", response); // 응답 로깅
+      console.log("Gemini API 응답:", response);
 
-      // 응답 내용이 있는지 확인
       if (response && response.content) {
         const geminiMessage = { text: response.content, sender: 'gemini' };
         setMessages(prevMessages => [...prevMessages, geminiMessage]);
       } else {
-        // 응답 내용이 비어있는 경우
         console.error("Gemini API 응답이 비어있습니다.");
         const errorMessage = { text: "죄송합니다. 응답을 생성하지 못했습니다.", sender: 'gemini' };
         setMessages(prevMessages => [...prevMessages, errorMessage]);
@@ -115,7 +127,15 @@ function App() {
         {/* 채팅 화면 라우트 */}
         <Route
           path="/chat"
-          element={isLoggedIn ? <ChatWindow messages={messages} onSendMessage={handleSendMessage} isLoading={isLoading} /> : <Navigate to="/login" />}
+          element={isLoggedIn ? (
+            <ChatWindow
+              messages={messages}
+              isLoading={isLoading}
+              onSendMessage={handleSendMessage}
+            />
+          ) : (
+            <Navigate to="/login" />
+          )}
         />
         {/* 기타 보호된 라우트 */}
         <Route path="/child-info" element={isLoggedIn ? <ChildInfoPage /> : <Navigate to="/login" />} />
