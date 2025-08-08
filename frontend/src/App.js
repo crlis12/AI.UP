@@ -15,7 +15,7 @@ import ChatWindow from './components/ChatWindow';
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
-import { HumanMessage, AIMessage } from "@langchain/core/messages";
+import { HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages";
 import { MessagesPlaceholder } from "@langchain/core/prompts";
 // 환경 변수에서 API 키를 가져옵니다.
 const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
@@ -60,6 +60,17 @@ function App() {
     setHasSeenWelcome(true);
     localStorage.setItem('hasSeenWelcome', 'true');
   };
+  // 브라우저 File을 data URL로 변환
+  const fileToDataUrl = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  const isImageFile = (file) => typeof file?.type === 'string' && file.type.startsWith('image/');
+  const isVideoFile = (file) => typeof file?.type === 'string' && file.type.startsWith('video/');
+
   // 새로운 메시지를 받아 대화 목록에 추가하고 LLM 응답을 받는 함수 (첨부 지원)
   const handleSendMessage = async (messageText, attachments) => {
     const hasText = !!(messageText && messageText.trim());
@@ -75,18 +86,51 @@ function App() {
     // 먼저 사용자 메시지를 추가
     setMessages(prevMessages => [...prevMessages, userMessage]);
 
-    // 텍스트가 없으면 LLM 호출은 생략 (첨부만 업로드/표시)
-    if (!hasText) return;
+    // 이미지/영상 첨부가 있는지 판단
+    const imageFiles = (attachments || []).filter(isImageFile);
+    const videoFiles = (attachments || []).filter(isVideoFile);
+
+    // 비디오 첨부는 현재 LLM 전송에서 제외(로컬 개발 환경에서는 공개 URL/파일 업로드 필요)
+    const hasImages = imageFiles.length > 0;
+
+    // 텍스트 없고, 이미지도 없으면 LLM 호출 생략
+    if (!hasText && !hasImages) return;
 
     setIsLoading(true);
     try {
-      const history = [...messages, userMessage].map(msg =>
-        msg.sender === 'user' ? new HumanMessage(msg.text) : new AIMessage(msg.text)
-      );
-      const response = await chain.invoke({
-        input: messageText,
-        history: history,
-      });
+      let response;
+      if (hasImages) {
+        // 이미지 파일은 data URL로 변환하여 멀티모달 메시지로 전송
+        const imageDataUrls = await Promise.all(imageFiles.map(fileToDataUrl));
+
+        const contentParts = [];
+        if (hasText) {
+          contentParts.push({ type: 'text', text: messageText });
+        }
+        for (const dataUrl of imageDataUrls) {
+          // LangChain GoogleGenAI는 data URL을 image_url로 전달해도 처리됨
+          contentParts.push({ type: 'image_url', image_url: dataUrl });
+        }
+
+        const historyMessages = [...messages].map(msg =>
+          msg.sender === 'user' ? new HumanMessage(msg.text || '') : new AIMessage(msg.text || '')
+        );
+
+        response = await model.invoke([
+          new SystemMessage("You are a helpful assistant. Please answer the user's questions."),
+          ...historyMessages,
+          new HumanMessage({ content: contentParts })
+        ]);
+      } else {
+        // 텍스트 전용 기존 체인 호출 경로
+        const history = [...messages, userMessage].map(msg =>
+          msg.sender === 'user' ? new HumanMessage(msg.text) : new AIMessage(msg.text)
+        );
+        response = await chain.invoke({
+          input: messageText,
+          history: history,
+        });
+      }
 
       console.log("Gemini API 응답:", response);
 
