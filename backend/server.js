@@ -1,4 +1,5 @@
 // backend/server.js
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 // **수정된 부분: auth.js 파일의 실제 경로에 맞게 수정**

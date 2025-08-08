@@ -10,6 +10,9 @@ import EmailLoginPage from './pages/EmailLoginPage';
 import SignupPage from './pages/SignupPage'; 
 import ChildInfoPage from './pages/ChildInfoPage';
 import AIAnalysisPage from './pages/AIAnalysisPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import VerifyCodePage from './pages/VerifyCodePage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 // 컴포넌트 임포트 (src/components 폴더에 있다고 가정)
 import MainScreen from './components/MainScreen';
@@ -131,6 +134,9 @@ function App() {
         <Route path="/login" element={<WelcomePage onSeenWelcome={handleSeenWelcome} />} />
         <Route path="/login/email" element={<EmailLoginPage onLogin={handleLogin} />} />
         <Route path="/signup" element={<SignupPage />} /> 
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/verify-code" element={<VerifyCodePage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         {/* 보호된 라우트: 로그인 상태에 따라 리다이렉트 */}
         <Route 

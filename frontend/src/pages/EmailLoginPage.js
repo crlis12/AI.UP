@@ -1,7 +1,7 @@
 // src/pages/EmailLoginPage.js (Google 로그인 기능 제거)
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 // import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'; // Google 로그인 관련 임포트 제거
 import BackButton from '../components/BackButton'; 
 import '../App.css'; 
@@ -111,7 +111,7 @@ function EmailLoginPage({ onLogin }) {
             {/* 로그인 오류 메시지 표시 */}
             {loginError && <p className="login-error-message">{loginError}</p>} 
 
-            <a href="/forgot-password" className="forgot-password-link">비밀번호 찾기</a>
+            <Link to="/forgot-password" className="forgot-password-link">비밀번호 찾기</Link>
 
             {/* "로그인" 버튼 클릭 시 handleLogin 함수 호출 */}
             <button onClick={handleLogin} className="form-login-button">로그인</button>
