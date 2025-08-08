@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
+const childrenRoutes = require('./routes/children');
 
 const app = express();
 const PORT = 3001;
@@ -11,6 +12,7 @@ app.use(express.json());
 
 // 라우터
 app.use('/auth', authRoutes);
+app.use('/children', childrenRoutes);
 
 // 서버 실행
 app.listen(PORT, () => {
