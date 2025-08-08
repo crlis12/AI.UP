@@ -11,7 +11,7 @@ function WelcomePage({ onSeenWelcome }) {
     if (onSeenWelcome) { // onSeenWelcome 함수가 존재하면 호출합니다.
       onSeenWelcome(); // 웰컴 화면을 봤다고 App.js에 알립니다.
     }
-    navigate('/login/email'); // 이메일 로그인 페이지로 이동합니다.
+    navigate('/signin'); // 로그인 페이지로 이동합니다.
   };
   return (
     <div className="welcome-container">

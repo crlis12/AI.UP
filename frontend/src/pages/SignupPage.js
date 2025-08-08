@@ -9,7 +9,8 @@ function SignupPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    username: ''
+    username: '',
+    nickname: ''
   });
   
   const [errors, setErrors] = useState({});
@@ -50,6 +51,13 @@ function SignupPage() {
       newErrors.username = '사용자명은 최소 2자 이상이어야 합니다.';
     }
     
+    // 닉네임 검증
+    if (!formData.nickname) {
+      newErrors.nickname = '닉네임을 입력해주세요.';
+    } else if (formData.nickname.trim().length < 2) {
+      newErrors.nickname = '닉네임은 최소 2자 이상이어야 합니다.';
+    }
+    
     // 비밀번호 검증
     if (!formData.password) {
       newErrors.password = '비밀번호를 입력해주세요.';
@@ -87,7 +95,8 @@ function SignupPage() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          username: formData.username.trim()
+          username: formData.username.trim(),
+          nickname: formData.nickname.trim()
         }),
       });
 
@@ -95,7 +104,7 @@ function SignupPage() {
 
       if (data.success) {
         alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');
-        navigate('/login');
+        navigate('/signin');
       } else {
         // 서버에서 온 에러 메시지 표시
         if (data.message.includes('이메일')) {
@@ -104,6 +113,8 @@ function SignupPage() {
           setErrors({ password: data.message });
         } else if (data.message.includes('사용자명')) {
           setErrors({ username: data.message });
+        } else if (data.message.includes('닉네임')) {
+          setErrors({ nickname: data.message });
         } else {
           alert(data.message);
         }
@@ -118,7 +129,7 @@ function SignupPage() {
 
   return (
     <div className="login-container">
-      <h1>마인드 아너스</h1>
+      <h1>AI.UP</h1>
       <h2>회원가입</h2>
       
       <form onSubmit={handleSignup} className="login-form">
@@ -139,13 +150,26 @@ function SignupPage() {
           <input
             type="text"
             name="username"
-            placeholder="사용자명"
+            placeholder="사용자명 (실명)"
             className={`login-input ${errors.username ? 'error' : ''}`}
             value={formData.username}
             onChange={handleInputChange}
             disabled={isLoading}
           />
           {errors.username && <span className="error-message">{errors.username}</span>}
+        </div>
+
+        <div className="input-group">
+          <input
+            type="text"
+            name="nickname"
+            placeholder="닉네임 (앱에서 사용할 이름)"
+            className={`login-input ${errors.nickname ? 'error' : ''}`}
+            value={formData.nickname}
+            onChange={handleInputChange}
+            disabled={isLoading}
+          />
+          {errors.nickname && <span className="error-message">{errors.nickname}</span>}
         </div>
 
         <div className="input-group">
@@ -183,19 +207,19 @@ function SignupPage() {
         </button>
       </form>
 
-      <div className="signup-link">
-        <p>
-          이미 계정이 있으신가요?{' '}
-          <button 
-            type="button"
-            className="link-button"
-            onClick={() => navigate('/login')}
-            disabled={isLoading}
-          >
-            로그인하기
-          </button>
-        </p>
-      </div>
+                <div className="signup-link">
+            <p>
+              이미 계정이 있으신가요?{' '}
+              <button 
+                type="button"
+                className="link-button"
+                onClick={() => navigate('/signin')}
+                disabled={isLoading}
+              >
+                로그인하기
+              </button>
+            </p>
+          </div>
     </div>
   );
 }

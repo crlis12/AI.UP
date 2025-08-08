@@ -17,13 +17,13 @@ const validatePassword = (password) => {
 // 회원가입
 router.post('/signup', async (req, res) => {
   try {
-    const { email, password, username } = req.body;
+    const { email, password, username, nickname } = req.body;
 
     // 입력 데이터 검증
-    if (!email || !password || !username) {
+    if (!email || !password || !username || !nickname) {
       return res.status(400).json({ 
         success: false,
-        message: '이메일, 비밀번호, 사용자명은 필수입니다.' 
+        message: '이메일, 비밀번호, 사용자명, 닉네임은 필수입니다.' 
       });
     }
 
@@ -51,6 +51,14 @@ router.post('/signup', async (req, res) => {
       });
     }
 
+    // 닉네임 길이 검증
+    if (nickname.trim().length < 2) {
+      return res.status(400).json({ 
+        success: false,
+        message: '닉네임은 최소 2자 이상이어야 합니다.' 
+      });
+    }
+
     // 이메일 중복 확인
     db.query('SELECT * FROM users WHERE email = ?', [email], async (err, rows) => {
       if (err) {
@@ -75,8 +83,8 @@ router.post('/signup', async (req, res) => {
 
         // 사용자 정보 DB에 저장
         db.query(
-          'INSERT INTO users (email, password, username) VALUES (?, ?, ?)',
-          [email, hashedPassword, username.trim()],
+          'INSERT INTO users (email, password, username, nickname) VALUES (?, ?, ?, ?)',
+          [email, hashedPassword, username.trim(), nickname.trim()],
           (err, result) => {
             if (err) {
               console.error('DB 저장 오류:', err);
@@ -92,7 +100,8 @@ router.post('/signup', async (req, res) => {
               user: {
                 id: result.insertId,
                 email: email,
-                username: username.trim()
+                username: username.trim(),
+                nickname: nickname.trim()
               }
             });
           }
@@ -149,7 +158,7 @@ router.post('/login/email', async (req, res) => {
         // 비밀번호 확인
         const passwordMatch = await bcrypt.compare(password, user.password);
         
-        if (user.password !== password) {
+        if (!passwordMatch) {
           return res.status(401).json({ 
             success: false,
             message: '비밀번호가 일치하지 않습니다.' 
@@ -162,7 +171,8 @@ router.post('/login/email', async (req, res) => {
           user: {
             id: user.id,
             email: user.email,
-            username: user.username
+            username: user.username,
+            nickname: user.nickname
           }
         });
       } catch (compareError) {

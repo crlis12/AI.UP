@@ -4,9 +4,10 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 // 페이지 컴포넌트 임포트 (src/pages 폴더에 있다고 가정)
 import WelcomePage from './pages/WelcomePage';
-import EmailLoginPage from './pages/EmailLoginPage';
+import SigninPage from './pages/SigninPage';
 import SignupPage from './pages/SignupPage';
 import ChildInfoPage from './pages/ChildInfoPage';
+import ChildDetailPage from './pages/ChildDetailPage';
 import AIAnalysisPage from './pages/AIAnalysisPage';
 // 컴포넌트 임포트 (src/components 폴더에 있다고 가정)
 import MainScreen from './components/MainScreen';
@@ -35,6 +36,8 @@ const chain = RunnableSequence.from([prompt, model]);
 function App() {
   // 로그인 상태 관리 (localStorage에서 초기값 가져오기)
   const [isLoggedIn, setIsLoggedIn] = useState(false); // 초기값 false로 유지
+  // 사용자 정보 상태 관리
+  const [currentUser, setCurrentUser] = useState(null);
   // **새로운 상태: 웰컴 화면을 이미 봤는지 여부**
   const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
   // 모든 대화 내용을 저장할 'messages' 상태를 만듭니다.
@@ -46,19 +49,38 @@ function App() {
     // 로그인 상태 확인 (기존 로직 유지)
     const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
     setIsLoggedIn(loggedIn);
+    
+    // 사용자 정보 확인
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+      setCurrentUser(JSON.parse(savedUser));
+    }
+    
     // **새로운 로직: 웰컴 화면을 봤는지 확인**
     const seenWelcome = localStorage.getItem('hasSeenWelcome') === 'true';
     setHasSeenWelcome(seenWelcome);
   }, []);
   // 로그인 처리 함수
-  const handleLogin = () => {
+  const handleLogin = (user) => {
     setIsLoggedIn(true);
+    setCurrentUser(user);
     localStorage.setItem('isLoggedIn', 'true'); // 로그인 상태 유지 로직 유지
+    localStorage.setItem('currentUser', JSON.stringify(user)); // 사용자 정보 저장
   };
   // **새로운 함수: 웰컴 화면을 봤다고 표시하는 함수**
   const handleSeenWelcome = () => {
     setHasSeenWelcome(true);
     localStorage.setItem('hasSeenWelcome', 'true');
+  };
+
+  // 로그아웃 처리 함수
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setCurrentUser(null);
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('currentUser');
+    // 메시지도 초기화
+    setMessages([]);
   };
   // 새로운 메시지를 받아 대화 목록에 추가하고 LLM 응답을 받는 함수
   const handleSendMessage = async (messageText) => {
@@ -94,12 +116,12 @@ function App() {
         {/* 로그인 관련 라우트 */}
         {/* WelcomePage에 handleSeenWelcome 함수를 전달하여, 웰컴 화면을 본 후 호출하도록 합니다. */}
         <Route path="/login" element={<WelcomePage onSeenWelcome={handleSeenWelcome} />} />
-        <Route path="/login/email" element={<EmailLoginPage onLogin={handleLogin} />} />
+        <Route path="/signin" element={<SigninPage onLogin={handleLogin} />} />
         <Route path="/signup" element={<SignupPage />} />
         {/* 메인 화면 라우트 (이제 '/main' 경로로 접근) */}
         <Route
           path="/main"
-          element={isLoggedIn ? <MainScreen onSendMessage={handleSendMessage} /> : <Navigate to="/login" />}
+          element={isLoggedIn ? <MainScreen onSendMessage={handleSendMessage} currentUser={currentUser} onLogout={handleLogout} /> : <Navigate to="/login" />}
         />
         {/* 채팅 화면 라우트 */}
         <Route
@@ -108,6 +130,7 @@ function App() {
         />
         {/* 기타 보호된 라우트 */}
         <Route path="/child-info" element={isLoggedIn ? <ChildInfoPage /> : <Navigate to="/login" />} />
+        <Route path="/child-detail/:childId" element={isLoggedIn ? <ChildDetailPage /> : <Navigate to="/login" />} />
         <Route path="/ai-analysis" element={isLoggedIn ? <AIAnalysisPage /> : <Navigate to="/login" />} />
       </Routes>
     </div>

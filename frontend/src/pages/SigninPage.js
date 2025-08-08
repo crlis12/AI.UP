@@ -1,4 +1,4 @@
-// src/pages/EmailLoginPage.js
+// src/pages/SigninPage.js
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -9,7 +9,7 @@ import '../App.css';
 import { FaCheck } from "react-icons/fa";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
-function EmailLoginPage({ onLogin }) {
+function SigninPage({ onLogin }) {
   const navigate = useNavigate();
 
   // 입력값 상태
@@ -29,7 +29,7 @@ function EmailLoginPage({ onLogin }) {
       const data = await response.json();
 
       if (data.success) {
-        onLogin(); // 부모 컴포넌트 로그인 상태 설정
+        onLogin(data.user); // 부모 컴포넌트에 유저 정보 전달
         navigate('/'); // 메인 페이지로 이동
       } else {
         alert(data.message); // 에러 메시지 출력
@@ -132,4 +132,4 @@ function EmailLoginPage({ onLogin }) {
   );
 }
 
-export default EmailLoginPage;
+export default SigninPage;
