@@ -73,8 +73,19 @@ function App() {
         input: messageText,
         history: history,
       });
-      const geminiMessage = { text: response.content, sender: 'gemini' };
-      setMessages(prevMessages => [...prevMessages, geminiMessage]);
+
+      console.log("Gemini API 응답:", response); // 응답 로깅
+
+      // 응답 내용이 있는지 확인
+      if (response && response.content) {
+        const geminiMessage = { text: response.content, sender: 'gemini' };
+        setMessages(prevMessages => [...prevMessages, geminiMessage]);
+      } else {
+        // 응답 내용이 비어있는 경우
+        console.error("Gemini API 응답이 비어있습니다.");
+        const errorMessage = { text: "죄송합니다. 응답을 생성하지 못했습니다.", sender: 'gemini' };
+        setMessages(prevMessages => [...prevMessages, errorMessage]);
+      }
     } catch (error) {
       console.error("Gemini API 호출 중 오류 발생:", error);
       const errorMessage = { text: "죄송합니다. 메시지를 처리하는 중 오류가 발생했습니다.", sender: 'gemini' };
