@@ -10,6 +10,7 @@ import '../App.css';
 import { FaCheck } from "react-icons/fa";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
+const BACKEND_API_URL = 'http://localhost:3001';
 
 function SigninPage({ onLogin }) {
   const navigate = useNavigate();

@@ -140,92 +140,19 @@ function SignupPage() {
   };
 
   return (
-
-    <div className="login-container">
-      <h1>AI.UP</h1>
-      <h2>회원가입</h2>
-      
-      <form onSubmit={handleSignup} className="login-form">
-        <div className="input-group">
-          <input
-            type="email"
-            name="email"
-            placeholder="이메일"
-            className={`login-input ${errors.email ? 'error' : ''}`}
-            value={formData.email}
-            onChange={handleInputChange}
-            disabled={isLoading}
-          />
-          {errors.email && <span className="error-message">{errors.email}</span>}
-        </div>
-
-        <div className="input-group">
-          <input
-            type="text"
-            name="username"
-            placeholder="사용자명 (실명)"
-            className={`login-input ${errors.username ? 'error' : ''}`}
-            value={formData.username}
-            onChange={handleInputChange}
-            disabled={isLoading}
-          />
-          {errors.username && <span className="error-message">{errors.username}</span>}
-        </div>
-
-        <div className="input-group">
-          <input
-            type="text"
-            name="nickname"
-            placeholder="닉네임 (앱에서 사용할 이름)"
-            className={`login-input ${errors.nickname ? 'error' : ''}`}
-            value={formData.nickname}
-            onChange={handleInputChange}
-            disabled={isLoading}
-          />
-          {errors.nickname && <span className="error-message">{errors.nickname}</span>}
-        </div>
-
-        <div className="input-group">
-          <input
-            type="password"
-            name="password"
-            placeholder="비밀번호 (최소 6자)"
-            className={`login-input ${errors.password ? 'error' : ''}`}
-            value={formData.password}
-            onChange={handleInputChange}
-            disabled={isLoading}
-          />
-          {errors.password && <span className="error-message">{errors.password}</span>}
-        </div>
-
-        <div className="input-group">
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="비밀번호 확인"
-            className={`login-input ${errors.confirmPassword ? 'error' : ''}`}
-            value={formData.confirmPassword}
-            onChange={handleInputChange}
-            disabled={isLoading}
-          />
-          {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
-        </div>
-
-        <button 
-          type="submit" 
-          className="menu-button"
-          disabled={isLoading}
-        >
-          {isLoading ? '처리중...' : '회원가입'}
+    <div className="email-login-container">
+      <header className="page-header">
+        <button onClick={() => navigate(-1)} className="design-back-button">
+          &lt; 뒤로가기
         </button>
-      </form>
+      </header>
 
       {/* **디자인 복구: 메인 컨텐츠 영역 클래스 사용** */}
       <div className="login-content-wrapper"> 
         <h1 className="login-title">회원가입</h1> {/* h1 태그에 login-title 클래스 사용 */}
 
         {/* **디자인 복구: 폼 컨테이너 클래스 사용** */}
-        <div className="login-form-container"> 
+        <form onSubmit={handleSignup} className="login-form-container"> 
           {/* 이메일 입력 */}
           <div className="input-group">
             <label htmlFor="signup-email">이메일</label> 
@@ -262,6 +189,25 @@ function SignupPage() {
               {formData.username && !errors.username && <FaCheck className="input-icon check-icon" />} 
             </div>
             {errors.username && <span className="error-message">{errors.username}</span>}
+          </div>
+
+          {/* 닉네임 입력 */}
+          <div className="input-group">
+            <label htmlFor="signup-nickname">닉네임</label>
+            <div className="input-wrapper">
+              <input
+                type="text"
+                id="signup-nickname"
+                name="nickname"
+                placeholder="닉네임을 입력하세요"
+                className={`login-input ${errors.nickname ? 'error' : ''}`}
+                value={formData.nickname}
+                onChange={handleInputChange}
+                disabled={isLoading}
+              />
+              {formData.nickname && !errors.nickname && <FaCheck className="input-icon check-icon" />}
+            </div>
+            {errors.nickname && <span className="error-message">{errors.nickname}</span>}
           </div>
 
           {/* 비밀번호 입력 */}
@@ -323,11 +269,10 @@ function SignupPage() {
             type="submit" 
             className="form-login-button" // **디자인 복구: form-login-button 클래스 사용**
             disabled={isLoading}
-            onClick={handleSignup} 
           >
             회원가입
           </button>
-        </div>
+        </form>
 
         {/* 이미 계정이 있다면 로그인 링크 */}
         <div className="signup-link">
@@ -336,7 +281,7 @@ function SignupPage() {
             <button 
               type="button"
               className="link-button"
-              onClick={() => navigate('/login/email')}
+              onClick={() => navigate('/signin')}
               disabled={isLoading}
             >
               로그인하기

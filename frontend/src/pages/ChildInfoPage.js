@@ -320,3 +320,5 @@ function ChildInfoPage() {
     </div>
   );
 }
+
+export default ChildInfoPage;
