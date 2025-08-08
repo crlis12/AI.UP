@@ -134,8 +134,8 @@ body {
 }
 
 .message.user {
-  background-color: #d8e6ff;
-  color: #1f1f1f;
+  background-color: #466D1D;
+  color: white;
   align-self: flex-end;
   margin-right: 30px;
 }

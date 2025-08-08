@@ -76,31 +76,40 @@ function App() {
 
   // 새로운 메시지를 받아 대화 목록에 추가하고 LLM 응답을 받는 함수
   const handleSendMessage = async (messageText) => {
-    const userMessage = { text: messageText, sender: 'user' };
+    // 이전에 요청을 처리 중이라면 중복 실행을 방지합니다.
+    if (isLoading) {
+      return;
+    }
+
+    const newUserMessage = new HumanMessage(messageText);
     
-    setMessages(prevMessages => [...prevMessages, userMessage]);
-    
-    setIsLoading(true); 
+    // API에 보낼 history는 현재 사용자 메시지가 추가되기 전의 내용입니다.
+    const history = [...messages];
+
+    // 사용자 메시지를 화면에 먼저 표시하고 로딩 상태로 변경합니다.
+    setMessages(prevMessages => [...prevMessages, newUserMessage]);
+    setIsLoading(true);
 
     try {
-      const history = messages.map(msg => 
-        msg.sender === 'user' ? new HumanMessage(msg.text) : new AIMessage(msg.text)
-      );
-
+      // API를 호출할 때는 캡처해둔 history를 사용합니다.
       const response = await chain.invoke({
-        input: messageText, 
+        input: messageText,
         history: history, 
       });
-      
-      const geminiMessage = { text: response.content, sender: 'gemini' };
+
+      const geminiMessage = new AIMessage(response.content);
+
+      // AI 응답을 메시지 목록에 추가합니다.
+      // 이 시점의 prevMessages에는 위에서 추가한 newUserMessage가 포함되어 있습니다.
       setMessages(prevMessages => [...prevMessages, geminiMessage]);
 
     } catch (error) {
+      // 개발자 콘솔에서 실제 오류를 확인하는 것이 중요합니다.
       console.error("Gemini API 호출 중 오류 발생:", error);
-      const errorMessage = { text: "죄송합니다. 메시지를 처리하는 중 오류가 발생했습니다.", sender: 'gemini' };
+      const errorMessage = new AIMessage("죄송합니다. 메시지를 처리하는 중 오류가 발생했습니다.");
       setMessages(prevMessages => [...prevMessages, errorMessage]);
     } finally {
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   };
 
