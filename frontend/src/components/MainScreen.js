@@ -1,38 +1,59 @@
-// src/components/MainScreen.js (수정된 최종 버전)
+// src/components/MainScreen.js
 
 import React from "react";
 import '../App.css'; 
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight, FiEdit2 } from "react-icons/fi"; // 연필 아이콘 추가
 import MessageInput from "./MessageInput";
 import babyProfile from '../assets/baby_image.png';
-// 1. 페이지 이동을 위한 useNavigate hook을 import 합니다.
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // Link 추가
 
-
-// 2. props에서 onSendMessage 함수를 받도록 수정합니다.
-export default function MainScreen({ onSendMessage }) {
-    // 3. useNavigate를 초기화하여 페이지 이동 기능을 사용할 수 있게 합니다.
+// App.js로부터 onSendMessage와 childInfo를 props로 받습니다.
+export default function MainScreen({ onSendMessage, childInfo }) {
     const navigate = useNavigate();
 
-    // 4. 메시지 전송과 페이지 이동을 함께 처리하는 함수를 만듭니다.
-    const handleInitialSend = (messageText) => {
-        // App.js에서 받은 함수를 실행 -> 대화 내용이 App.js에 저장됩니다.
-        onSendMessage(messageText); 
-        // '/chat' 페이지로 이동합니다.
+    const handleInitialSend = async (messageText) => {
+        await onSendMessage(messageText); 
         navigate('/chat');
+    };
+
+    // 나이를 계산하는 함수
+    const calculateAge = (birthDate) => {
+        if (!birthDate) return '나이 정보 없음';
+
+        const today = new Date();
+        const birth = new Date(birthDate);
+        
+        // 개월 수 차이 계산
+        let months = (today.getFullYear() - birth.getFullYear()) * 12;
+        months -= birth.getMonth();
+        months += today.getMonth();
+        
+        // 날짜를 고려하여 정확한 개월 수 보정
+        if (today.getDate() < birth.getDate()) {
+            months--;
+        }
+
+        if (months <= 36) {
+            return `${months}개월`;
+        } else {
+            let age = today.getFullYear() - birth.getFullYear();
+            const monthDiff = today.getMonth() - birth.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                age--;
+            }
+            return `만 ${age}세`;
+        }
     };
 
 	return (
 		<div className="main-screen">
-			{/* 스크롤되는 영역 */}
 			<div className="main-screen__scroll-view">
-				{/* 상단 프로필 영역 */}
 				<div className="main-screen__profile-container">
 					<button className="main-screen__arrow-button">
 						<FiChevronLeft size={30} />
 					</button>
 					<img
-						src={babyProfile} // import한 이미지 변수를 사용
+						src={babyProfile}
 						alt="Profile"
 						className="main-screen__profile-image"
 					/>
@@ -41,19 +62,23 @@ export default function MainScreen({ onSendMessage }) {
 					</button>
 				</div>
 
-				{/* 하단 컨텐츠 영역 */}
 				<div className="main-screen__content-box">
 					<div className="main-screen__title-bar">
-						<span className="main-screen__badge">영아기</span>
-						<h1 className="main-screen__name">창톨이</h1>
+						{/* childInfo를 사용하여 나이와 이름을 표시합니다. */}
+						<span className="main-screen__badge">{calculateAge(childInfo.birthDate)}</span>
+						<h1 className="main-screen__name">{childInfo.name || '아이 이름'}</h1>
+						{/* 수정 페이지로 이동하는 연필 아이콘 버튼 */}
+						<Link to="/child-info" style={{ textDecoration: 'none', color: 'inherit', marginLeft: '10px' }}>
+							<FiEdit2 size={20} cursor="pointer" />
+						</Link>
 					</div>
 					<div className="main-screen__checklist-section">
 						<h2 className="main-screen__subtitle">체크리스트</h2>
 						<div className="main-screen__widgets-container">
 							<div className="main-screen__widget">
 								<div className="main-screen__widget-item"><span>결핵 주사 맞기</span><span className="main-screen__checkmark">✔</span></div>
-								<div className="main-screen__widget-item"><span>결핵 주사 맞기</span><span className="main-screen__checkmark">✔</span></div>
-								<div className="main-screen__widget-item"><span>List item</span><span className="main-screen__checkmark">✔</span></div>
+								<div className="main-screen__widget-item"><span>B형 간염 2차</span><span className="main-screen__checkmark">✔</span></div>
+								<div className="main-screen__widget-item"><span>예방접종 알림</span><span className="main-screen__checkmark">✔</span></div>
 							</div>
 							<div className="main-screen__widget">
 								<div className="main-screen__widget-item-small">08.13 창톨이 첫 걸음마</div>
@@ -65,10 +90,8 @@ export default function MainScreen({ onSendMessage }) {
 				</div>
 			</div>
 
-			{/* 하단 채팅 입력창 */}
 			<div className="main-screen__chat-bar">
 				<MessageInput 
-                    // 5. onSendMessage prop에 console.log 대신 새로 만든 함수를 연결합니다.
                     onSendMessage={handleInitialSend} 
                     isLoading={false}
                 />

@@ -44,31 +44,36 @@ const chain = RunnableSequence.from([prompt, model]);
 
 
 function App() {
-  // **수정된 부분: 로그인 상태를 localStorage에서 가져오지 않고 항상 false로 초기화**
   const [isLoggedIn, setIsLoggedIn] = useState(false); 
-  // 웰컴 화면을 이미 봤는지 여부 (이것은 유지)
   const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
-
-  // 모든 대화 내용을 저장할 'messages' 상태를 만듭니다.
   const [messages, setMessages] = useState([]);
-  // 로딩 상태를 관리합니다.
   const [isLoading, setIsLoading] = useState(false);
 
-  // **수정된 부분: localStorage에서 로그인 상태를 확인하는 useEffect 로직 제거**
+  // 1. 아이 정보를 위한 상태 추가
+  const [childInfo, setChildInfo] = useState({ name: '아이', birthDate: '' });
+
+  // 2. localStorage와 연동하는 useEffect 추가
   useEffect(() => {
-    // 웰컴 화면을 봤는지 여부만 localStorage에서 확인하고 유지
     const seenWelcome = localStorage.getItem('hasSeenWelcome') === 'true';
     setHasSeenWelcome(seenWelcome);
+
+    // localStorage에서 아이 정보 불러오기
+    const savedChildInfo = localStorage.getItem('childInfo');
+    if (savedChildInfo) {
+      setChildInfo(JSON.parse(savedChildInfo));
+    }
   }, []);
 
-  // 로그인 처리 함수
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-    // **수정된 부분: 로그인 시 localStorage에 저장하는 로직 제거**
-    // localStorage.setItem('isLoggedIn', 'true'); 
+  // 3. 아이 정보를 저장하고 localStorage에 업데이트하는 함수
+  const handleSaveChildInfo = (info) => {
+    localStorage.setItem('childInfo', JSON.stringify(info));
+    setChildInfo(info);
   };
 
-  // 웰컴 화면을 봤다고 표시하는 함수 (이것은 유지)
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+  };
+
   const handleSeenWelcome = () => {
     setHasSeenWelcome(true);
     localStorage.setItem('hasSeenWelcome', 'true');
@@ -130,7 +135,7 @@ function App() {
         {/* 보호된 라우트: 로그인 상태에 따라 리다이렉트 */}
         <Route 
           path="/main" 
-          element={isLoggedIn ? <MainScreen onSendMessage={handleSendMessage} /> : <Navigate to="/login" />} 
+          element={isLoggedIn ? <MainScreen onSendMessage={handleSendMessage} childInfo={childInfo} /> : <Navigate to="/login" />} 
         />
         
         <Route 
@@ -139,7 +144,10 @@ function App() {
         />
 
         {/* 기타 보호된 라우트 */}
-        <Route path="/child-info" element={isLoggedIn ? <ChildInfoPage /> : <Navigate to="/login" />} />
+        <Route 
+          path="/child-info" 
+          element={isLoggedIn ? <ChildInfoPage onSave={handleSaveChildInfo} currentInfo={childInfo} /> : <Navigate to="/login" />} 
+        />
         <Route path="/ai-analysis" element={isLoggedIn ? <AIAnalysisPage /> : <Navigate to="/login" />} />
       </Routes>
     </div>
