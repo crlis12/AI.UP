@@ -54,10 +54,10 @@ const MessageInput = ({ onSendMessage, isLoading }) => {
               borderRadius: '8px',
               overflow: 'hidden'
             }}>
-              {file.type.startsWith('image/') ? (
+              {file.type && file.type.startsWith('image/') ? (
                 <img 
-                  src={URL.createObjectURL(file)} 
-                  alt={file.name}
+                  src={file instanceof File ? URL.createObjectURL(file) : file.dataUrl || ''} 
+                  alt={file.name || 'image'}
                   style={{
                     width: '60px',
                     height: '60px',
@@ -73,7 +73,7 @@ const MessageInput = ({ onSendMessage, isLoading }) => {
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap'
                 }}>
-                  {file.name}
+                  {file.name || 'Unknown file'}
                 </div>
               )}
               <button

@@ -21,19 +21,37 @@ function isAudio(fileOrUrl) {
 function AttachmentPreview({ attachment }) {
   if (!attachment) return null;
 
-  const url = typeof attachment === 'string' ? attachment : URL.createObjectURL(attachment);
+  // attachment가 dataUrl을 가진 객체인지, 아니면 단순 문자열/파일인지 확인
+  let url;
+  let fileType;
+  
+  if (attachment.dataUrl) {
+    // 새로운 형식: { ...file, dataUrl: "data:image/..." }
+    url = attachment.dataUrl;
+    fileType = attachment.type;
+  } else if (typeof attachment === 'string') {
+    // 문자열 URL
+    url = attachment;
+    fileType = attachment;
+  } else if (attachment instanceof File) {
+    // File 객체 (이전 방식)
+    url = URL.createObjectURL(attachment);
+    fileType = attachment.type;
+  } else {
+    return null;
+  }
 
-  if (isImage(attachment)) {
+  if (isImage({ type: fileType })) {
     return <img src={url} alt="attachment" className="message-attachment image" />;
   }
-  if (isVideo(attachment)) {
+  if (isVideo({ type: fileType })) {
     return (
       <video className="message-attachment video" controls>
         <source src={url} />
       </video>
     );
   }
-  if (isAudio(attachment)) {
+  if (isAudio({ type: fileType })) {
     return (
       <audio className="message-attachment audio" controls>
         <source src={url} />
