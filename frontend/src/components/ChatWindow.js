@@ -37,7 +37,6 @@ function ChatWindow({ messages, isLoading, onSendMessage }) {
       <div className="main-screen__chat-bar">
         <MessageInput
           onSendMessage={onSendMessage}
-          onAttachFiles={(files) => onSendMessage('', files)}
           isLoading={isLoading}
         />
       </div>

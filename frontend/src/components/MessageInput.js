@@ -5,22 +5,106 @@ import React, { useRef, useState } from 'react';
 import { FiPlus } from "react-icons/fi"; 
 import { IoPaperPlaneOutline } from "react-icons/io5";
 
-// onSendMessage, isLoading, onAttachFiles 같은 props는 받습니다.
-const MessageInput = ({ onSendMessage, onAttachFiles, isLoading }) => {
+// onSendMessage, isLoading props를 받습니다.
+const MessageInput = ({ onSendMessage, isLoading }) => {
   const [inputText, setInputText] = useState('');
+  const [attachedFiles, setAttachedFiles] = useState([]);
   const fileInputRef = useRef(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (inputText.trim()) {
-      onSendMessage(inputText);
+    if (inputText.trim() || attachedFiles.length > 0) {
+      onSendMessage(inputText, attachedFiles);
       setInputText('');
+      setAttachedFiles([]);
     }
   };
 
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      setAttachedFiles(prev => [...prev, ...files]);
+    }
+    e.target.value = '';
+  };
+
+  const removeFile = (index) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   return (
-    // form의 className을 'new-chat-form'으로 변경합니다.
-    <form className="new-chat-form" onSubmit={handleSubmit}>
+    <div>
+      {/* 첨부파일 미리보기 영역 */}
+      {attachedFiles.length > 0 && (
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '8px',
+          marginBottom: '10px',
+          padding: '8px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '8px'
+        }}>
+          {attachedFiles.map((file, index) => (
+            <div key={index} style={{
+              position: 'relative',
+              display: 'inline-block',
+              backgroundColor: 'white',
+              border: '1px solid #ddd',
+              borderRadius: '8px',
+              overflow: 'hidden'
+            }}>
+              {file.type.startsWith('image/') ? (
+                <img 
+                  src={URL.createObjectURL(file)} 
+                  alt={file.name}
+                  style={{
+                    width: '60px',
+                    height: '60px',
+                    objectFit: 'cover'
+                  }}
+                />
+              ) : (
+                <div style={{
+                  padding: '8px 12px',
+                  fontSize: '12px',
+                  maxWidth: '100px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}>
+                  {file.name}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => removeFile(index)}
+                style={{
+                  position: 'absolute',
+                  top: '2px',
+                  right: '2px',
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(0,0,0,0.7)',
+                  color: 'white',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      
+      {/* 기존 form - 디자인 그대로 유지 */}
+      <form className="new-chat-form" onSubmit={handleSubmit}>
       {/* 왼쪽 '+' 버튼 */}
       <button
         type="button"
@@ -38,14 +122,7 @@ const MessageInput = ({ onSendMessage, onAttachFiles, isLoading }) => {
         style={{ display: 'none' }}
         multiple
         accept="image/*,video/*,audio/*"
-        onChange={(e) => {
-          const files = Array.from(e.target.files || []);
-          if (files.length && typeof onAttachFiles === 'function') {
-            onAttachFiles(files);
-          }
-          // 동일 파일 다시 선택 가능하도록 값 초기화
-          e.target.value = '';
-        }}
+        onChange={handleFileSelect}
       />
 
       {/* input의 className을 'new-chat-input'으로 변경합니다. */}
@@ -63,6 +140,7 @@ const MessageInput = ({ onSendMessage, onAttachFiles, isLoading }) => {
         <IoPaperPlaneOutline />
       </button>
     </form>
+    </div>
   );
 };
 

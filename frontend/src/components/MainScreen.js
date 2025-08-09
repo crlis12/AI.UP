@@ -15,16 +15,10 @@ export default function MainScreen({ onSendMessage }) {
     const navigate = useNavigate();
 
     // 4. 메시지 전송과 페이지 이동을 함께 처리하는 함수를 만듭니다.
-    const handleInitialSend = (messageText) => {
+    const handleInitialSend = (messageText, attachedFiles = []) => {
         // App.js에서 받은 함수를 실행 -> 대화 내용이 App.js에 저장됩니다.
-        onSendMessage(messageText); 
+        onSendMessage(messageText, attachedFiles); 
         // '/chat' 페이지로 이동합니다.
-        navigate('/chat');
-    };
-
-    const handleAttachFiles = (files) => {
-        // 파일 첨부 시에도 채팅 화면으로 이동하여 미리보기를 보여주기 위해
-        onSendMessage('', files);
         navigate('/chat');
     };
 
@@ -76,7 +70,6 @@ export default function MainScreen({ onSendMessage }) {
                 <MessageInput 
                     // 5. onSendMessage prop에 console.log 대신 새로 만든 함수를 연결합니다.
                     onSendMessage={handleInitialSend}
-                    onAttachFiles={handleAttachFiles}
                     isLoading={false}
                 />
 			</div>
