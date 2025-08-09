@@ -20,8 +20,13 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     const [loading, setLoading] = useState(true);
 
     const handleInitialSend = async (messageText) => {
-        await onSendMessage(messageText); 
-        navigate('/chat');
+        if (children.length > 0 && currentChildIndex >= 0) {
+            await onSendMessage(messageText); 
+            const childId = children[currentChildIndex].id;
+            navigate(`/chat/${childId}`);
+        } else {
+            alert("먼저 아이를 등록하고 대화를 시작해주세요.");
+        }
     };
 
 
@@ -84,6 +89,20 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
             setCurrentChildIndex((prev) => (prev < children.length - 1 ? prev + 1 : 0));
         }
     };
+
+    // 채팅 시작 핸들러
+    const handleStartChat = () => {
+        if (children.length > 0 && currentChildIndex >= 0) {
+            const childId = children[currentChildIndex].id;
+            navigate(`/chat/${childId}`); // 수정: childId를 URL에 포함
+        } else {
+            alert("먼저 아이를 등록해주세요.");
+            navigate('/child-info');
+        }
+    };
+
+    // 현재 선택된 자녀 정보
+    const currentChild = children[currentChildIndex];
 
     // 컴포넌트 마운트 시 자녀 목록 조회
     useEffect(() => {

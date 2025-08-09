@@ -174,7 +174,7 @@ function App() {
         />
         
         <Route 
-          path="/chat" 
+          path="/chat/:childId" 
           element={isLoggedIn ? <ChatWindow messages={messages} onSendMessage={handleSendMessage} isLoading={isLoading} /> : <Navigate to="/login" />} 
         />
 

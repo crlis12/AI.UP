@@ -5,7 +5,8 @@ const cors = require('cors');
 
 const authRoutes = require('./routes/auth');
 const childrenRoutes = require('./routes/children');
-
+const summarizeRoutes = require('./routes/summarize');
+const diaryRoutes = require('./routes/diaries');
 
 const app = express();
 const PORT = 3001; // 포트 번호를 직접 명시
@@ -22,6 +23,8 @@ app.use(cors()); // CORS 허용 (프론트엔드와 백엔드가 다른 포트�
 // 라우터
 app.use('/auth', authRoutes); // '/api' 접두사 다시 제거
 app.use('/children', childrenRoutes);
+app.use('/summarize', summarizeRoutes);
+app.use('/diaries', diaryRoutes);
 
 
 // 기본 라우트 (선택 사항)

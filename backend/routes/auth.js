@@ -1,4 +1,4 @@
-// backend/routes/auth.js
+require('dotenv').config();
 const express = require('express');
 const db = require('../db');
 const nodemailer = require('nodemailer');

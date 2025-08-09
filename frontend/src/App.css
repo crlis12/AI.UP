@@ -817,6 +817,27 @@ body {
   font-weight: 500;
 }
 
+.chat-window-action-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  color: #555;
+  font-weight: 500;
+  margin-left: auto; /* 오른쪽에 배치 */
+}
+
+.chat-window-action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.chat-window-action-button span {
+  margin-left: 5px;
+}
+
 /* --- 회원가입 페이지 전용 스타일 --- */
 .input-group {
   display: flex;
