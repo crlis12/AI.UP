@@ -90,32 +90,51 @@ function App() {
     const imageFiles = (attachments || []).filter(isImageFile);
     const videoFiles = (attachments || []).filter(isVideoFile);
 
-    // 비디오 첨부는 현재 LLM 전송에서 제외(로컬 개발 환경에서는 공개 URL/파일 업로드 필요)
+    // 이미지나 영상이 있는지 확인
     const hasImages = imageFiles.length > 0;
+    const hasVideos = videoFiles.length > 0;
+    const hasMediaFiles = hasImages || hasVideos;
 
-    // 텍스트 없고, 이미지도 없으면 LLM 호출 생략
-    if (!hasText && !hasImages) return;
+    // 텍스트 없고, 미디어 파일도 없으면 LLM 호출 생략
+    if (!hasText && !hasMediaFiles) return;
 
     setIsLoading(true);
     try {
       let response;
-      if (hasImages) {
-        // 이미지 파일은 data URL로 변환하여 멀티모달 메시지로 전송
+      if (hasMediaFiles) {
+        console.log('미디어 파일 처리 시작:', { imageFiles: imageFiles.length, videoFiles: videoFiles.length });
+        
+        // 이미지와 영상 파일을 data URL로 변환하여 멀티모달 메시지로 전송
         const imageDataUrls = await Promise.all(imageFiles.map(fileToDataUrl));
+        const videoDataUrls = await Promise.all(videoFiles.map(fileToDataUrl));
+        
+        console.log('데이터 URL 변환 완료:', { images: imageDataUrls.length, videos: videoDataUrls.length });
 
         const contentParts = [];
         if (hasText) {
           contentParts.push({ type: 'text', text: messageText });
         }
+        
+        // 이미지 추가
         for (const dataUrl of imageDataUrls) {
-          // LangChain GoogleGenAI는 data URL을 image_url로 전달해도 처리됨
           contentParts.push({ type: 'image_url', image_url: dataUrl });
         }
+        
+        // 영상 추가 (Gemini에서 지원하는 형식으로)
+        for (const dataUrl of videoDataUrls) {
+          contentParts.push({ 
+            type: 'image_url', 
+            image_url: dataUrl 
+          });
+        }
+
+        console.log('Content Parts 생성 완료:', contentParts);
 
         const historyMessages = [...messages].map(msg =>
           msg.sender === 'user' ? new HumanMessage(msg.text || '') : new AIMessage(msg.text || '')
         );
 
+        console.log('Gemini API 호출 시작...');
         response = await model.invoke([
           new SystemMessage("You are a helpful assistant. Please answer the user's questions."),
           ...historyMessages,
