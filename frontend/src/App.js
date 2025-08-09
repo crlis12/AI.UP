@@ -19,6 +19,9 @@ import { HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages
 import { MessagesPlaceholder } from "@langchain/core/prompts";
 // 환경 변수에서 API 키를 가져옵니다.
 const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
+
+// 시스템 프롬프트를 상수로 정의하여 중복을 방지합니다.
+const SYSTEM_PROMPT = "이것은 시스템 프롬프트입니다.";
 // LangChain 모델을 초기화합니다.
 const model = new ChatGoogleGenerativeAI({
   apiKey: GEMINI_API_KEY,
@@ -26,7 +29,7 @@ const model = new ChatGoogleGenerativeAI({
 });
 // 대화 히스토리를 위한 프롬프트 템플릿을 정의합니다.
 const prompt = ChatPromptTemplate.fromMessages([
-  ["system", "You are a helpful assistant. Please answer the user's questions."],
+  ["system", SYSTEM_PROMPT],
   new MessagesPlaceholder("history"),
   ["human", "{input}"],
 ]);
@@ -136,7 +139,7 @@ function App() {
 
         console.log('Gemini API 호출 시작...');
         response = await model.invoke([
-          new SystemMessage("You are a helpful assistant. Please answer the user's questions."),
+          new SystemMessage(SYSTEM_PROMPT),
           ...historyMessages,
           new HumanMessage({ content: contentParts })
         ]);
