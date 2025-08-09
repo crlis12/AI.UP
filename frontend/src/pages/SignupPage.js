@@ -95,8 +95,8 @@ function SignupPage() {
     setIsLoading(true);
     
     try {
-      // 백엔드 API 호출 경로에 /api/auth 추가
-      const response = await fetch(`${BACKEND_API_URL}/api/auth/signup`, { 
+      // 백엔드 API 호출 경로에서 /api 제거
+      const response = await fetch(`${BACKEND_API_URL}/auth/signup`, { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

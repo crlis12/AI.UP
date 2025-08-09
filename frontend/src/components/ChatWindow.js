@@ -13,27 +13,21 @@ function ChatWindow({ messages, onSendMessage }) {
   const isLoading = false; 
 
   return (
-    // 1. MainScreen과 동일한 클래스 이름을 사용합니다.
     <div className="main-screen">
-      {/* 2. 스크롤 영역도 동일하게 유지합니다. */}
-      <div className="main-screen__scroll-view">
-        
-        {/* 뒤로가기 버튼을 추가하여 MainScreen으로 돌아갈 수 있게 합니다. */}
-        <div className="chat-window-header">
-          <button onClick={() => navigate(-1)} className="chat-window-back-button">
-            <FiChevronLeft size={25} /> 
-            <span>뒤로가기</span>
-          </button>
-        </div>
-
-        {/* 3. 프로필과 컨텐츠 박스 대신, MessageList만 넣습니다. */}
-        <div className="chat-window-messages">
-          <MessageList messages={messages} isLoading={isLoading} />
-        </div>
-
+      {/* 고정되는 헤더 영역을 스크롤 뷰 바깥으로 이동 */}
+      <div className="main-screen__header">
+        <button onClick={() => navigate(-1)} className="chat-window-back-button">
+          <FiChevronLeft size={25} /> 
+          <span>뒤로가기</span>
+        </button>
       </div>
 
-      {/* 4. 채팅 입력창도 MainScreen과 동일한 구조와 클래스 이름을 사용합니다. */}
+      {/* 스크롤 가능한 메시지 영역 */}
+      <div className="main-screen__scroll-view chat-window__messages-container">
+        <MessageList messages={messages} isLoading={isLoading} />
+      </div>
+
+      {/* 채팅 입력창 */}
       <div className="main-screen__chat-bar">
         <MessageInput onSendMessage={onSendMessage} isLoading={isLoading} />
       </div>

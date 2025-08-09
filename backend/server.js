@@ -20,7 +20,7 @@ app.use(cors()); // CORS 허용 (프론트엔드와 백엔드가 다른 포트�
 // auth.js 내부의 '/login'은 '/api/auth/login'이 됩니다.
 
 // 라우터
-app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes); // '/api' 접두사 다시 제거
 app.use('/children', childrenRoutes);
 
 

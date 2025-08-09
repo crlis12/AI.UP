@@ -27,7 +27,7 @@ function SigninPage({ onLogin }) {
     setLoginError(''); // 이전 오류 메시지 초기화
 
     try {
-      const response = await fetch(`${BACKEND_API_URL}/api/auth/login`, { // 백엔드 로그인 API 호출
+      const response = await fetch(`${BACKEND_API_URL}/auth/login`, { // 백엔드 로그인 API 호출
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

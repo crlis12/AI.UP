@@ -92,6 +92,9 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
         }
     }, [currentUser]);
 
+    // [디버깅] 백엔드에서 받아온 자녀 목록과 개수를 콘솔에 출력합니다.
+    console.log("자녀 수:", children.length, "자녀 목록 데이터:", children);
+
 	return (
 		<div className="main-screen">
 			{/* 사용자 정보 헤더 */}
@@ -192,60 +195,49 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
 								</h1>
 							</div>
 							<div className="main-screen__checklist-section">
-								<h2 className="main-screen__subtitle">자녀 정보</h2>
 								<div className="main-screen__widgets-container">
-									<div className="main-screen__widget">
-										{/* 기본 정보 */}
-										<div className="main-screen__widget-item">
-											<span>나이: {calculateAge(children[currentChildIndex]?.birth_date)}세</span>
+									{/* 자녀 정보 섹션 */}
+									<div className="main-screen__info-section">
+										<h2 className="main-screen__subtitle">자녀 정보</h2>
+										<div className="main-screen__widget">
+											<div className="main-screen__widget-item">
+												<span>나이: {calculateAge(children[currentChildIndex]?.birth_date)}세</span>
+											</div>
+											{children[currentChildIndex]?.birth_date && (
+												<div className="main-screen__widget-item">
+													<span>생년월일: {new Date(children[currentChildIndex].birth_date).toLocaleDateString('ko-KR')}</span>
+												</div>
+											)}
+											{children[currentChildIndex]?.weight && (
+												<div className="main-screen__widget-item">
+													<span>몸무게: {children[currentChildIndex].weight}kg</span>
+												</div>
+											)}
+											{children[currentChildIndex]?.height && (
+												<div className="main-screen__widget-item">
+													<span>키: {children[currentChildIndex].height}cm</span>
+												</div>
+											)}
 										</div>
-										{children[currentChildIndex]?.birth_date && (
-											<div className="main-screen__widget-item">
-												<span>생년월일: {new Date(children[currentChildIndex].birth_date).toLocaleDateString('ko-KR')}</span>
-											</div>
-										)}
-										{children[currentChildIndex]?.weight && (
-											<div className="main-screen__widget-item">
-												<span>몸무게: {children[currentChildIndex].weight}kg</span>
-											</div>
-										)}
-										{children[currentChildIndex]?.height && (
-											<div className="main-screen__widget-item">
-												<span>키: {children[currentChildIndex].height}cm</span>
-											</div>
-										)}
 									</div>
-									<div className="main-screen__widget">
-										{children[currentChildIndex]?.school_name && (
-											<div className="main-screen__widget-item-small">
-												학교: {children[currentChildIndex].school_name}
-											</div>
-										)}
-										{children[currentChildIndex]?.grade_level && (
-											<div className="main-screen__widget-item-small">
-												학년: {children[currentChildIndex].grade_level}
-											</div>
-										)}
-										{children[currentChildIndex]?.interests && (
-											<div className="main-screen__widget-item-small">
-												관심사: {children[currentChildIndex].interests}
-											</div>
-										)}
-										{children[currentChildIndex]?.favorite_activities && (
-											<div className="main-screen__widget-item-small">
-												좋아하는 활동: {children[currentChildIndex].favorite_activities}
-											</div>
-										)}
-										{children[currentChildIndex]?.special_needs && (
-											<div className="main-screen__widget-item-small">
-												특별 요구사항: {children[currentChildIndex].special_needs}
-											</div>
-										)}
-										{children.length > 1 && (
-											<div className="main-screen__widget-item-small">
-												{currentChildIndex + 1} / {children.length} 번째 자녀
-											</div>
-										)}
+									{/* 오늘의 일지 섹션 */}
+									<div className="main-screen__info-section">
+										<h2 className="main-screen__subtitle">오늘의 일지</h2>
+										<div 
+											className="main-screen__widget diary-widget clickable"
+											onClick={() => {
+												const currentChild = children[currentChildIndex];
+												if (currentChild && currentChild.id) {
+													navigate(`/diary/${currentChild.id}`, { state: { childName: currentChild.name } });
+												} else {
+													console.error("일지 페이지로 이동할 수 없습니다: 자녀 정보가 없습니다.");
+												}
+											}}
+										>
+											<p className="main-screen__diary-summary">
+												오늘은 '공룡'에 대한 대화를 많이 나누었네요! 아이는 티라노사우루스에 특히 흥미를 보였습니다. (요약 기능 구현 예정)
+											</p>
+										</div>
 									</div>
 								</div>
 							</div>

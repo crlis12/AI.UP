@@ -99,6 +99,57 @@ router.post('/login', (req, res) => {
     });
 });
 
+// 비밀번호 찾기 (인증 코드 발송) - DB 저장 방식으로 재구현
+router.post('/forgot-password', (req, res) => {
+    const { email } = req.body;
+    if (!email) {
+        return res.status(400).json({ success: false, message: '이메일을 입력해주세요.' });
+    }
+
+    db.query('SELECT * FROM users WHERE email = ?', [email], (err, users) => {
+        if (err) {
+            console.error('DB 오류:', err);
+            return res.status(500).json({ success: false, message: '데이터베이스 오류가 발생했습니다.' });
+        }
+        if (users.length === 0) {
+            console.log(`존재하지 않는 이메일(${email})에 대한 비밀번호 찾기 요청.`);
+            return res.status(200).json({ success: true, message: '비밀번호 재설정 이메일이 발송되었습니다. 메일함을 확인해주세요.' });
+        }
+
+        const verificationCode = crypto.randomBytes(3).toString('hex').toUpperCase(); // 6자리 영문/숫자 코드로 변경
+        const expiration = new Date();
+        expiration.setMinutes(expiration.getMinutes() + 10); // 10분 후 만료
+
+        db.query(
+            'UPDATE users SET verification_code = ?, verification_code_expires = ? WHERE email = ?',
+            [verificationCode, expiration, email],
+            (updateErr) => {
+                if (updateErr) {
+                    console.error('DB 업데이트 오류:', updateErr);
+                    return res.status(500).json({ success: false, message: '인증 코드 저장 중 오류가 발생했습니다.' });
+                }
+
+                const mailOptions = {
+                    from: `"AI.UP" <${process.env.EMAIL_USER}>`,
+                    to: email,
+                    subject: '[AI.UP] 비밀번호 재설정 인증 코드',
+                    html: `<p>비밀번호 재설정을 위한 인증 코드는 다음과 같습니다:</p><h1>${verificationCode}</h1><p>이 코드는 10분 동안 유효합니다.</p>`,
+                };
+
+                transporter.sendMail(mailOptions, (mailErr, info) => {
+                    if (mailErr) {
+                        console.error('Nodemailer 이메일 전송 오류:', mailErr);
+                        return res.status(500).json({ success: false, message: '이메일 전송에 실패했습니다.' });
+                    }
+                    console.log('이메일 전송 성공:', info.response);
+                    return res.status(200).json({ success: true, message: '비밀번호 재설정 이메일이 발송되었습니다. 메일함을 확인해주세요.' });
+                });
+            }
+        );
+    });
+});
+
+
 router.post('/verify-code', (req, res) => {
     const { email, code } = req.body;
     if (!email || !code) {
@@ -108,7 +159,10 @@ router.post('/verify-code', (req, res) => {
         'SELECT * FROM users WHERE email = ? AND verification_code = ? AND verification_code_expires > NOW()',
         [email, code],
         (err, users) => {
-            if (err) return res.status(500).json({ message: 'DB 오류' });
+            if (err) {
+                console.error('DB 오류:', err);
+                return res.status(500).json({ message: 'DB 오류' });
+            }
             if (users.length === 0) {
                 return res.status(400).json({ message: '인증번호가 유효하지 않거나 만료되었습니다.' });
             }
@@ -116,6 +170,7 @@ router.post('/verify-code', (req, res) => {
         }
     );
 });
+
 router.post('/reset-password', (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {

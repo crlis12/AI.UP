@@ -36,9 +36,9 @@ function ResetPasswordPage() {
     
     setIsLoading(true);
     try {
-      await axios.post(`${BACKEND_API_URL}/api/auth/reset-password`, { email, password });
+      await axios.post(`${BACKEND_API_URL}/auth/reset-password`, { email, password });
       alert('비밀번호가 성공적으로 변경되었습니다. 다시 로그인해주세요.');
-      navigate('/login/email');
+      navigate('/login'); // 로그인 선택 페이지로 이동
     } catch (error) {
       const message = error.response?.data?.message || '비밀번호 변경에 실패했습니다.';
       alert(message);

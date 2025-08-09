@@ -120,7 +120,7 @@ body {
 .message {
   padding: 12px 18px;
   border-radius: 20px;
-  max-width: 75%;
+  max-width: 100%;
   word-wrap: break-word;
   line-height: 1.5;
   margin-bottom: 10px;
@@ -137,7 +137,10 @@ body {
   background-color: #466D1D;
   color: white;
   align-self: flex-end;
-  margin-right: 30px;
+}
+
+.message p {
+  margin: 0;
 }
 
 .message-form {
@@ -601,8 +604,7 @@ body {
   background-color: #f2f3f6;
   display: flex;
   flex-direction: column;
-  position: relative; /* 하단 채팅창 고정의 기준점 */
-  overflow: hidden;
+  /* position: relative;와 overflow: hidden; 제거 */
 }
 
 /* --- 사용자 정보 헤더 스타일 --- */
@@ -612,7 +614,7 @@ body {
   right: 0;
   left: 0;
   z-index: 100;
-  padding: 15px 20px;
+  padding: 15px 40px;
   background: linear-gradient(180deg, rgba(242,243,246,0.95) 0%, rgba(242,243,246,0.8) 70%, rgba(242,243,246,0) 100%);
   backdrop-filter: blur(10px);
 }
@@ -659,7 +661,7 @@ body {
   overflow-y: auto;
   /* 사용자 헤더와 채팅창 높이만큼 상하단에 공간을 확보 */
   padding-top: 70px;
-  padding-bottom: 80px; 
+  /* padding-bottom 제거 */
 }
 
 /* --- 상단 프로필 영역 --- */
@@ -774,11 +776,9 @@ body {
 
 /* --- 하단 채팅창 --- */
 .main-screen__chat-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
+  /* position: absolute 속성들 제거 */
+  flex-shrink: 0; /* 크기가 줄어들지 않도록 설정 */
   width: 100%;
-  max-width: 400px; /* main-screen 너비와 동일하게 */
   background-color: white;
   padding: 10px 15px 20px 15px;
   border-top: 1px solid #e9e9e9;
@@ -1751,6 +1751,182 @@ body {
     text-align: center;
     gap: 8px;
   }
+}
+
+/* MainScreen.js의 자녀 정보 및 일지 섹션 스타일 */
+.main-screen__info-section {
+  flex: 1; /* 두 섹션이 동일한 너비를 가지도록 설정 */
+  display: flex;
+  flex-direction: column;
+}
+
+.main-screen__widgets-container .main-screen__widget {
+  height: 100%; /* 위젯의 높이를 섹션에 꽉 채움 */
+}
+
+.main-screen__diary-summary {
+  font-size: 0.85rem;
+  color: #555;
+  line-height: 1.5;
+  margin: 0;
+  /* 텍스트가 길어질 경우 여러 줄로 표시하고 말줄임표(...) 처리 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 4; /* 최대 4줄까지 표시 */
+  -webkit-box-orient: vertical;
+}
+
+.clickable {
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.clickable:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+}
+
+/* --- DiaryPage.js 전용 스타일 --- */
+.diary-page__content {
+  padding: 0 20px 20px 20px;
+}
+
+.diary-page__header {
+  margin-bottom: 30px;
+}
+
+.diary-page__title {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #333;
+  margin: 0 0 5px 0;
+}
+
+.diary-page__subtitle {
+  font-size: 1rem;
+  color: #6c757d;
+  margin: 0;
+}
+
+.diary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.diary-list__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 15px;
+  border: 1px solid #e9e9e9;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.diary-list__item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  border-color: #466D1D;
+}
+
+.diary-list__date-container {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  background-color: #f0f2f5;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.diary-list__day {
+  font-size: 1.5rem;
+  color: #466D1D;
+}
+
+.diary-list__month {
+  font-size: 0.8rem;
+  color: #555;
+}
+
+.diary-list__content {
+  flex-grow: 1;
+}
+
+.diary-list__summary {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #333;
+  line-height: 1.6;
+  
+  /* 텍스트가 길어질 경우 말줄임표 처리 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 2줄까지만 표시 */
+  -webkit-box-orient: vertical;
+}
+
+/* --- DiaryDetailPage.js 전용 스타일 --- */
+.diary-detail__content {
+  padding: 0 20px 40px 20px;
+}
+
+.diary-detail__header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e9e9e9;
+}
+
+.diary-detail__date {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #6c757d;
+  display: block;
+}
+
+.diary-detail__title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #466D1D;
+  margin: 5px 0 0 0;
+}
+
+.diary-detail__body {
+  background-color: #ffffff;
+  border-radius: 15px;
+  padding: 25px;
+  border: 1px solid #e9e9e9;
+}
+
+.diary-detail__body p {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #333;
+  white-space: pre-wrap; /* \n을 줄바꿈으로 인식하도록 설정 */
+}
+
+/* ChatWindow.js 메시지 컨테이너 스타일 추가 */
+.chat-window__messages-container {
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+/* ChatWindow.js의 상단 헤더 스타일 추가 */
+.main-screen__header {
+  padding: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 

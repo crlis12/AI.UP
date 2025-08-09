@@ -2,12 +2,12 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios'; // axios import
+import axios from 'axios';
 
 const BACKEND_API_URL = 'http://localhost:3001';
 
 function VerifyCodePage() {
-  const [code, setCode] = useState(['', '', '', '']);
+  const [code, setCode] = useState(['', '', '', '', '', '']); // 6자리로 변경
   const [isLoading, setIsLoading] = useState(false);
   const inputsRef = useRef([]);
   const navigate = useNavigate();
@@ -24,11 +24,12 @@ function VerifyCodePage() {
 
   const handleInputChange = (e, index) => {
     const { value } = e.target;
-    if (/^[0-9]$/.test(value) || value === '') {
+    // 영문, 숫자를 모두 허용하도록 정규식 변경
+    if (/^[a-zA-Z0-9]?$/.test(value)) {
       const newCode = [...code];
-      newCode[index] = value;
+      newCode[index] = value.toUpperCase(); // 대문자로 통일하여 저장
       setCode(newCode);
-      if (value && index < 3) {
+      if (value && index < 5) { // 5로 변경
         inputsRef.current[index + 1]?.focus();
       }
     }
@@ -43,15 +44,16 @@ function VerifyCodePage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const verificationCode = code.join('');
-    if (verificationCode.length !== 4) {
-      alert('인증번호 4자리를 모두 입력해주세요.');
+    if (verificationCode.length !== 6) { // 6으로 변경
+      alert('인증번호 6자리를 모두 입력해주세요.');
       return;
     }
     
     setIsLoading(true);
     try {
-      await axios.post(`${BACKEND_API_URL}/api/auth/verify-code`, { email, code: verificationCode });
-      navigate('/reset-password', { state: { email, code: verificationCode } }); // 보안을 위해 code도 함께 전달
+      // API 경로에서 /api 제거
+      await axios.post(`${BACKEND_API_URL}/auth/verify-code`, { email, code: verificationCode });
+      navigate('/reset-password', { state: { email } }); // code는 전달할 필요 없음
     } catch (error) {
       const message = error.response?.data?.message || '인증번호가 올바르지 않습니다.';
       alert(message);
@@ -61,29 +63,29 @@ function VerifyCodePage() {
   };
 
   const handleCancel = () => {
-    navigate('/login/email');
+    navigate('/login'); // 이메일 로그인 페이지가 아닌, 로그인 선택 페이지로 이동 (경로 수정)
   };
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
-      <div style={{ padding: '40px', backgroundColor: 'white', borderRadius: '16px', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', textAlign: 'center', maxWidth: '400px', width: '90%' }}>
-        <h2 style={{ margin: '0 0 10px 0', fontSize: '1.5rem', fontWeight: '600' }}>인증번호 4자리</h2>
+      <div style={{ padding: '40px', backgroundColor: 'white', borderRadius: '16px', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', textAlign: 'center', maxWidth: '480px', width: '90%' }}>
+        <h2 style={{ margin: '0 0 10px 0', fontSize: '1.5rem', fontWeight: '600' }}>인증번호 6자리</h2>
         <p style={{ margin: '0 0 30px 0', color: '#555', fontSize: '0.95rem', lineHeight: '1.5' }}>
           {email} 주소로 전송된 인증번호를 입력해주세요.
         </p>
 
         <form onSubmit={handleSubmit}>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginBottom: '35px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '35px' }}>
             {code.map((digit, index) => (
               <input
                 key={index}
                 ref={el => inputsRef.current[index] = el}
-                type="tel"
+                type="text" // text로 변경하여 영문 입력 가능하게
                 maxLength="1"
                 value={digit}
                 onChange={(e) => handleInputChange(e, index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
-                style={{ width: '60px', height: '70px', textAlign: 'center', fontSize: '2rem', borderRadius: '12px', border: '1px solid #ddd', backgroundColor: '#f7f8fa' }}
+                style={{ width: '50px', height: '60px', textAlign: 'center', fontSize: '1.8rem', borderRadius: '12px', border: '1px solid #ddd', backgroundColor: '#f7f8fa' }}
               />
             ))}
           </div>
