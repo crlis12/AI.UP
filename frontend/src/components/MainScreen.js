@@ -18,6 +18,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     const [children, setChildren] = useState([]);
     const [currentChildIndex, setCurrentChildIndex] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [latestDiary, setLatestDiary] = useState(null); // 최신 일지 상태 추가
 
     const handleInitialSend = async (messageText) => {
         if (children.length > 0 && currentChildIndex >= 0) {
@@ -39,20 +40,33 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     };
 
     // 자녀 목록 조회
-    const fetchChildren = async () => {
+    const fetchChildrenAndDiaries = async () => {
         try {
             if (!currentUser) return;
+            setLoading(true);
             
-            const response = await fetch(`http://localhost:3001/children/parent/${currentUser.id}`);
-            const data = await response.json();
+            const childrenResponse = await fetch(`http://localhost:3001/children/parent/${currentUser.id}`);
+            const childrenData = await childrenResponse.json();
             
-            if (data.success) {
-                setChildren(data.children);
+            if (childrenData.success && childrenData.children.length > 0) {
+                setChildren(childrenData.children);
+                
+                // 첫 번째 자녀의 최신 일지 가져오기
+                const firstChildId = childrenData.children[0].id;
+                const diaryResponse = await fetch(`http://localhost:3001/diaries/child/${firstChildId}`);
+                const diaryData = await diaryResponse.json();
+
+                if (diaryData.success && diaryData.diaries.length > 0) {
+                    setLatestDiary(diaryData.diaries[0]);
+                } else {
+                    setLatestDiary(null); // 일지가 없을 경우
+                }
             } else {
-                console.error('자녀 목록 조회 실패:', data.message);
+                setChildren([]); // 자녀가 없을 경우
+                setLatestDiary(null);
             }
         } catch (error) {
-            console.error('자녀 목록 조회 오류:', error);
+            console.error('자녀 및 일지 조회 오류:', error);
         } finally {
             setLoading(false);
         }
@@ -78,15 +92,36 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     };
 
     // 이전/다음 자녀로 이동
-    const handlePrevChild = () => {
+    const handlePrevChild = async () => { // async로 변경
         if (children.length > 0) {
-            setCurrentChildIndex((prev) => (prev > 0 ? prev - 1 : children.length - 1));
+            const newIndex = currentChildIndex > 0 ? currentChildIndex - 1 : children.length - 1;
+            setCurrentChildIndex(newIndex);
+            await fetchLatestDiary(children[newIndex].id); // 새 자녀의 일지 불러오기
         }
     };
 
-    const handleNextChild = () => {
+    const handleNextChild = async () => { // async로 변경
         if (children.length > 0) {
-            setCurrentChildIndex((prev) => (prev < children.length - 1 ? prev + 1 : 0));
+            const newIndex = currentChildIndex < children.length - 1 ? currentChildIndex + 1 : 0;
+            setCurrentChildIndex(newIndex);
+            await fetchLatestDiary(children[newIndex].id); // 새 자녀의 일지 불러오기
+        }
+    };
+
+    // 특정 자녀의 최신 일지를 불러오는 함수
+    const fetchLatestDiary = async (childId) => {
+        try {
+            const diaryResponse = await fetch(`http://localhost:3001/diaries/child/${childId}`);
+            const diaryData = await diaryResponse.json();
+
+            if (diaryData.success && diaryData.diaries.length > 0) {
+                setLatestDiary(diaryData.diaries[0]);
+            } else {
+                setLatestDiary(null);
+            }
+        } catch (error) {
+            console.error(`${childId} 자녀의 일지 조회 오류:`, error);
+            setLatestDiary(null);
         }
     };
 
@@ -104,10 +139,10 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     // 현재 선택된 자녀 정보
     const currentChild = children[currentChildIndex];
 
-    // 컴포넌트 마운트 시 자녀 목록 조회
+    // 컴포넌트 마운트 시 자녀 목록 및 첫 자녀의 일지 조회
     useEffect(() => {
         if (currentUser) {
-            fetchChildren();
+            fetchChildrenAndDiaries();
         }
     }, [currentUser]);
 
@@ -254,7 +289,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
 											}}
 										>
 											<p className="main-screen__diary-summary">
-												오늘은 '공룡'에 대한 대화를 많이 나누었네요! 아이는 티라노사우루스에 특히 흥미를 보였습니다. (요약 기능 구현 예정)
+												{latestDiary ? latestDiary.summary : "아직 작성된 일지가 없습니다."}
 											</p>
 										</div>
 									</div>

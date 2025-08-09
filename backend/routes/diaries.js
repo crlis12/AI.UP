@@ -17,6 +17,23 @@ router.get('/child/:childId', (req, res) => {
   });
 });
 
+// 특정 일지 상세 조회
+router.get('/:diaryId', (req, res) => {
+  const { diaryId } = req.params;
+  const query = 'SELECT * FROM diaries WHERE id = ?';
+
+  db.query(query, [diaryId], (err, results) => {
+    if (err) {
+      console.error('일지 상세 조회 DB 오류:', err);
+      return res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ success: false, message: '일지를 찾을 수 없습니다.' });
+    }
+    res.json({ success: true, diary: results[0] });
+  });
+});
+
 // 새로운 일지 생성
 router.post('/', (req, res) => {
   const { child_id, summary, full_text } = req.body;
