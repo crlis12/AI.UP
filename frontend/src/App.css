@@ -604,24 +604,24 @@ body {
   background-color: #f2f3f6;
   display: flex;
   flex-direction: column;
-  /* position: relative;와 overflow: hidden; 제거 */
+  position: relative; /* 자식 요소의 position: absolute 기준점 */
 }
 
 /* --- 사용자 정보 헤더 스타일 --- */
 .main-screen__user-header {
   position: absolute;
   top: 0;
-  right: 0;
   left: 0;
+  right: 0; /* left, right 모두 0으로 설정하여 부모 너비에 맞춤 */
   z-index: 100;
-  padding: 15px 40px;
+  padding: 15px; /* 채팅창과 여백 통일 */
   background: linear-gradient(180deg, rgba(242,243,246,0.95) 0%, rgba(242,243,246,0.8) 70%, rgba(242,243,246,0) 100%);
   backdrop-filter: blur(10px);
 }
 
 .main-screen__user-info {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start; /* 왼쪽 정렬 유지 */
   align-items: center;
   gap: 12px;
 }
