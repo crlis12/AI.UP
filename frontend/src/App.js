@@ -1,6 +1,6 @@
 // src/App.js (로그인 상태 비유지)
 
-import React, { useState, useEffect } from 'react'; 
+import React, { useState, useEffect, useCallback } from 'react'; 
 import { Routes, Route, Navigate } from 'react-router-dom'; 
 import './App.css';
 
@@ -110,6 +110,7 @@ function App() {
     // 메시지도 초기화
     setMessages([]);
   };
+
   // 새로운 메시지를 받아 대화 목록에 추가하고 LLM 응답을 받는 함수
   const handleSendMessage = async (messageText) => {
     // 이전에 요청을 처리 중이라면 중복 실행을 방지합니다.
@@ -136,7 +137,6 @@ function App() {
       const geminiMessage = new AIMessage(response.content);
 
       // AI 응답을 메시지 목록에 추가합니다.
-      // 이 시점의 prevMessages에는 위에서 추가한 newUserMessage가 포함되어 있습니다.
       setMessages(prevMessages => [...prevMessages, geminiMessage]);
 
     } catch (error) {
@@ -148,6 +148,7 @@ function App() {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="App">
