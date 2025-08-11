@@ -5,6 +5,7 @@ const authRouter = require('./routes/auth');
 const childrenRouter = require('./routes/children');
 const diariesRouter = require('./routes/diaries');
 const summarizeRouter = require('./routes/summarize');
+const agentRouter = require('./routes/agent');
 
 
 app.use(cors({
@@ -17,6 +18,7 @@ app.use('/auth', authRouter);
 app.use('/children', childrenRouter);
 app.use('/diaries', diariesRouter);
 app.use('/summarize', summarizeRouter);
+app.use('/agent', agentRouter);
 
 app.listen(3001, () => {
   console.log('Server is running on port 3001');
