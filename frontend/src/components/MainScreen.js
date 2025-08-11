@@ -1,12 +1,12 @@
-// src/components/MainScreen.js (수정된 최종 버전)
+// src/components/MainScreen.js
 
 import React, { useState, useEffect } from "react";
 import '../App.css'; 
+
 import { FiChevronLeft, FiChevronRight, FiPlus } from "react-icons/fi";
 import MessageInput from "./MessageInput";
 import babyProfile from '../assets/baby_image.png';
-// 1. 페이지 이동을 위한 useNavigate hook을 import 합니다.
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // Link 추가
 
 
 // 2. props에서 onSendMessage 함수를 받도록 수정합니다.
@@ -18,14 +18,18 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     const [children, setChildren] = useState([]);
     const [currentChildIndex, setCurrentChildIndex] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [latestDiary, setLatestDiary] = useState(null); // 최신 일지 상태 추가
 
-    // 4. 메시지 전송과 페이지 이동을 함께 처리하는 함수를 만듭니다.
-    const handleInitialSend = (messageText) => {
-        // App.js에서 받은 함수를 실행 -> 대화 내용이 App.js에 저장됩니다.
-        onSendMessage(messageText); 
-        // '/chat' 페이지로 이동합니다.
-        navigate('/chat');
+    const handleInitialSend = async (messageText) => {
+        if (children.length > 0 && currentChildIndex >= 0) {
+            await onSendMessage(messageText); 
+            const childId = children[currentChildIndex].id;
+            navigate(`/chat/${childId}`);
+        } else {
+            alert("먼저 아이를 등록하고 대화를 시작해주세요.");
+        }
     };
+
 
     // 로그아웃 처리 함수
     const handleLogoutClick = () => {
@@ -36,20 +40,33 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     };
 
     // 자녀 목록 조회
-    const fetchChildren = async () => {
+    const fetchChildrenAndDiaries = async () => {
         try {
             if (!currentUser) return;
+            setLoading(true);
             
-            const response = await fetch(`http://localhost:3001/children/parent/${currentUser.id}`);
-            const data = await response.json();
+            const childrenResponse = await fetch(`http://localhost:3001/children/parent/${currentUser.id}`);
+            const childrenData = await childrenResponse.json();
             
-            if (data.success) {
-                setChildren(data.children);
+            if (childrenData.success && childrenData.children.length > 0) {
+                setChildren(childrenData.children);
+                
+                // 첫 번째 자녀의 최신 일지 가져오기
+                const firstChildId = childrenData.children[0].id;
+                const diaryResponse = await fetch(`http://localhost:3001/diaries/child/${firstChildId}`);
+                const diaryData = await diaryResponse.json();
+
+                if (diaryData.success && diaryData.diaries.length > 0) {
+                    setLatestDiary(diaryData.diaries[0]);
+                } else {
+                    setLatestDiary(null); // 일지가 없을 경우
+                }
             } else {
-                console.error('자녀 목록 조회 실패:', data.message);
+                setChildren([]); // 자녀가 없을 경우
+                setLatestDiary(null);
             }
         } catch (error) {
-            console.error('자녀 목록 조회 오류:', error);
+            console.error('자녀 및 일지 조회 오류:', error);
         } finally {
             setLoading(false);
         }
@@ -75,24 +92,62 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     };
 
     // 이전/다음 자녀로 이동
-    const handlePrevChild = () => {
+    const handlePrevChild = async () => { // async로 변경
         if (children.length > 0) {
-            setCurrentChildIndex((prev) => (prev > 0 ? prev - 1 : children.length - 1));
+            const newIndex = currentChildIndex > 0 ? currentChildIndex - 1 : children.length - 1;
+            setCurrentChildIndex(newIndex);
+            await fetchLatestDiary(children[newIndex].id); // 새 자녀의 일지 불러오기
         }
     };
 
-    const handleNextChild = () => {
+    const handleNextChild = async () => { // async로 변경
         if (children.length > 0) {
-            setCurrentChildIndex((prev) => (prev < children.length - 1 ? prev + 1 : 0));
+            const newIndex = currentChildIndex < children.length - 1 ? currentChildIndex + 1 : 0;
+            setCurrentChildIndex(newIndex);
+            await fetchLatestDiary(children[newIndex].id); // 새 자녀의 일지 불러오기
         }
     };
 
-    // 컴포넌트 마운트 시 자녀 목록 조회
+    // 특정 자녀의 최신 일지를 불러오는 함수
+    const fetchLatestDiary = async (childId) => {
+        try {
+            const diaryResponse = await fetch(`http://localhost:3001/diaries/child/${childId}`);
+            const diaryData = await diaryResponse.json();
+
+            if (diaryData.success && diaryData.diaries.length > 0) {
+                setLatestDiary(diaryData.diaries[0]);
+            } else {
+                setLatestDiary(null);
+            }
+        } catch (error) {
+            console.error(`${childId} 자녀의 일지 조회 오류:`, error);
+            setLatestDiary(null);
+        }
+    };
+
+    // 채팅 시작 핸들러
+    const handleStartChat = () => {
+        if (children.length > 0 && currentChildIndex >= 0) {
+            const childId = children[currentChildIndex].id;
+            navigate(`/chat/${childId}`); // 수정: childId를 URL에 포함
+        } else {
+            alert("먼저 아이를 등록해주세요.");
+            navigate('/child-info');
+        }
+    };
+
+    // 현재 선택된 자녀 정보
+    const currentChild = children[currentChildIndex];
+
+    // 컴포넌트 마운트 시 자녀 목록 및 첫 자녀의 일지 조회
     useEffect(() => {
         if (currentUser) {
-            fetchChildren();
+            fetchChildrenAndDiaries();
         }
     }, [currentUser]);
+
+    // [디버깅] 백엔드에서 받아온 자녀 목록과 개수를 콘솔에 출력합니다.
+    console.log("자녀 수:", children.length, "자녀 목록 데이터:", children);
 
 	return (
 		<div className="main-screen">
@@ -108,6 +163,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
 					</button>
 				</div>
 			</div>
+
 
 			{/* 스크롤되는 영역 */}
 			<div className="main-screen__scroll-view">
@@ -193,60 +249,49 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
 								</h1>
 							</div>
 							<div className="main-screen__checklist-section">
-								<h2 className="main-screen__subtitle">자녀 정보</h2>
 								<div className="main-screen__widgets-container">
-									<div className="main-screen__widget">
-										{/* 기본 정보 */}
-										<div className="main-screen__widget-item">
-											<span>나이: {calculateAge(children[currentChildIndex]?.birth_date)}세</span>
+									{/* 자녀 정보 섹션 */}
+									<div className="main-screen__info-section">
+										<h2 className="main-screen__subtitle">자녀 정보</h2>
+										<div className="main-screen__widget">
+											<div className="main-screen__widget-item">
+												<span>나이: {calculateAge(children[currentChildIndex]?.birth_date)}세</span>
+											</div>
+											{children[currentChildIndex]?.birth_date && (
+												<div className="main-screen__widget-item">
+													<span>생년월일: {new Date(children[currentChildIndex].birth_date).toLocaleDateString('ko-KR')}</span>
+												</div>
+											)}
+											{children[currentChildIndex]?.weight && (
+												<div className="main-screen__widget-item">
+													<span>몸무게: {children[currentChildIndex].weight}kg</span>
+												</div>
+											)}
+											{children[currentChildIndex]?.height && (
+												<div className="main-screen__widget-item">
+													<span>키: {children[currentChildIndex].height}cm</span>
+												</div>
+											)}
 										</div>
-										{children[currentChildIndex]?.birth_date && (
-											<div className="main-screen__widget-item">
-												<span>생년월일: {new Date(children[currentChildIndex].birth_date).toLocaleDateString('ko-KR')}</span>
-											</div>
-										)}
-										{children[currentChildIndex]?.weight && (
-											<div className="main-screen__widget-item">
-												<span>몸무게: {children[currentChildIndex].weight}kg</span>
-											</div>
-										)}
-										{children[currentChildIndex]?.height && (
-											<div className="main-screen__widget-item">
-												<span>키: {children[currentChildIndex].height}cm</span>
-											</div>
-										)}
 									</div>
-									<div className="main-screen__widget">
-										{children[currentChildIndex]?.school_name && (
-											<div className="main-screen__widget-item-small">
-												학교: {children[currentChildIndex].school_name}
-											</div>
-										)}
-										{children[currentChildIndex]?.grade_level && (
-											<div className="main-screen__widget-item-small">
-												학년: {children[currentChildIndex].grade_level}
-											</div>
-										)}
-										{children[currentChildIndex]?.interests && (
-											<div className="main-screen__widget-item-small">
-												관심사: {children[currentChildIndex].interests}
-											</div>
-										)}
-										{children[currentChildIndex]?.favorite_activities && (
-											<div className="main-screen__widget-item-small">
-												좋아하는 활동: {children[currentChildIndex].favorite_activities}
-											</div>
-										)}
-										{children[currentChildIndex]?.special_needs && (
-											<div className="main-screen__widget-item-small">
-												특별 요구사항: {children[currentChildIndex].special_needs}
-											</div>
-										)}
-										{children.length > 1 && (
-											<div className="main-screen__widget-item-small">
-												{currentChildIndex + 1} / {children.length} 번째 자녀
-											</div>
-										)}
+									{/* 오늘의 일지 섹션 */}
+									<div className="main-screen__info-section">
+										<h2 className="main-screen__subtitle">오늘의 일지</h2>
+										<div 
+											className="main-screen__widget diary-widget clickable"
+											onClick={() => {
+												const currentChild = children[currentChildIndex];
+												if (currentChild && currentChild.id) {
+													navigate(`/diary/${currentChild.id}`, { state: { childName: currentChild.name } });
+												} else {
+													console.error("일지 페이지로 이동할 수 없습니다: 자녀 정보가 없습니다.");
+												}
+											}}
+										>
+											<p className="main-screen__diary-summary">
+												{latestDiary ? latestDiary.summary : "아직 작성된 일지가 없습니다."}
+											</p>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -255,10 +300,8 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
 				)}
 			</div>
 
-			{/* 하단 채팅 입력창 */}
 			<div className="main-screen__chat-bar">
 				<MessageInput 
-                    // 5. onSendMessage prop에 console.log 대신 새로 만든 함수를 연결합니다.
                     onSendMessage={handleInitialSend} 
                     isLoading={false}
                 />
