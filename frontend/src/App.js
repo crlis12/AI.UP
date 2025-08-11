@@ -22,32 +22,11 @@ import DiaryDetailPage from './pages/DiaryDetailPage'; // DiaryDetailPage 임포
 import MainScreen from './components/MainScreen';
 import ChatWindow from './components/ChatWindow';
 
-// LangChain 관련 모듈 임포트
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { RunnableSequence } from "@langchain/core/runnables";
-import { HumanMessage, AIMessage } from "@langchain/core/messages"; 
-import { MessagesPlaceholder } from "@langchain/core/prompts";
+// LLM 호출을 백엔드 API로 위임합니다.
+import { HumanMessage, AIMessage } from "@langchain/core/messages";
 
 
-// 환경 변수에서 API 키를 가져옵니다.
-const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY; 
-
-// LangChain 모델을 초기화합니다.
-const model = new ChatGoogleGenerativeAI({
-  apiKey: GEMINI_API_KEY,
-  model: "gemini-2.5-flash", 
-});
-
-// 대화 히스토리를 위한 프롬프트 템플릿을 정의합니다.
-const prompt = ChatPromptTemplate.fromMessages([
-  ["system", "You are a helpful assistant. Please answer the user's questions."],
-  new MessagesPlaceholder("history"), 
-  ["human", "{input}"], 
-]);
-
-// 모델과 프롬프트를 연결하는 체인(Chain)을 구성합니다.
-const chain = RunnableSequence.from([prompt, model]);
+const BACKEND_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 
 
 function App() {
@@ -128,21 +107,19 @@ function App() {
     setIsLoading(true);
 
     try {
-      // API를 호출할 때는 캡처해둔 history를 사용합니다.
-      const response = await chain.invoke({
-        input: messageText,
-        history: history, 
+      const resp = await fetch(`${BACKEND_BASE_URL}/agent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: messageText, history })
       });
+      const data = await resp.json();
+      if (!data.success) throw new Error(data.message || '에이전트 호출 실패');
 
-      const geminiMessage = new AIMessage(response.content);
-
-      // AI 응답을 메시지 목록에 추가합니다.
-      setMessages(prevMessages => [...prevMessages, geminiMessage]);
-
+      const aiMessage = new AIMessage(data.content);
+      setMessages(prevMessages => [...prevMessages, aiMessage]);
     } catch (error) {
-      // 개발자 콘솔에서 실제 오류를 확인하는 것이 중요합니다.
-      console.error("Gemini API 호출 중 오류 발생:", error);
-      const errorMessage = new AIMessage("죄송합니다. 메시지를 처리하는 중 오류가 발생했습니다.");
+      console.error('Agent API 호출 오류:', error);
+      const errorMessage = new AIMessage('죄송합니다. 메시지를 처리하는 중 오류가 발생했습니다.');
       setMessages(prevMessages => [...prevMessages, errorMessage]);
     } finally {
       setIsLoading(false);
