@@ -529,40 +529,66 @@ body {
 
 /* --- PageLayout.js 스타일 (새로 추가된 부분) --- */
 
-.page-layout-container {
+.page-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-.page-content-centered {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-}
-
-.page-title {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: #333;
-    margin: 0;
-    width: 100%;
-    max-width: 350px; /* 폼과 너비 맞춤 */
+  max-width: 400px; /* 스마트폰 화면 너비 */
+  margin: 0 auto;
+  background-color: #f2f3f6;
+  position: relative;
 }
 
 .page-header {
-  width: 100%;
-  max-width: 350px;
-  margin: 0 auto 20px auto;
+  flex-shrink: 0; /* 헤더는 줄어들지 않도록 설정 */
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  gap: 10px;
+  background-color: white;
+  border-bottom: 1px solid #e9e9e9;
+}
+
+.page-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.page-content {
+  flex-grow: 1; /* 콘텐츠 영역이 남은 공간을 모두 차지하도록 */
+  overflow-y: auto; /* 내용이 많아지면 스크롤 생성 */
+  padding: 20px;
+}
+
+/* --- BottomNavBar.js 스타일 --- */
+.bottom-nav-bar {
+  flex-shrink: 0; /* 하단 바는 줄어들지 않도록 설정 */
+  display: flex;
+  justify-content: space-around;
+  background-color: white;
+  border-top: 1px solid #e9e9e9;
+  padding: 8px 0;
+}
+
+.nav-item {
+  background: none;
+  border: none;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 20px;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: #888;
+}
+
+.nav-item.active {
+  color: #466D1D; /* 활성화된 탭 색상 */
+}
+
+.nav-icon {
+  font-size: 1.5rem;
 }
 
 /* 새로운 글로벌 뒤로가기 버튼 스타일 */
@@ -1950,4 +1976,199 @@ body {
   align-items: center;
 }
 
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: #fff;
+  /* border-top: 4px solid #FFF3ED; */ /* 상단 보더 제거 */
+  flex-shrink: 0;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 20px; /* 폰트 크기 증가 */
+  font-weight: bold;
+  color: #111827;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  color: #056125; /* 아이콘 색상 녹색으로 변경 */
+}
+
+.header-placeholder {
+  width: 24px; /* BackButton 아이콘 크기와 동일하게 설정 */
+}
+
+
+/* --- DiaryPage.js 새로운 디자인 CSS --- */
+.box {
+	width: 24px;
+	height: 24px;
+}
+.column {
+	align-self: stretch;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+}
+.column2 {
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+.column3 {
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+  gap: 4px; /* 텍스트 간 간격 유지 */
+}
+.column4, .column5, .column6 { flex: 1; display: flex; flex-direction: column; align-items: center; border-radius: 8px; padding: 8px 25px; cursor: pointer; }
+.contain {
+	display: flex;
+	flex-direction: column;
+	background: #FFFFFF;
+}
+.image {
+	width: 24px;
+	height: 24px;
+	object-fit: fill;
+}
+.image2 {
+	width: 40px;
+	height: 40px;
+	object-fit: fill;
+}
+.image3 {
+	width: 74px;
+	height: 56px;
+	object-fit: fill;
+}
+.image4 { height: 24px; object-fit: contain; }
+.row-view {
+	align-self: stretch;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background: #FFFFFF;
+	padding: 16px;
+	margin-bottom: 32px;
+	box-shadow: 0px 1px 2px #0000000D;
+}
+.row-view2, .row-view3 {
+	display: flex;
+	align-items: center; /* 세로 중앙 정렬 통일 */
+	margin-left: 16px;
+	gap: 16px;
+	cursor: pointer;
+  padding: 8px 0; /* 상하 여백 추가하여 간격 확보 */
+}
+.row-view4 {
+	align-self: stretch;
+	display: flex;
+	align-items: flex-start;
+	background: #FFFFFF;
+	padding: 9px 8px 8px 8px;
+}
+.timeline-container {
+	padding: 16px;
+	display: flex;
+	flex-direction: column;
+}
+  
+.scroll-view {
+	align-self: stretch;
+	display: flex;
+	flex-direction: column;
+	background: #FFFFFF;
+	border-radius: 20px;
+}
+.text {
+	color: #111827;
+	font-size: 18px;
+	font-weight: bold;
+}
+.text2 {
+	color: #1A1C19;
+	font-size: 18px;
+	font-weight: bold;
+}
+.text3 {
+	color: #414942;
+	font-size: 14px;
+}
+.text4 {
+	color: #6B7280;
+	font-size: 12px;
+	font-weight: bold;
+}
+.text5 {
+	color: #056125;
+	font-size: 12px;
+	font-weight: bold;
+}
+
+/* MessageInput.js 관련 스타일 */
+.message-input-container {
+  position: relative;
+  padding: 8px;
+  background-color: #f0f2f5;
+}
+
+.file-preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  font-size: 14px;
+}
+
+.remove-file-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: #65676b;
+}
+
+.new-chat-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #ffffff;
+  padding: 8px;
+  border-radius: 18px;
+}
+
+.new-chat-button-plus, .new-chat-button-send {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  font-size: 24px;
+  color: #65676b;
+}
+
+.new-chat-input {
+  flex-grow: 1;
+  border: none;
+  outline: none;
+  background: none;
+  font-size: 16px;
+}
 
