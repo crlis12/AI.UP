@@ -18,7 +18,7 @@ function DiaryPage() {
     const fetchDiaries = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:3001/diaries/child/${childId}`);
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/child/${childId}`);
         const data = await response.json();
 
         if (data.success) {

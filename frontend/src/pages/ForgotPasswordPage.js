@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import PageLayout from '../components/PageLayout';
 
-const BACKEND_API_URL = 'http://localhost:3001';
+const BACKEND_API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 
 function FindPasswordPage() {
   const [email, setEmail] = useState('');
