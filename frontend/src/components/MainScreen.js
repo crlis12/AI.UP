@@ -18,13 +18,13 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     const [children, setChildren] = useState([]);
     const [currentChildIndex, setCurrentChildIndex] = useState(0);
     const [loading, setLoading] = useState(true);
-    const [latestDiary, setLatestDiary] = useState(null); // 최신 일지 상태 추가
+    const [diaries, setDiaries] = useState([]); // 최신 일지 목록 상태 추가
 
-    const handleInitialSend = async (messageText) => {
+    const handleInitialSend = (messageText) => {
         if (children.length > 0 && currentChildIndex >= 0) {
-            await onSendMessage(messageText); 
             const childId = children[currentChildIndex].id;
-            navigate(`/chat/${childId}`);
+            // AI 응답을 기다리지 않고, 첫 메시지를 state에 담아 즉시 채팅창으로 이동
+            navigate(`/chat/${childId}`, { state: { initialMessage: messageText } });
         } else {
             alert("먼저 아이를 등록하고 대화를 시작해주세요.");
         }
@@ -57,13 +57,13 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                 const diaryData = await diaryResponse.json();
 
                 if (diaryData.success && diaryData.diaries.length > 0) {
-                    setLatestDiary(diaryData.diaries[0]);
+                    setDiaries(diaryData.diaries);
                 } else {
-                    setLatestDiary(null); // 일지가 없을 경우
+                    setDiaries([]); // 일지가 없을 경우
                 }
             } else {
                 setChildren([]); // 자녀가 없을 경우
-                setLatestDiary(null);
+                setDiaries([]);
             }
         } catch (error) {
             console.error('자녀 및 일지 조회 오류:', error);
@@ -96,7 +96,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
         if (children.length > 0) {
             const newIndex = currentChildIndex > 0 ? currentChildIndex - 1 : children.length - 1;
             setCurrentChildIndex(newIndex);
-            await fetchLatestDiary(children[newIndex].id); // 새 자녀의 일지 불러오기
+            await fetchDiaries(children[newIndex].id); // 새 자녀의 일지 불러오기
         }
     };
 
@@ -104,24 +104,24 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
         if (children.length > 0) {
             const newIndex = currentChildIndex < children.length - 1 ? currentChildIndex + 1 : 0;
             setCurrentChildIndex(newIndex);
-            await fetchLatestDiary(children[newIndex].id); // 새 자녀의 일지 불러오기
+            await fetchDiaries(children[newIndex].id); // 새 자녀의 일지 불러오기
         }
     };
 
     // 특정 자녀의 최신 일지를 불러오는 함수
-    const fetchLatestDiary = async (childId) => {
+    const fetchDiaries = async (childId) => {
         try {
             const diaryResponse = await fetch(`http://localhost:3001/diaries/child/${childId}`);
             const diaryData = await diaryResponse.json();
 
             if (diaryData.success && diaryData.diaries.length > 0) {
-                setLatestDiary(diaryData.diaries[0]);
+                setDiaries(diaryData.diaries);
             } else {
-                setLatestDiary(null);
+                setDiaries([]);
             }
         } catch (error) {
             console.error(`${childId} 자녀의 일지 조회 오류:`, error);
-            setLatestDiary(null);
+            setDiaries([]);
         }
     };
 
@@ -148,6 +148,19 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
 
     // [디버깅] 백엔드에서 받아온 자녀 목록과 개수를 콘솔에 출력합니다.
     console.log("자녀 수:", children.length, "자녀 목록 데이터:", children);
+
+    // 날짜별로 유일한 최신 일지만 필터링
+    const uniqueDiaries = [];
+    if (diaries.length > 0) {
+        const seenDates = new Set();
+        for (const diary of diaries) {
+            const diaryDate = new Date(diary.diary_date).toLocaleDateString('ko-KR');
+            if (!seenDates.has(diaryDate)) {
+                uniqueDiaries.push(diary);
+                seenDates.add(diaryDate);
+            }
+        }
+    }
 
 	return (
 		<div className="main-screen">
@@ -288,9 +301,17 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
 												}
 											}}
 										>
-											<p className="main-screen__diary-summary">
-												{latestDiary ? latestDiary.summary : "아직 작성된 일지가 없습니다."}
-											</p>
+											{uniqueDiaries.length > 0 ? (
+												uniqueDiaries.map(diary => (
+													<p key={diary.id} className="main-screen__diary-summary">
+														{new Date(diary.diary_date).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })} - {diary.summary.slice(0, 30)}{diary.summary.length > 30 ? '...' : ''}
+													</p>
+												))
+											) : (
+												<p className="main-screen__diary-summary">
+													아직 작성된 일지가 없습니다.
+												</p>
+											)}
 										</div>
 									</div>
 								</div>

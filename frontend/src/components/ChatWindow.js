@@ -1,7 +1,7 @@
 // src/components/ChatWindow.js (최종 수정본)
 
-import React, { useState } from 'react'; // useState 추가
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react'; // useEffect, useRef 추가
+import { useNavigate, useParams, useLocation } from 'react-router-dom'; // useLocation 추가
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import '../App.css'; 
@@ -11,7 +11,22 @@ import { FiChevronLeft, FiFileText } from 'react-icons/fi'; // 아이콘 변경
 function ChatWindow({ messages, onSendMessage }) {
   const navigate = useNavigate();
   const { childId } = useParams();
+  const location = useLocation(); // location 훅 사용
   const [isLoading, setIsLoading] = useState(false);
+  const initialMessageSent = useRef(false); // 메시지를 보냈는지 추적하는 ref
+
+  useEffect(() => {
+    // 이전에 메시지를 보낸 적이 없고, 보낼 메시지가 있을 때만 실행
+    if (!initialMessageSent.current && location.state?.initialMessage) {
+      const initialMessage = location.state.initialMessage;
+      onSendMessage(initialMessage);
+      initialMessageSent.current = true; // 메시지를 보냈다고 표시
+      
+      // state에서 메시지를 제거하여 뒤로가기/새로고침 시 중복 실행 방지
+      navigate('.', { replace: true, state: {} });
+    }
+  }, []); // 의존성 배열을 비워서 최초 1회만 실행되도록 보장
+
 
   // 대화 요약 및 저장 핸들러
   const handleSummarizeAndSave = async () => {
