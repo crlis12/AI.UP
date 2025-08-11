@@ -4,7 +4,7 @@ const router = express.Router();
 const axios = require('axios');
 
 // Gemini API 엔드포인트
-const GEMINI_API_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+const GEMINI_API_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
 // 대화 내용 요약 라우트
 router.post('/', async (req, res) => {
