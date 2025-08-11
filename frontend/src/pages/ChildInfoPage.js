@@ -38,7 +38,7 @@ function ChildInfoPage() {
         return;
       }
 
-      const response = await fetch(`http://localhost:3001/children/parent/${currentUser.id}`);
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/children/parent/${currentUser.id}`);
       const data = await response.json();
 
       if (data.success) {
@@ -69,7 +69,7 @@ function ChildInfoPage() {
         parent_id: currentUser.id
       };
 
-      const response = await fetch('http://localhost:3001/children/register', {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/children/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

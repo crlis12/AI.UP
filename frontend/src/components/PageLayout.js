@@ -1,17 +1,23 @@
 import React from 'react';
 import BackButton from './BackButton';
+import BottomNavBar from './BottomNavBar'; // BottomNavBar 임포트
 
-function PageLayout({ children, title }) {
+function PageLayout({ children, title, titleStyle, showNavBar = false }) { // showNavBar prop 추가
   return (
-    <div className="page-layout-container">
+    <div className="page-container"> {/* 전체 컨테이너 클래스 변경 */}
       <header className="page-header">
         <BackButton />
-        {title && <h1 className="page-title">{title}</h1>}
+        {title && <h1 className="page-title" style={titleStyle}>{title}</h1>}
+        <div className="header-placeholder" />
       </header>
-      {/* 이 부분에 각 페이지의 실제 내용이 들어옵니다. */}
-      <main className="page-content-centered">
+      
+      {/* 콘텐츠 영역은 스크롤 가능하도록 */}
+      <main className="page-content">
         {children} 
       </main>
+
+      {/* showNavBar가 true일 때만 하단 바를 렌더링 */}
+      {showNavBar && <BottomNavBar />}
     </div>
   );
 }

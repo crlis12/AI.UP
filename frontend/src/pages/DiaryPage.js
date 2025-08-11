@@ -1,85 +1,115 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { FiChevronLeft } from 'react-icons/fi'; // 아이콘 임포트
+import React, { useState, useEffect, useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import PageLayout from '../components/PageLayout'; // PageLayout 임포트
+import '../App.css';
 
 function DiaryPage() {
   const { childId } = useParams();
   const navigate = useNavigate();
-  const location = useLocation(); // location 훅 사용
-  const [diaries, setDiaries] = useState([]); // 일지 목록 상태
-  const [childName, setChildName] = useState(''); // 아이 이름 상태
-  const [loading, setLoading] = useState(true); // 로딩 상태 추가
+  const [diaries, setDiaries] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  // --- 데이터 로딩 로직 (생략) ---
   useEffect(() => {
-    // MainScreen에서 넘겨준 이름 정보가 있으면 사용, 없으면 빈 문자열
-    const nameFromState = location.state?.childName || '';
-    setChildName(nameFromState);
-
     const fetchDiaries = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:3001/diaries/child/${childId}`);
+        // 목업 데이터 대신 실제 API 호출
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/child/${childId}`);
         const data = await response.json();
-
         if (data.success) {
           setDiaries(data.diaries);
-          // 아이 이름을 API 응답에서 가져오는 로직이 아직 없으므로,
-          // location state에서 가져온 이름을 유지합니다.
         } else {
           console.error("일지 목록 조회 실패:", data.message);
-          alert(data.message);
         }
       } catch (error) {
         console.error("일지 목록 조회 중 오류 발생:", error);
-        alert("일지 목록을 불러오는데 실패했습니다.");
       } finally {
         setLoading(false);
       }
     };
-
     fetchDiaries();
-  }, [childId, location.state]);
+  }, [childId]);
 
-  if (loading) {
-    return <div>로딩 중...</div>;
-  }
+  // --- 날짜 관련 헬퍼 함수 (생략) ---
+  const toDateKey = (dateValue) => {
+    const d = new Date(dateValue);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+
+  const getRelativeLabel = (dateValue) => {
+    const target = new Date(dateValue);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    const targetKey = toDateKey(target);
+    const todayKey = toDateKey(today);
+    const yKey = toDateKey(yesterday);
+    if (targetKey === todayKey) return '오늘';
+    if (targetKey === yKey) return '어제';
+    return target.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+  };
+  
+  const getKoreanDate = (dateValue) => {
+    return new Date(dateValue).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+  };
+
+  const timelineItems = useMemo(() => {
+    const byDateKey = new Map();
+    for (const diary of diaries) {
+      const key = toDateKey(diary.diary_date);
+      if (!byDateKey.has(key)) {
+        byDateKey.set(key, diary);
+      }
+    }
+    return Array.from(byDateKey.values());
+  }, [diaries]);
+
+  const titleStyle = {
+    fontSize: '16px',
+    color: '#000000',
+    fontWeight: 'bold',
+  };
+
+  if (loading) return <PageLayout title="일지" titleStyle={titleStyle} showNavBar={true}><div>로딩 중...</div></PageLayout>;
 
   return (
-    <div className="main-screen">
-      <div className="main-screen__scroll-view">
-        <div className="chat-window-header">
-          <button onClick={() => navigate(-1)} className="chat-window-back-button">
-            <FiChevronLeft size={25} /> 
-            <span>뒤로가기</span>
-          </button>
-        </div>
+    <PageLayout title="일지" titleStyle={titleStyle} showNavBar={true}>
+      <div className="timeline-container">
+        {timelineItems.map((item, index) => {
+          const label = getRelativeLabel(item.diary_date);
+          const sub = getKoreanDate(item.diary_date);
+          const isFirst = index === 0;
+          const calendarIcon = 'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/d67u1cc4_expires_30_days.png'; // 연한 녹색 아이콘으로 통일
 
-        <div className="diary-page__content">
-          <div className="diary-page__header">
-            <h1 className="diary-page__title">{childName}의 대화 일지</h1>
-            <p className="diary-page__subtitle">하루 동안 나눈 대화의 핵심 요약입니다.</p>
-          </div>
-
-          <div className="diary-list">
-            {diaries.map(diary => (
-              <div 
-                key={diary.id} 
-                className="diary-list__item" 
-                onClick={() => navigate(`/diary/detail/${diary.id}`)}
-              >
-                <div className="diary-list__date-container">
-                  <span className="diary-list__day">{new Date(diary.diary_date).getDate()}</span>
-                  <span className="diary-list__month">{new Date(diary.diary_date).toLocaleString('ko-KR', { month: 'short' })}</span>
+          return (
+            <div key={item.id} onClick={() => navigate(`/diary/detail/${item.id}`)} style={{width: '100%'}}>
+              {isFirst ? (
+                <div className="row-view2">
+                  <div className="column2">
+                    <img src={calendarIcon} alt="today" className="image2" />
+                  </div>
+                  <div className="column3">
+                    <span className="text2">{label}</span>
+                    <span className="text3">{sub}</span>
+                  </div>
                 </div>
-                <div className="diary-list__content">
-                  <p className="diary-list__summary">{diary.summary}</p>
+              ) : (
+                <div className="row-view3">
+                  <div className="column2">
+                    <img src={calendarIcon} alt="date" className="image2" />
+                  </div>
+                  <div className="column3">
+                    <span className="text2">{label}</span>
+                    <span className="text3">{sub}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
+              )}
+            </div>
+          );
+        })}
       </div>
-    </div>
+    </PageLayout>
   );
 }
 

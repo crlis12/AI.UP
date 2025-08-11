@@ -1,45 +1,87 @@
 // src/components/MessageInput.js (수정 예시)
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 // 아이콘이 필요하다면 import 합니다.
-import { FiPlus } from "react-icons/fi"; 
+import { FiPlus, FiX } from "react-icons/fi"; // FiX 아이콘 추가
 import { IoPaperPlaneOutline } from "react-icons/io5";
 
 // onSendMessage, isLoading 같은 props는 그대로 받습니다.
 const MessageInput = ({ onSendMessage, isLoading }) => {
   const [inputText, setInputText] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null); // 선택된 파일 상태 추가
+  const fileInputRef = useRef(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (inputText.trim()) {
-      onSendMessage(inputText);
+    if (inputText.trim() || selectedFile) {
+      // onSendMessage에 파일 정보도 함께 전달 (부모 컴포넌트 수정 필요)
+      onSendMessage(inputText, selectedFile);
       setInputText('');
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""; // 파일 입력 값 초기화
+      }
+    }
+  };
+
+  const handlePlusClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      console.log('Selected file:', file);
+      setSelectedFile(file); // 상태에 파일 저장
+    }
+  };
+
+  const removeSelectedFile = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // 파일 입력 값 초기화
     }
   };
 
   return (
-    // form의 className을 'new-chat-form'으로 변경합니다.
-    <form className="new-chat-form" onSubmit={handleSubmit}>
-      {/* 왼쪽 '+' 버튼 */}
-      <button type="button" className="new-chat-button-plus">
-        <FiPlus />
-      </button>
-
-      {/* input의 className을 'new-chat-input'으로 변경합니다. */}
-      <input
-        type="text"
-        className="new-chat-input"
-        value={inputText}
-        onChange={(e) => setInputText(e.target.value)}
-        placeholder="내 아이에 대해 질문하기"
-        disabled={isLoading}
-      />
-      
-      {/* 오른쪽 '전송' 버튼 */}
-      <button type="submit" className="new-chat-button-send" disabled={isLoading}>
-        <IoPaperPlaneOutline />
-      </button>
-    </form>
+    <div className="message-input-container">
+      {selectedFile && (
+        <div className="file-preview">
+          <span>{selectedFile.name}</span>
+          <button type="button" onClick={removeSelectedFile} className="remove-file-button">
+            <FiX size={18} />
+          </button>
+        </div>
+      )}
+      <form className="new-chat-form" onSubmit={handleSubmit}>
+        <button type="button" className="new-chat-button-plus" onClick={handlePlusClick}>
+          <FiPlus />
+        </button>
+        <input
+          type="file"
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          onChange={handleFileChange}
+          accept="image/*,video/*"
+        />
+        <input
+          type="text"
+          className="new-chat-input"
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          placeholder="내 아이에 대해 질문하기"
+          disabled={isLoading}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              handleSubmit(e);
+            }
+          }}
+        />
+        <button type="submit" className="new-chat-button-send" disabled={isLoading} onClick={handleSubmit}>
+          <IoPaperPlaneOutline />
+        </button>
+      </form>
+    </div>
   );
 };
 

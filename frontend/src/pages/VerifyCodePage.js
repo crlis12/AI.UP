@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const BACKEND_API_URL = 'http://localhost:3001';
+const BACKEND_API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 
 function VerifyCodePage() {
   const [code, setCode] = useState(['', '', '', '', '', '']); // 6자리로 변경
