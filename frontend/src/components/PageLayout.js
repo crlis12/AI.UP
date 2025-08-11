@@ -1,15 +1,16 @@
 import React from 'react';
 import BackButton from './BackButton';
 
-// 이 컴포넌트는 다른 페이지들을 감싸서 공통 헤더(뒤로가기 버튼)를 제공합니다.
-function PageLayout({ children }) {
+function PageLayout({ children, title }) {
   return (
     <div className="page-layout-container">
       <header className="page-header">
         <BackButton />
+        {title && <h1 className="page-title">{title}</h1>}
       </header>
-      <main className="page-content">
-        {children} {/* 이 부분에 각 페이지의 실제 내용이 들어옵니다. */}
+      {/* 이 부분에 각 페이지의 실제 내용이 들어옵니다. */}
+      <main className="page-content-centered">
+        {children} 
       </main>
     </div>
   );
