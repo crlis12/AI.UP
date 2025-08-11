@@ -12,7 +12,7 @@ function LoginPage({ onLogin }) {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch('http://localhost:3001/auth/login/email', {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/auth/login/email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

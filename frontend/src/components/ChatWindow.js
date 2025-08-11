@@ -35,7 +35,7 @@ function ChatWindow({ messages, onSendMessage }) {
 
     try {
       // 1. 백엔드에 요약 요청
-      const summarizeResponse = await fetch('http://localhost:3001/summarize', {
+      const summarizeResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/summarize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages }),
@@ -50,7 +50,7 @@ function ChatWindow({ messages, onSendMessage }) {
       const fullText = messages.map(msg => `${msg._getType() === 'human' ? '나' : 'AI'}: ${msg.content}`).join('\n');
         
       // 2. 요약된 내용으로 바로 일지 저장 요청
-      const diaryResponse = await fetch('http://localhost:3001/diaries', {
+      const diaryResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

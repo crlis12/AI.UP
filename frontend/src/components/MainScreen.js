@@ -45,7 +45,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
             if (!currentUser) return;
             setLoading(true);
             
-            const childrenResponse = await fetch(`http://localhost:3001/children/parent/${currentUser.id}`);
+            const childrenResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/children/parent/${currentUser.id}`);
             const childrenData = await childrenResponse.json();
             
             if (childrenData.success && childrenData.children.length > 0) {
@@ -53,7 +53,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                 
                 // 첫 번째 자녀의 최신 일지 가져오기
                 const firstChildId = childrenData.children[0].id;
-                const diaryResponse = await fetch(`http://localhost:3001/diaries/child/${firstChildId}`);
+                const diaryResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/child/${firstChildId}`);
                 const diaryData = await diaryResponse.json();
 
                 if (diaryData.success && diaryData.diaries.length > 0) {
@@ -111,7 +111,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     // 특정 자녀의 최신 일지를 불러오는 함수
     const fetchDiaries = async (childId) => {
         try {
-            const diaryResponse = await fetch(`http://localhost:3001/diaries/child/${childId}`);
+            const diaryResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/child/${childId}`);
             const diaryData = await diaryResponse.json();
 
             if (diaryData.success && diaryData.diaries.length > 0) {
@@ -146,8 +146,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
         }
     }, [currentUser]);
 
-    // [디버깅] 백엔드에서 받아온 자녀 목록과 개수를 콘솔에 출력합니다.
-    console.log("자녀 수:", children.length, "자녀 목록 데이터:", children);
+    // 필요 시 디버깅 로그 사용
 
     // 날짜별로 유일한 최신 일지만 필터링
     const uniqueDiaries = [];

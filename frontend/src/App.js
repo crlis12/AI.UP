@@ -24,9 +24,10 @@ import ChatWindow from './components/ChatWindow';
 
 // LLM 호출을 백엔드 API로 위임합니다.
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
+import { BACKEND_BASE_URL } from './utils/config';
 
 
-const BACKEND_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+// BASE URL은 공통 config 사용
 
 
 function App() {
@@ -107,7 +108,7 @@ function App() {
     setIsLoading(true);
 
     try {
-      const resp = await fetch(`${BACKEND_BASE_URL}/agent`, {
+      const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/agent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ input: messageText, history })

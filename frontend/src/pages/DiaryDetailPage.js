@@ -12,7 +12,7 @@ function DiaryDetailPage() {
     const fetchDiaryDetail = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:3001/diaries/${diaryId}`);
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/${diaryId}`);
         const data = await response.json();
 
         if (data.success) {
