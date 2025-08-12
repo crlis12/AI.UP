@@ -4,8 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios'; // axios import
 import PageLayout from '../components/PageLayout';
-
-const BACKEND_API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+import API_BASE from '../utils/api';
 
 function ResetPasswordPage() {
   const [password, setPassword] = useState('');
@@ -36,7 +35,7 @@ function ResetPasswordPage() {
     
     setIsLoading(true);
     try {
-      await axios.post(`${BACKEND_API_URL}/auth/reset-password`, { email, password });
+      await axios.post(`${API_BASE}/auth/reset-password`, { email, password });
       alert('비밀번호가 성공적으로 변경되었습니다. 다시 로그인해주세요.');
       navigate('/login'); // 로그인 선택 페이지로 이동
     } catch (error) {

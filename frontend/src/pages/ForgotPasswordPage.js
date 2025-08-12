@@ -4,8 +4,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import PageLayout from '../components/PageLayout';
-
-const BACKEND_API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+import API_BASE from '../utils/api';
 
 function FindPasswordPage() {
   const [email, setEmail] = useState('');
@@ -18,7 +17,7 @@ function FindPasswordPage() {
 
     try {
       // 백엔드 API 호출 (최종 결정: /api 접두사 없음)
-      await axios.post(`${BACKEND_API_URL}/auth/forgot-password`, { email });
+      await axios.post(`${API_BASE}/auth/forgot-password`, { email });
       alert('입력하신 이메일로 인증번호가 발송되었습니다. 메일함을 확인해주세요.');
       // 이메일과 함께 다음 페이지로 이동
       navigate('/verify-code', { state: { email } });

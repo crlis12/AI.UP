@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import API_BASE from '../utils/api';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { FiChevronLeft } from 'react-icons/fi'; // 아이콘 임포트
 import PageLayout from '../components/PageLayout'; // PageLayout 임포트
 import '../App.css';
 
@@ -15,7 +17,7 @@ function DiaryPage() {
       try {
         setLoading(true);
         // 목업 데이터 대신 실제 API 호출
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/child/${childId}`);
+        const response = await fetch(`${API_BASE}/diaries/child/${childId}`);
         const data = await response.json();
         if (data.success) {
           setDiaries(data.diaries);

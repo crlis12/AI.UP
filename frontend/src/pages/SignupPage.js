@@ -5,8 +5,7 @@ import '../App.css';
 // 아이콘 임포트
 import { FaCheck, FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
-// 백엔드 API 기본 URL (EmailLoginPage.js와 동일하게 설정)
-const BACKEND_API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'; 
+import API_BASE from '../utils/api';
 
 function SignupPage() {
   const navigate = useNavigate();
@@ -96,7 +95,7 @@ function SignupPage() {
     
     try {
       // 백엔드 API 호출 경로에서 /api 제거
-      const response = await fetch(`${BACKEND_API_URL}/auth/signup`, { 
+      const response = await fetch(`${API_BASE}/auth/signup`, { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

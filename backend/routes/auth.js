@@ -29,19 +29,33 @@ const transporter = nodemailer.createTransport({
 
 // 회원가입
 router.post('/signup', (req, res) => {
-    const { email, password, username, nickname } = req.body;
+    let { email, password, username, nickname } = req.body;
+
+    email = typeof email === 'string' ? email.trim() : '';
+    password = typeof password === 'string' ? password : '';
+    username = typeof username === 'string' ? username.trim() : '';
+    nickname = typeof nickname === 'string' ? nickname.trim() : '';
 
     if (!email || !password || !username || !nickname) {
         return res.status(400).json({ success: false, message: '모든 필드를 입력해주세요.' });
     }
 
-    db.query('SELECT * FROM users WHERE email = ?', [email], (err, rows) => {
+    // 이메일 또는 사용자명 중복 여부 선확인
+    db.query('SELECT email, username FROM users WHERE email = ? OR username = ?', [email, username], (err, rows) => {
         if (err) {
             console.error('DB 오류:', err);
             return res.status(500).json({ success: false, message: '데이터베이스 오류가 발생했습니다.' });
         }
-        if (rows.length > 0) {
-            return res.status(409).json({ success: false, message: '이미 가입된 이메일입니다.' });
+
+        if (rows && rows.length > 0) {
+            const existsEmail = rows.some((r) => r.email === email);
+            const existsUsername = rows.some((r) => r.username === username);
+            if (existsEmail) {
+                return res.status(409).json({ success: false, message: '이미 가입된 이메일입니다.' });
+            }
+            if (existsUsername) {
+                return res.status(409).json({ success: false, message: '이미 사용 중인 사용자명입니다.' });
+            }
         }
 
         bcrypt.hash(password, saltRounds, (hashErr, hashedPassword) => {
@@ -49,12 +63,26 @@ router.post('/signup', (req, res) => {
                 console.error('Bcrypt 해싱 오류:', hashErr);
                 return res.status(500).json({ success: false, message: '비밀번호 처리 중 오류가 발생했습니다.' });
             }
-            
+
             db.query(
                 'INSERT INTO users (email, password, username, nickname) VALUES (?, ?, ?, ?)',
                 [email, hashedPassword, username, nickname],
                 (insertErr) => {
                     if (insertErr) {
+                        // 중복 제약 등 구체적 오류 메시지 보강
+                        if (insertErr.code === 'ER_NO_SUCH_TABLE') {
+                            console.error('테이블이 존재하지 않습니다. 스키마를 먼저 생성하세요.');
+                            return res.status(500).json({ success: false, message: '서버 설정 오류: 데이터베이스 스키마가 없습니다.' });
+                        }
+                        if (insertErr.code === 'ER_DUP_ENTRY') {
+                            const msg = insertErr.message || '';
+                            if (msg.includes('users.email')) {
+                                return res.status(409).json({ success: false, message: '이미 가입된 이메일입니다.' });
+                            }
+                            if (msg.includes('users.username')) {
+                                return res.status(409).json({ success: false, message: '이미 사용 중인 사용자명입니다.' });
+                            }
+                        }
                         console.error('DB 삽입 오류:', insertErr);
                         return res.status(500).json({ success: false, message: '회원가입 중 오류가 발생했습니다.' });
                     }

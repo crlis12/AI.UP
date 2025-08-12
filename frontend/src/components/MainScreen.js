@@ -1,6 +1,7 @@
 // src/components/MainScreen.js
 
 import React, { useState, useEffect } from "react";
+import API_BASE from '../utils/api';
 import '../App.css'; 
 
 import { FiChevronLeft, FiChevronRight, FiPlus } from "react-icons/fi";
@@ -46,7 +47,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
             if (!currentUser) return;
             setLoading(true);
             
-            const childrenResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/children/parent/${currentUser.id}`);
+            const childrenResponse = await fetch(`${API_BASE}/children/parent/${currentUser.id}`);
             const childrenData = await childrenResponse.json();
             
             if (childrenData.success && childrenData.children.length > 0) {
@@ -54,9 +55,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                 
                 // 첫 번째 자녀의 최신 일지 가져오기
                 const firstChildId = childrenData.children[0].id;
-                // 첫 자녀 ID를 localStorage에 저장
-                localStorage.setItem('currentChildId', firstChildId);
-                const diaryResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/child/${firstChildId}`);
+                const diaryResponse = await fetch(`${API_BASE}/diaries/child/${firstChildId}`);
                 const diaryData = await diaryResponse.json();
 
                 if (diaryData.success && diaryData.diaries.length > 0) {
@@ -118,7 +117,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     // 특정 자녀의 최신 일지를 불러오는 함수
     const fetchDiaries = async (childId) => {
         try {
-            const diaryResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/child/${childId}`);
+            const diaryResponse = await fetch(`${API_BASE}/diaries/child/${childId}`);
             const diaryData = await diaryResponse.json();
 
             if (diaryData.success && diaryData.diaries.length > 0) {

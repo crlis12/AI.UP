@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import API_BASE from '../utils/api';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiChevronLeft } from 'react-icons/fi';
 
@@ -12,8 +13,8 @@ function DiaryDetailPage() {
     const fetchDiaryDetail = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/${diaryId}`);
-        const data = await response.json();
+        const response = await fetch(`${API_BASE}/diaries/${diaryId}`);
+ㅁ        const data = await response.json();
 
         if (data.success) {
           setDiary(data.diary);

@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import API_BASE from '../utils/api';
 import { Link } from 'react-router-dom';
 import ChildProfileCard from '../components/ChildProfileCard';
 import '../App.css';
@@ -38,7 +39,7 @@ function ChildInfoPage() {
         return;
       }
 
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/children/parent/${currentUser.id}`);
+      const response = await fetch(`${API_BASE}/children/parent/${currentUser.id}`);
       const data = await response.json();
 
       if (data.success) {
@@ -69,7 +70,7 @@ function ChildInfoPage() {
         parent_id: currentUser.id
       };
 
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/children/register`, {
+      const response = await fetch(`${API_BASE}/children/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

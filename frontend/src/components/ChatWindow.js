@@ -5,6 +5,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom'; // useLo
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import '../App.css'; 
+import API_BASE from '../utils/api';
 import { FiChevronLeft, FiFileText } from 'react-icons/fi'; // 아이콘 변경
 import BottomNavBar from './BottomNavBar';
 
@@ -36,7 +37,7 @@ function ChatWindow({ messages, onSendMessage }) {
 
     try {
       // 1. 백엔드에 요약 요청
-      const summarizeResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/summarize`, {
+      const summarizeResponse = await fetch(`${API_BASE}/summarize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages }),
@@ -51,7 +52,7 @@ function ChatWindow({ messages, onSendMessage }) {
       const fullText = messages.map(msg => `${msg._getType() === 'human' ? '나' : 'AI'}: ${msg.content}`).join('\n');
         
       // 2. 요약된 내용으로 바로 일지 저장 요청
-      const diaryResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries`, {
+      const diaryResponse = await fetch(`${API_BASE}/diaries`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
