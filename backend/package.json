@@ -1,14 +1,13 @@
 {
   "dependencies": {
-    "@langchain/core": "^0.3.68",
-    "@langchain/google-genai": "^0.2.16",
     "axios": "^1.11.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
-    "multer": "^2.0.2",
     "mysql": "^2.18.1",
+    "@langchain/google-genai": "^0.2.16",
+    "@langchain/core": "^0.3.68",
     "nodemailer": "^7.0.5"
   },
   "devDependencies": {
