@@ -71,13 +71,8 @@ const MessageInput = ({ onSendMessage, isLoading }) => {
           onChange={(e) => setInputText(e.target.value)}
           placeholder="내 아이에 대해 질문하기"
           disabled={isLoading}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              handleSubmit(e);
-            }
-          }}
         />
-        <button type="submit" className="new-chat-button-send" disabled={isLoading} onClick={handleSubmit}>
+        <button type="submit" className="new-chat-button-send" disabled={isLoading}>
           <IoPaperPlaneOutline />
         </button>
       </form>

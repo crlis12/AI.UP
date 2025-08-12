@@ -21,11 +21,15 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     const [loading, setLoading] = useState(true);
     const [diaries, setDiaries] = useState([]); // 최신 일지 목록 상태 추가
 
-    const handleInitialSend = (messageText, file) => {
+    const handleInitialSend = async (messageText, file) => {
         if (children.length > 0 && currentChildIndex >= 0) {
             const childId = children[currentChildIndex].id;
-            // AI 응답을 기다리지 않고, 첫 메시지를 state에 담아 즉시 채팅창으로 이동
-            navigate(`/chat/${childId}`, { state: { initialMessage: messageText, initialFile: file } });
+            // 먼저 메시지를 전송하고, 이후 채팅 화면으로 이동합니다.
+            try {
+                await onSendMessage(messageText, file);
+            } finally {
+                navigate(`/chat/${childId}`);
+            }
         } else {
             alert("먼저 아이를 등록하고 대화를 시작해주세요.");
         }

@@ -16,18 +16,7 @@ function ChatWindow({ messages, onSendMessage }) {
   const [isLoading, setIsLoading] = useState(false);
   const initialMessageSent = useRef(false); // 메시지를 보냈는지 추적하는 ref
 
-  useEffect(() => {
-    // 이전에 메시지를 보낸 적이 없고, 보낼 메시지가 있을 때만 실행
-    if (!initialMessageSent.current && location.state?.initialMessage) {
-      const initialMessage = location.state.initialMessage;
-      const initialFile = location.state.initialFile; // 파일 가져오기
-      onSendMessage(initialMessage, initialFile); // 파일과 함께 메시지 전송
-      initialMessageSent.current = true; // 메시지를 보냈다고 표시
-      
-      // state에서 메시지를 제거하여 뒤로가기/새로고침 시 중복 실행 방지
-      navigate('.', { replace: true, state: {} });
-    }
-  }, [location, navigate, onSendMessage]); // 의존성 배열 업데이트
+  // 초기 state 기반 자동 전송 로직 제거: 이제 메인에서 먼저 전송 후 이동합니다.
 
 
   // 대화 요약 및 저장 핸들러
