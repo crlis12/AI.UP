@@ -16,7 +16,17 @@ function ChatWindow({ messages, onSendMessage }) {
   const [isLoading, setIsLoading] = useState(false);
   const initialMessageSent = useRef(false); // 메시지를 보냈는지 추적하는 ref
 
-  // 초기 state 기반 자동 전송 로직 제거: 이제 메인에서 먼저 전송 후 이동합니다.
+  // 채팅 화면으로 진입 즉시, 메인에서 전달된 초기 메시지를 전송합니다.
+  useEffect(() => {
+    if (!initialMessageSent.current && (location.state?.initialMessage || location.state?.initialFile)) {
+      const initialMessage = location.state?.initialMessage || '';
+      const initialFile = location.state?.initialFile || null;
+      onSendMessage(initialMessage, initialFile);
+      initialMessageSent.current = true;
+      // 뒤로가기/새로고침 시 중복 방지
+      navigate('.', { replace: true, state: {} });
+    }
+  }, [location, navigate, onSendMessage]);
 
 
   // 대화 요약 및 저장 핸들러
