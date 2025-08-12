@@ -47,7 +47,23 @@ const MessageInput = ({ onSendMessage, isLoading }) => {
     <div className="message-input-container">
       {selectedFile && (
         <div className="file-preview">
-          <span>{selectedFile.name}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {selectedFile.type.startsWith('image/') && (
+              <img
+                src={URL.createObjectURL(selectedFile)}
+                alt="preview"
+                style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8 }}
+              />
+            )}
+            {selectedFile.type.startsWith('video/') && (
+              <video
+                src={URL.createObjectURL(selectedFile)}
+                style={{ width: 120, maxHeight: 80, borderRadius: 8 }}
+                controls
+              />
+            )}
+            <span>{selectedFile.name}</span>
+          </div>
           <button type="button" onClick={removeSelectedFile} className="remove-file-button">
             <FiX size={18} />
           </button>

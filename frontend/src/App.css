@@ -114,7 +114,7 @@ body {
   margin: 0 auto;
   padding: 0 20px;
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column; /* 최신이 아래로 쌓이게 일반 방향 사용 */
 }
 
 .message {
@@ -139,8 +139,34 @@ body {
   align-self: flex-end;
 }
 
+/* 사용자 미디어 버블은 배경을 투명하게 하여 테두리 느낌 제거 */
+.message.user.media {
+  background-color: transparent;
+  color: inherit;
+  padding: 8px 0; /* 미디어 주변 최소 여백만 */
+}
+
 .message p {
   margin: 0;
+}
+
+/* 채팅 내 미디어 크기 제한 */
+.message-image {
+  max-width: 70vw; /* 화면 너비 기준 제한 */
+  max-height: 260px;
+  width: auto;
+  height: auto;
+  border-radius: 10px;
+  display: block;
+}
+
+.message-video {
+  max-width: 70vw;
+  max-height: 260px;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  display: block;
 }
 
 .message-form {
