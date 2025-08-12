@@ -92,36 +92,39 @@ function App() {
   };
 
   // 새로운 메시지를 받아 대화 목록에 추가하고 LLM 응답을 받는 함수
-  const handleSendMessage = async (messageText) => {
-    // 이전에 요청을 처리 중이라면 중복 실행을 방지합니다.
-    if (isLoading) {
-      return;
-    }
-
+  const handleSendMessage = async (messageText, file) => {
+    if (isLoading) return;
     const newUserMessage = new HumanMessage(messageText);
-    
-    // API에 보낼 history는 현재 사용자 메시지가 추가되기 전의 내용입니다.
     const history = [...messages];
-
-    // 사용자 메시지를 화면에 먼저 표시하고 로딩 상태로 변경합니다.
-    setMessages(prevMessages => [...prevMessages, newUserMessage]);
+    setMessages(prev => [...prev, newUserMessage]);
     setIsLoading(true);
-
     try {
-      const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/agent`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input: messageText, history })
-      });
+      const endpoint = `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/agent`;
+      let resp;
+      if (file) {
+        const formData = new FormData();
+        formData.append('input', messageText);
+        formData.append('history', JSON.stringify(history));
+        formData.append('file', file); // 중요: 파일 필드명 'file'
+        resp = await fetch(endpoint, {
+          method: 'POST',
+          body: formData, // Content-Type 헤더 지정 금지 (브라우저가 자동 설정)
+        });
+      } else {
+        resp = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ input: messageText, history }),
+        });
+      }
       const data = await resp.json();
       if (!data.success) throw new Error(data.message || '에이전트 호출 실패');
-
       const aiMessage = new AIMessage(data.content);
-      setMessages(prevMessages => [...prevMessages, aiMessage]);
+      setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
       console.error('Agent API 호출 오류:', error);
       const errorMessage = new AIMessage('죄송합니다. 메시지를 처리하는 중 오류가 발생했습니다.');
-      setMessages(prevMessages => [...prevMessages, errorMessage]);
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
