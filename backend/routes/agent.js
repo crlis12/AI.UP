@@ -139,7 +139,11 @@ router.post('/', async (req, res) => {
     }
 
     // 멀티파트 파싱 이후에 body 접근
-    const { input, history, fileBase64, fileMimeType: bodyMimeType, fileDataUrl } = req.body || {};
+    let { input, history, fileBase64, fileMimeType: bodyMimeType, fileDataUrl } = req.body || {};
+    // history가 멀티파트에서 문자열로 올 수 있으므로 파싱
+    if (typeof history === 'string') {
+      try { history = JSON.parse(history); } catch (_) { history = []; }
+    }
     if (!fileMimeType && bodyMimeType) fileMimeType = bodyMimeType;
 
     const hasAnyFile = Boolean(fileBuffer || fileBase64 || fileDataUrl);
