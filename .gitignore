@@ -1,9 +1,13 @@
+/node_modules*
+
+
+
 # ========================
 # FRONTEND 무시 항목
 # ========================
 
 # dependencies
-/frontend/node_modules
+/frontend/node_modules*
 /frontend/.pnp
 /frontend/.pnp.js
 
@@ -29,5 +33,5 @@
 # BACKEND 무시 항목
 # ========================
 /backend/db.js
-/backend/node_modules
+/backend/node_modules*
 /backend/.env

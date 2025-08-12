@@ -625,7 +625,8 @@ body {
 .main-screen {
   width: 100%;
   max-width: 400px; /* 스마트폰 화면 너비 */
-  height: 100vh;
+  flex: 1;
+  min-height: 0;
   margin: 0 auto;
   background-color: #f2f3f6;
   display: flex;
@@ -1479,6 +1480,16 @@ body {
   box-shadow: 0 6px 20px rgba(70, 109, 29, 0.4);
 }
 
+.main-screen-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 400px; /* 스마트폰 화면 너비 */
+  margin: 0 auto;
+  background-color: #f2f3f6;
+  position: relative;
+}
+
 /* 메인스크린 동적 컨텐츠 스타일 */
 .main-screen__nickname {
   color: #6c757d;
@@ -2117,7 +2128,7 @@ body {
 	font-weight: bold;
 }
 
-/* MessageInput.js 관련 스타일 */
+/* MessageInput.js 관력 스타일 */
 .message-input-container {
   position: relative;
   padding: 8px;

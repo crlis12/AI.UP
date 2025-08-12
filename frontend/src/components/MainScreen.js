@@ -7,6 +7,7 @@ import { FiChevronLeft, FiChevronRight, FiPlus } from "react-icons/fi";
 import MessageInput from "./MessageInput";
 import babyProfile from '../assets/baby_image.png';
 import { useNavigate, Link } from "react-router-dom"; // Link 추가
+import BottomNavBar from "./BottomNavBar";
 
 
 // 2. props에서 onSendMessage 함수를 받도록 수정합니다.
@@ -20,11 +21,11 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     const [loading, setLoading] = useState(true);
     const [diaries, setDiaries] = useState([]); // 최신 일지 목록 상태 추가
 
-    const handleInitialSend = (messageText) => {
+    const handleInitialSend = (messageText, file) => {
         if (children.length > 0 && currentChildIndex >= 0) {
             const childId = children[currentChildIndex].id;
             // AI 응답을 기다리지 않고, 첫 메시지를 state에 담아 즉시 채팅창으로 이동
-            navigate(`/chat/${childId}`, { state: { initialMessage: messageText } });
+            navigate(`/chat/${childId}`, { state: { initialMessage: messageText, initialFile: file } });
         } else {
             alert("먼저 아이를 등록하고 대화를 시작해주세요.");
         }
@@ -53,6 +54,8 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                 
                 // 첫 번째 자녀의 최신 일지 가져오기
                 const firstChildId = childrenData.children[0].id;
+                // 첫 자녀 ID를 localStorage에 저장
+                localStorage.setItem('currentChildId', firstChildId);
                 const diaryResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/child/${firstChildId}`);
                 const diaryData = await diaryResponse.json();
 
@@ -96,7 +99,9 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
         if (children.length > 0) {
             const newIndex = currentChildIndex > 0 ? currentChildIndex - 1 : children.length - 1;
             setCurrentChildIndex(newIndex);
-            await fetchDiaries(children[newIndex].id); // 새 자녀의 일지 불러오기
+            const newChildId = children[newIndex].id;
+            localStorage.setItem('currentChildId', newChildId); // localStorage에 저장
+            await fetchDiaries(newChildId); // 새 자녀의 일지 불러오기
         }
     };
 
@@ -104,7 +109,9 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
         if (children.length > 0) {
             const newIndex = currentChildIndex < children.length - 1 ? currentChildIndex + 1 : 0;
             setCurrentChildIndex(newIndex);
-            await fetchDiaries(children[newIndex].id); // 새 자녀의 일지 불러오기
+            const newChildId = children[newIndex].id;
+            localStorage.setItem('currentChildId', newChildId); // localStorage에 저장
+            await fetchDiaries(newChildId); // 새 자녀의 일지 불러오기
         }
     };
 
@@ -162,170 +169,172 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     }
 
 	return (
-		<div className="main-screen">
-			{/* 사용자 정보 헤더 */}
-			<div className="main-screen__user-header">
-				<div className="main-screen__user-info">
-					<span className="main-screen__nickname">{currentUser?.nickname || '사용자'}</span>
-					<button 
-						className="main-screen__logout-button"
-						onClick={handleLogoutClick}
-					>
-						로그아웃
-					</button>
+		<div className="main-screen-container"> 
+			<div className="main-screen">
+				{/* 사용자 정보 헤더 */}
+				<div className="main-screen__user-header">
+					<div className="main-screen__user-info">
+						<span className="main-screen__nickname">{currentUser?.nickname || '사용자'}</span>
+						<button 
+							className="main-screen__logout-button"
+							onClick={handleLogoutClick}
+						>
+							로그아웃
+						</button>
+					</div>
+				</div>
+
+
+				{/* 스크롤되는 영역 */}
+				<div className="main-screen__scroll-view">
+					{loading ? (
+						<div className="main-screen__loading">
+							<p>로딩 중...</p>
+						</div>
+					) : children.length === 0 ? (
+						/* 자녀가 없을 때 */
+						<div className="main-screen__no-children">
+							<div className="main-screen__profile-container">
+								<div className="main-screen__empty-profile">
+									<div className="main-screen__empty-image">
+										<FiPlus size={40} />
+									</div>
+									<button 
+										className="main-screen__add-child-button-large"
+										onClick={handleAddChildClick}
+									>
+										<FiPlus size={20} />
+									</button>
+								</div>
+							</div>
+							<div className="main-screen__content-box">
+								<div className="main-screen__empty-content">
+									<h2>첫 번째 자녀를 추가해주세요!</h2>
+									<p>위의 + 버튼을 눌러 자녀 정보를 등록하고<br/>AI 맞춤 케어를 시작하세요.</p>
+									<button 
+										className="main-screen__add-child-text-button"
+										onClick={handleAddChildClick}
+									>
+										자녀 추가하기
+									</button>
+								</div>
+							</div>
+						</div>
+					) : (
+						/* 자녀가 있을 때 */
+						<>
+							{/* 상단 프로필 영역 */}
+							<div className="main-screen__profile-container">
+								<button 
+									className="main-screen__arrow-button"
+									onClick={handlePrevChild}
+									disabled={children.length <= 1}
+								>
+									<FiChevronLeft size={30} />
+								</button>
+								<div className="main-screen__profile-image-wrapper">
+									<img
+										src={children[currentChildIndex]?.profile_image || babyProfile}
+										alt={`${children[currentChildIndex]?.name} 프로필`}
+										className="main-screen__profile-image"
+									/>
+									<button 
+										className="main-screen__add-child-button"
+										onClick={handleAddChildClick}
+										title="아이 추가하기"
+									>
+										<FiPlus size={20} />
+									</button>
+								</div>
+								<button 
+									className="main-screen__arrow-button"
+									onClick={handleNextChild}
+									disabled={children.length <= 1}
+								>
+									<FiChevronRight size={30} />
+								</button>
+							</div>
+
+							{/* 하단 컨텐츠 영역 */}
+							<div className="main-screen__content-box">
+								<div className="main-screen__title-bar">
+									<span className="main-screen__badge">
+										{children[currentChildIndex]?.development_stage || `${calculateAge(children[currentChildIndex]?.birth_date)}세`}
+									</span>
+									<h1 className="main-screen__name">
+										{children[currentChildIndex]?.name}
+										{children[currentChildIndex]?.nickname && (
+											<span className="main-screen__nickname"> "{children[currentChildIndex].nickname}"</span>
+										)}
+									</h1>
+								</div>
+								<div className="main-screen__checklist-section">
+									<div className="main-screen__widgets-container">
+										{/* 자녀 정보 섹션 */}
+										<div className="main-screen__info-section">
+											<h2 className="main-screen__subtitle">자녀 정보</h2>
+											<div className="main-screen__widget">
+												<div className="main-screen__widget-item">
+													<span>나이: {calculateAge(children[currentChildIndex]?.birth_date)}세</span>
+												</div>
+												{children[currentChildIndex]?.birth_date && (
+													<div className="main-screen__widget-item">
+														<span>생년월일: {new Date(children[currentChildIndex].birth_date).toLocaleDateString('ko-KR')}</span>
+													</div>
+												)}
+												{children[currentChildIndex]?.weight && (
+													<div className="main-screen__widget-item">
+														<span>몸무게: {children[currentChildIndex].weight}kg</span>
+													</div>
+												)}
+												{children[currentChildIndex]?.height && (
+													<div className="main-screen__widget-item">
+														<span>키: {children[currentChildIndex].height}cm</span>
+													</div>
+												)}
+											</div>
+										</div>
+										{/* 오늘의 일지 섹션 */}
+										<div className="main-screen__info-section">
+											<h2 className="main-screen__subtitle">오늘의 일지</h2>
+											<div 
+												className="main-screen__widget diary-widget clickable"
+												onClick={() => {
+													const currentChild = children[currentChildIndex];
+													if (currentChild && currentChild.id) {
+														navigate(`/diary/${currentChild.id}`, { state: { childName: currentChild.name } });
+													} else {
+														console.error("일지 페이지로 이동할 수 없습니다: 자녀 정보가 없습니다.");
+													}
+												}}
+											>
+												{uniqueDiaries.length > 0 ? (
+													uniqueDiaries.map(diary => (
+														<p key={diary.id} className="main-screen__diary-summary">
+															{new Date(diary.diary_date).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })} - {diary.summary.slice(0, 30)}{diary.summary.length > 30 ? '...' : ''}
+														</p>
+													))
+												) : (
+													<p className="main-screen__diary-summary">
+														아직 작성된 일지가 없습니다.
+													</p>
+												)}
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</>
+					)}
 				</div>
 			</div>
-
-
-			{/* 스크롤되는 영역 */}
-			<div className="main-screen__scroll-view">
-				{loading ? (
-					<div className="main-screen__loading">
-						<p>로딩 중...</p>
-					</div>
-				) : children.length === 0 ? (
-					/* 자녀가 없을 때 */
-					<div className="main-screen__no-children">
-						<div className="main-screen__profile-container">
-							<div className="main-screen__empty-profile">
-								<div className="main-screen__empty-image">
-									<FiPlus size={40} />
-								</div>
-								<button 
-									className="main-screen__add-child-button-large"
-									onClick={handleAddChildClick}
-								>
-									<FiPlus size={20} />
-								</button>
-							</div>
-						</div>
-						<div className="main-screen__content-box">
-							<div className="main-screen__empty-content">
-								<h2>첫 번째 자녀를 추가해주세요!</h2>
-								<p>위의 + 버튼을 눌러 자녀 정보를 등록하고<br/>AI 맞춤 케어를 시작하세요.</p>
-								<button 
-									className="main-screen__add-child-text-button"
-									onClick={handleAddChildClick}
-								>
-									자녀 추가하기
-								</button>
-							</div>
-						</div>
-					</div>
-				) : (
-					/* 자녀가 있을 때 */
-					<>
-						{/* 상단 프로필 영역 */}
-						<div className="main-screen__profile-container">
-							<button 
-								className="main-screen__arrow-button"
-								onClick={handlePrevChild}
-								disabled={children.length <= 1}
-							>
-								<FiChevronLeft size={30} />
-							</button>
-							<div className="main-screen__profile-image-wrapper">
-								<img
-									src={children[currentChildIndex]?.profile_image || babyProfile}
-									alt={`${children[currentChildIndex]?.name} 프로필`}
-									className="main-screen__profile-image"
-								/>
-								<button 
-									className="main-screen__add-child-button"
-									onClick={handleAddChildClick}
-									title="아이 추가하기"
-								>
-									<FiPlus size={20} />
-								</button>
-							</div>
-							<button 
-								className="main-screen__arrow-button"
-								onClick={handleNextChild}
-								disabled={children.length <= 1}
-							>
-								<FiChevronRight size={30} />
-							</button>
-						</div>
-
-						{/* 하단 컨텐츠 영역 */}
-						<div className="main-screen__content-box">
-							<div className="main-screen__title-bar">
-								<span className="main-screen__badge">
-									{children[currentChildIndex]?.development_stage || `${calculateAge(children[currentChildIndex]?.birth_date)}세`}
-								</span>
-								<h1 className="main-screen__name">
-									{children[currentChildIndex]?.name}
-									{children[currentChildIndex]?.nickname && (
-										<span className="main-screen__nickname"> "{children[currentChildIndex].nickname}"</span>
-									)}
-								</h1>
-							</div>
-							<div className="main-screen__checklist-section">
-								<div className="main-screen__widgets-container">
-									{/* 자녀 정보 섹션 */}
-									<div className="main-screen__info-section">
-										<h2 className="main-screen__subtitle">자녀 정보</h2>
-										<div className="main-screen__widget">
-											<div className="main-screen__widget-item">
-												<span>나이: {calculateAge(children[currentChildIndex]?.birth_date)}세</span>
-											</div>
-											{children[currentChildIndex]?.birth_date && (
-												<div className="main-screen__widget-item">
-													<span>생년월일: {new Date(children[currentChildIndex].birth_date).toLocaleDateString('ko-KR')}</span>
-												</div>
-											)}
-											{children[currentChildIndex]?.weight && (
-												<div className="main-screen__widget-item">
-													<span>몸무게: {children[currentChildIndex].weight}kg</span>
-												</div>
-											)}
-											{children[currentChildIndex]?.height && (
-												<div className="main-screen__widget-item">
-													<span>키: {children[currentChildIndex].height}cm</span>
-												</div>
-											)}
-										</div>
-									</div>
-									{/* 오늘의 일지 섹션 */}
-									<div className="main-screen__info-section">
-										<h2 className="main-screen__subtitle">오늘의 일지</h2>
-										<div 
-											className="main-screen__widget diary-widget clickable"
-											onClick={() => {
-												const currentChild = children[currentChildIndex];
-												if (currentChild && currentChild.id) {
-													navigate(`/diary/${currentChild.id}`, { state: { childName: currentChild.name } });
-												} else {
-													console.error("일지 페이지로 이동할 수 없습니다: 자녀 정보가 없습니다.");
-												}
-											}}
-										>
-											{uniqueDiaries.length > 0 ? (
-												uniqueDiaries.map(diary => (
-													<p key={diary.id} className="main-screen__diary-summary">
-														{new Date(diary.diary_date).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })} - {diary.summary.slice(0, 30)}{diary.summary.length > 30 ? '...' : ''}
-													</p>
-												))
-											) : (
-												<p className="main-screen__diary-summary">
-													아직 작성된 일지가 없습니다.
-												</p>
-											)}
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</>
-				)}
-			</div>
-
 			<div className="main-screen__chat-bar">
 				<MessageInput 
-                    onSendMessage={handleInitialSend} 
-                    isLoading={false}
-                />
+					onSendMessage={handleInitialSend} 
+					isLoading={false}
+				/>
 			</div>
+			<BottomNavBar />
 		</div>
 	);
 }

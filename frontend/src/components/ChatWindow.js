@@ -6,6 +6,7 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import '../App.css'; 
 import { FiChevronLeft, FiFileText } from 'react-icons/fi'; // 아이콘 변경
+import BottomNavBar from './BottomNavBar';
 
 // App.js에서 내려주는 messages와 onSendMessage를 props로 받습니다.
 function ChatWindow({ messages, onSendMessage }) {
@@ -19,13 +20,14 @@ function ChatWindow({ messages, onSendMessage }) {
     // 이전에 메시지를 보낸 적이 없고, 보낼 메시지가 있을 때만 실행
     if (!initialMessageSent.current && location.state?.initialMessage) {
       const initialMessage = location.state.initialMessage;
-      onSendMessage(initialMessage);
+      const initialFile = location.state.initialFile; // 파일 가져오기
+      onSendMessage(initialMessage, initialFile); // 파일과 함께 메시지 전송
       initialMessageSent.current = true; // 메시지를 보냈다고 표시
       
       // state에서 메시지를 제거하여 뒤로가기/새로고침 시 중복 실행 방지
       navigate('.', { replace: true, state: {} });
     }
-  }, []); // 의존성 배열을 비워서 최초 1회만 실행되도록 보장
+  }, [location, navigate, onSendMessage]); // 의존성 배열 업데이트
 
 
   // 대화 요약 및 저장 핸들러
@@ -78,28 +80,29 @@ function ChatWindow({ messages, onSendMessage }) {
   };
 
   return (
-    <div className="main-screen">
-      {/* 고정되는 헤더 영역을 스크롤 뷰 바깥으로 이동 */}
-      <div className="main-screen__header">
-        <button onClick={() => navigate(-1)} className="chat-window-back-button">
-          <FiChevronLeft size={25} /> 
-          <span>뒤로가기</span>
-        </button>
-        <button onClick={handleSummarizeAndSave} className="chat-window-action-button" disabled={isLoading}>
-          <FiFileText size={20} />
-          <span>{isLoading ? '저장 중...' : '요약 및 저장'}</span>
-        </button>
-      </div>
+    <div className="main-screen-container">
+		<div className="main-screen">
+			{/* 고정되는 헤더 영역을 스크롤 뷰 바깥으로 이동 */}
+			<div className="main-screen__header">
+				<button onClick={() => navigate(-1)} className="chat-window-back-button">
+				<FiChevronLeft size={25} /> 
+				<span>뒤로가기</span>
+				</button>
+				<button onClick={handleSummarizeAndSave} className="chat-window-action-button" disabled={isLoading}>
+				<FiFileText size={20} />
+				<span>{isLoading ? '저장 중...' : '요약 및 저장'}</span>
+				</button>
+			</div>
 
-      {/* 스크롤 가능한 메시지 영역 */}
-      <div className="main-screen__scroll-view chat-window__messages-container">
-        <MessageList messages={messages} isLoading={isLoading} />
-      </div>
-
-      {/* 채팅 입력창 */}
-      <div className="main-screen__chat-bar">
-        <MessageInput onSendMessage={onSendMessage} isLoading={isLoading} />
-      </div>
+			{/* 스크롤 가능한 메시지 영역 */}
+			<div className="main-screen__scroll-view chat-window__messages-container">
+				<MessageList messages={messages} isLoading={isLoading} />
+			</div>
+		</div>
+		<div className="main-screen__chat-bar">
+			<MessageInput onSendMessage={onSendMessage} isLoading={false} />
+		</div>
+		<BottomNavBar />
     </div>
   );
 }
