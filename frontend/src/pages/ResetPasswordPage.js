@@ -72,7 +72,7 @@ function ResetPasswordPage() {
             className="login-input"
             required
           />
-          <button type="submit" className="form-login-button" disabled={isLoading} style={{backgroundColor: '#1c542f', borderRadius: '12px', marginTop: '20px'}}>
+          <button type="submit" className="form-login-button" disabled={isLoading} style={{backgroundColor: '#056125', borderRadius: '12px', marginTop: '20px'}}>
             {isLoading ? '변경 중...' : '비밀번호 변경'}
           </button>
         </form>

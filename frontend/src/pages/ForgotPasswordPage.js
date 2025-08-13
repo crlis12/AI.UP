@@ -50,7 +50,7 @@ function FindPasswordPage() {
             className="login-input"
             required
           />
-          <button type="submit" className="form-login-button" disabled={isLoading} style={{backgroundColor: '#005248', borderRadius: '12px', marginTop: '20px'}}>
+          <button type="submit" className="form-login-button" disabled={isLoading} style={{backgroundColor: '#056125', borderRadius: '12px', marginTop: '20px'}}>
             {isLoading ? '전송 중...' : '인증번호 받기'}
           </button>
         </form>
