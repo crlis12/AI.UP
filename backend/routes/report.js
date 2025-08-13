@@ -33,7 +33,7 @@ router.post('/', async (req, res) => {
       }
     }
 
-    let { input, history, context } = req.body || {};
+    let { input, history, context, childrenContext, k_dst } = req.body || {};
 
     let config = req.body?.config || {};
     if (typeof config === 'string') {
@@ -55,7 +55,15 @@ router.post('/', async (req, res) => {
       context = (context || '') + note;
     }
 
-    const result = await runReportAgent({ input, history, context, config, spec });
+    // childrenContext, k_dst 문자열 케이스 처리
+    if (typeof childrenContext === 'string') {
+      try { childrenContext = JSON.parse(childrenContext); } catch (_) {}
+    }
+    if (typeof k_dst === 'string') {
+      try { k_dst = JSON.parse(k_dst); } catch (_) {}
+    }
+
+    const result = await runReportAgent({ input, history, context, config, spec, childrenContext, k_dst });
     return res.json(result);
   } catch (error) {
     console.error('Report agent error:', error?.response?.data || error);
