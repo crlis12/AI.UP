@@ -68,7 +68,7 @@ function VerifyCodePage() {
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
-      <div style={{ padding: '40px', backgroundColor: 'white', borderRadius: '16px', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', textAlign: 'center', maxWidth: '480px', width: '90%' }}>
+      <div style={{ padding: '40px', backgroundColor: '#FBFDF7', borderRadius: '16px', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', textAlign: 'center', maxWidth: '480px', width: '90%' }}>
         <h2 style={{ margin: '0 0 10px 0', fontSize: '1.5rem', fontWeight: '600' }}>인증번호 6자리</h2>
         <p style={{ margin: '0 0 30px 0', color: '#555', fontSize: '0.95rem', lineHeight: '1.5' }}>
           {email} 주소로 전송된 인증번호를 입력해주세요.
@@ -85,7 +85,7 @@ function VerifyCodePage() {
                 value={digit}
                 onChange={(e) => handleInputChange(e, index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
-                style={{ width: '50px', height: '60px', textAlign: 'center', fontSize: '1.8rem', borderRadius: '12px', border: '1px solid #ddd', backgroundColor: '#f7f8fa' }}
+                style={{ width: '50px', height: '60px', textAlign: 'center', fontSize: '1.8rem', borderRadius: '12px', border: '1px solid #ddd', backgroundColor: '#FBFDF7' }}
               />
             ))}
           </div>
@@ -93,7 +93,7 @@ function VerifyCodePage() {
             <button type="submit" className="form-login-button" disabled={isLoading} style={{ backgroundColor: '#005248', borderRadius: '12px' }}>
               {isLoading ? '확인 중...' : 'Confirm'}
             </button>
-            <button type="button" onClick={handleCancel} className="form-login-button" style={{ backgroundColor: 'white', color: '#337ab7', border: '1px solid #ccc', borderRadius: '12px' }}>
+            <button type="button" onClick={handleCancel} className="form-login-button" style={{ backgroundColor: '#FBFDF7', color: '#337ab7', border: '1px solid #ccc', borderRadius: '12px' }}>
               Cancel
             </button>
           </div>

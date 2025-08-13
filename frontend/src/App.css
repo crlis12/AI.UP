@@ -5,24 +5,24 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f4f7f6; /* 부드러운 배경색 */
+  background-color: #FBFDF7; /* 부?�러??배경??*/
 }
 
-/* 스크롤바로 인한 레이아웃 흔들림 방지 및 브라우저(페이지) 스크롤 사용 */
+/* ?�크롤바�??�한 ?�이?�웃 ?�들�?방�? �?브라?��?(?�이지) ?�크�??�용 */
 html { overflow-y: auto; }
 @supports (scrollbar-gutter: stable) {
   html { scrollbar-gutter: stable; }
 }
 
-/* --- 전체 레이아웃 --- */
+/* --- ?�체 ?�이?�웃 --- */
 .main-layout {
   display: flex;
   height: 100vh;
   overflow: hidden;
-  position: relative; /* 햄버거 버튼의 위치 기준점 */
+  position: relative; /* ?�버�?버튼???�치 기�???*/
 }
 
-/* --- 로그인 페이지 관련 스타일 --- */
+/* --- 로그???�이지 관???��???--- */
 .login-container {
   display: flex;
   flex-direction: column;
@@ -48,33 +48,33 @@ html { overflow-y: auto; }
   border-radius: 8px;
 }
 
-/* --- 햄버거 메뉴 관련 스타일 --- */
+/* --- ?�버�?메뉴 관???��???--- */
 .hamburger-menu {
   position: absolute;
   top: 70px;
-  left: 20px; /* 왼쪽 상단 */
+  left: 20px; /* ?�쪽 ?�단 */
   font-size: 2rem;
   background: none;
   border: none;
-  color: #333; /* 아이콘 색상 */
+  color: #333; /* ?�이�??�상 */
   cursor: pointer;
-  z-index: 1001; /* 다른 요소들 위에 보이도록 설정 */
+  z-index: 1001; /* ?�른 ?�소???�에 보이?�록 ?�정 */
 }
 
 .menu-panel {
-  position: fixed; /* 화면에 고정 */
+  position: fixed; /* ?�면??고정 */
   top: 0;
-  left: 0; /* 왼쪽에서 나타나도록 설정 */
-  width: 250px; /* 메뉴 너비 */
+  left: 0; /* ?�쪽?�서 ?��??�도�??�정 */
+  width: 250px; /* 메뉴 ?�비 */
   height: 100%;
-  background-color: white;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.1); /* 그림자 효과 */
+  background-color: #FBFDF7;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1); /* 그림???�과 */
   padding: 60px 20px 20px 20px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 15px;
-  z-index: 1000; /* 햄버거 아이콘 바로 아래에 위치 */
+  z-index: 1000; /* ?�버�??�이�?바로 ?�래???�치 */
 }
 
 .menu-button {
@@ -84,7 +84,7 @@ html { overflow-y: auto; }
   font-size: 1.1rem;
   font-weight: bold;
   color: white;
-  background-color: #466D1D;
+  background-color: #FBFDF7;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -93,16 +93,16 @@ html { overflow-y: auto; }
 }
 
 .menu-button:hover {
-  background-color: #6b8e68;
+  background-color: #FBFDF7;
 }
 
-/* --- 채팅 인터페이스 스타일 --- */
+/* --- 채팅 ?�터?�이???��???--- */
 .chat-container {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #f0f4f9;
+  background-color: #FBFDF7;
   padding: 0 20px;
   box-sizing: border-box;
 }
@@ -120,7 +120,7 @@ html { overflow-y: auto; }
   margin: 0 auto;
   padding: 0 20px;
   display: flex;
-  flex-direction: column; /* 최신이 아래로 쌓이게 일반 방향 사용 */
+  flex-direction: column; /* 최신???�래�??�이�??�반 방향 ?�용 */
 }
 
 .message {
@@ -133,32 +133,32 @@ html { overflow-y: auto; }
 }
 
 .message.ai {
-  background-color: #ffffff;
+  background-color: #FBFDF7;
   color: #333;
   align-self: flex-start;
   border: 1px solid #e0e0e0;
 }
 
 .message.user {
-  background-color: #466D1D;
-  color: white;
+  background-color: #056125;
+  color: #FFFFFF;
   align-self: flex-end;
 }
 
-/* 사용자 미디어 버블은 배경을 투명하게 하여 테두리 느낌 제거 */
+/* ?�용??미디??버블?� 배경???�명?�게 ?�여 ?�두�??�낌 ?�거 */
 .message.user.media {
   background-color: transparent;
   color: inherit;
-  padding: 8px 0; /* 미디어 주변 최소 여백만 */
+  padding: 8px 0; /* 미디??주�? 최소 ?�백�?*/
 }
 
 .message p {
   margin: 0;
 }
 
-/* 채팅 내 미디어 크기 제한 */
+/* 채팅 ??미디???�기 ?�한 */
 .message-image {
-  max-width: 70vw; /* 화면 너비 기준 제한 */
+  max-width: 70vw; /* ?�면 ?�비 기�? ?�한 */
   max-height: 260px;
   width: auto;
   height: auto;
@@ -196,7 +196,7 @@ html { overflow-y: auto; }
   width: 100%;
   box-sizing: border-box;
   border: none;
-  background-color: #e9eef3;
+  background-color: #FBFDF7;
   border-radius: 25px;
   padding: 18px 25px;
   font-size: 1rem;
@@ -221,7 +221,7 @@ html { overflow-y: auto; }
   height: 40px;
   border-radius: 50%;
   border: none;
-  background-color: #e9eef3;
+  background-color: #FBFDF7;
   font-size: 1.8rem;
   font-weight: 300;
   color: #555;
@@ -235,7 +235,7 @@ html { overflow-y: auto; }
   bottom: 100%;
   left: 0;
   margin-bottom: 10px;
-  background-color: white;
+  background-color: #FBFDF7;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   padding: 8px;
@@ -260,7 +260,7 @@ html { overflow-y: auto; }
 }
 
 .attachment-menu button:hover {
-  background-color: #f0f4f9;
+  background-color: #FBFDF7;
 }
 
 .file-preview video {
@@ -270,7 +270,7 @@ html { overflow-y: auto; }
 }
 
 .file-icon {
-  background-color: #f0f4f9;
+  background-color: #FBFDF7;
   padding: 10px 15px;
   border-radius: 8px;
   border: 1px solid #ddd;
@@ -282,23 +282,23 @@ html { overflow-y: auto; }
 }
 
 .back-button-global {
-  background-color: transparent; /* 배경 없음 */
-  border: 1px solid #ccc;      /* 회색 테두리 */
-  border-radius: 8px;           /* 둥근 모서리 */
-  padding: 5px 12px;            /* 내부 여백 */
-  font-size: 1.5rem;            /* 아이콘 크기 */
-  cursor: pointer;              /* 마우스 커서 모양 */
-  line-height: 1;               /* 줄 간격 */
+  background-color: transparent; /* 배경 ?�음 */
+  border: 1px solid #ccc;      /* ?�색 ?�두�?*/
+  border-radius: 8px;           /* ?�근 모서�?*/
+  padding: 5px 12px;            /* ?��? ?�백 */
+  font-size: 1.5rem;            /* ?�이�??�기 */
+  cursor: pointer;              /* 마우??커서 모양 */
+  line-height: 1;               /* �?간격 */
 }
 
-/* --- WelcomePage.js (첫 번째 로그인 화면) 최종 스타일 --- */
+/* --- WelcomePage.js (�?번째 로그???�면) 최종 ?��???--- */
 .welcome-container {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
   height: 100vh;
-  background-color: #f8f9fa;
+  background-color: #FBFDF7;
   padding: 40px 20px;
   box-sizing: border-box;
 }
@@ -339,7 +339,7 @@ html { overflow-y: auto; }
 .welcome-login-button {
   width: 100%;
   padding: 15px;
-  background-color: #466D1D;
+  background-color: #FBFDF7;
   color: white;
   border: none;
   border-radius: 8px;
@@ -361,14 +361,14 @@ html { overflow-y: auto; }
   margin: 0 5px;
 }
 
-/* --- EmailLoginPage.js (두 번째 로그인 화면) 스타일 --- */
+/* --- EmailLoginPage.js (??번째 로그???�면) ?��???--- */
 .login-page-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 80px 20px 0 20px;
   height: 100vh;
-  background-color: #ffffff;
+  background-color: #FBFDF7;
   box-sizing: border-box;
 }
 
@@ -416,7 +416,7 @@ html { overflow-y: auto; }
 .form-login-button {
   width: 100%;
   padding: 15px;
-  background-color: #466D1D;
+  background-color: #FBFDF7;
   color: white;
   border: none;
   border-radius: 8px;
@@ -430,26 +430,26 @@ html { overflow-y: auto; }
   display: flex;
   justify-content: center;
   margin-top: 15px;
-}/* --- EmailLoginPage.js (두 번째 로그인 화면) 최종 스타일 --- */
+}/* --- EmailLoginPage.js (??번째 로그???�면) 최종 ?��???--- */
 
-/* 기존 .login-page-container 스타일은 삭제하고 아래 코드로 대체합니다. */
+/* 기존 .login-page-container ?��??��? ??��?�고 ?�래 코드�??�체합?�다. */
 .email-login-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #f8f9fa; /* 시안과 유사한 밝은 회색 배경 */
+  background-color: #FBFDF7; /* ?�안�??�사??밝�? ?�색 배경 */
   padding: 20px;
   box-sizing: border-box;
 }
 
 .page-header {
   width: 100%;
-  max-width: 350px; /* 컨텐츠 너비와 맞춤 */
+  max-width: 350px; /* 컨텐�??�비?� 맞춤 */
   margin: 0 auto;
   margin-bottom: 20px;
 }
 
-/* 시안에 맞는 새로운 뒤로가기 버튼 스타일 */
+/* ?�안??맞는 ?�로???�로가�?버튼 ?��???*/
 .design-back-button {
   background: none;
   border: none;
@@ -461,17 +461,17 @@ html { overflow-y: auto; }
 
 .login-content-wrapper {
   width: 100%;
-  max-width: 350px; /* 폼의 최대 너비 설정 */
-  margin: 0 auto; /* 수평 중앙 정렬 */
+  max-width: 350px; /* ?�의 최�? ?�비 ?�정 */
+  margin: 0 auto; /* ?�평 중앙 ?�렬 */
   display: flex;
   flex-direction: column;
-  gap: 20px; /* 요소 간 간격 */
+  gap: 20px; /* ?�소 �?간격 */
 }
 
 .login-title {
   font-size: 2.5rem;
   font-weight: bold;
-  color: #1c542f; /* 시안의 진한 녹색 */
+  color: #1c542f; /* ?�안??진한 ?�색 */
   margin: 0;
   text-align: left;
 }
@@ -480,17 +480,17 @@ html { overflow-y: auto; }
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: 8px; /* 레이블과 입력 필드 간의 간격 */
+  gap: 8px; /* ?�이블과 ?�력 ?�드 간의 간격 */
 }
 
 .login-form-container label {
   font-size: 0.9rem;
-  font-weight: 500; /* 조금 얇게 */
+  font-weight: 500; /* 조금 ?�게 */
   color: #495057;
-  margin-top: 10px; /* 각 항목 간의 상단 여백 */
+  margin-top: 10px; /* �???�� 간의 ?�단 ?�백 */
 }
 
-/* 입력 필드와 아이콘을 감싸는 래퍼 */
+/* ?�력 ?�드?� ?�이콘을 감싸???�퍼 */
 .input-wrapper {
   position: relative;
   display: flex;
@@ -500,24 +500,24 @@ html { overflow-y: auto; }
 .login-form-container input {
   width: 100%;
   padding: 15px;
-  padding-right: 40px; /* 아이콘을 위한 공간 확보 */
+  padding-right: 40px; /* ?�이콘을 ?�한 공간 ?�보 */
   border: 1px solid #ced4da;
   border-radius: 8px;
   font-size: 1rem;
-  box-sizing: border-box; /* 패딩과 테두리를 너비에 포함 */
+  box-sizing: border-box; /* ?�딩�??�두리�? ?�비???�함 */
 }
 
-/* 입력 필드 내 아이콘 스타일 */
+/* ?�력 ?�드 ???�이�??��???*/
 .input-icon {
   position: absolute;
   right: 15px;
-  color: #adb5bd; /* 기본 아이콘 색상 */
+  color: #adb5bd; /* 기본 ?�이�??�상 */
   background: none;
   border: none;
 }
 
 .input-icon.check-icon {
-  color: #1c542f; /* 유효성 검사 통과 시 녹색 */
+  color: #1c542f; /* ?�효??검???�과 ???�색 */
 }
 
 .input-icon.eye-icon {
@@ -530,7 +530,7 @@ html { overflow-y: auto; }
 .forgot-password-link {
   text-align: right;
   font-size: 0.9rem;
-  color: #E57C23; /* 시안의 주황/갈색 */
+  color: #E57C23; /* ?�안??주황/갈색 */
   text-decoration: none;
   margin-top: 5px;
   margin-bottom: 25px;
@@ -539,7 +539,7 @@ html { overflow-y: auto; }
 .form-login-button {
   width: 100%;
   padding: 15px;
-  background-color: #1c542f;
+  background-color: #FBFDF7;
   color: white;
   border: none;
   border-radius: 50px; /* pill shape */
@@ -553,31 +553,31 @@ html { overflow-y: auto; }
   margin-top: 10px;
   width: 100%;
 }
-/* Google 버튼의 테두리 색상과 텍스트를 커스텀하기 위한 추가 스타일 */
+/* Google 버튼???�두�??�상�??�스?��? 커스?�?�기 ?�한 추�? ?��???*/
 .google-login-button-wrapper > div {
-  width: 100% !important; /* 너비를 100%로 강제 */
+  width: 100% !important; /* ?�비�?100%�?강제 */
   border-radius: 50px !important; /* pill shape 강제 */
 }
 
-/* --- PageLayout.js 스타일 (새로 추가된 부분) --- */
+/* --- PageLayout.js ?��???(?�로 추�???부�? --- */
 
 .page-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  max-width: 400px; /* 스마트폰 화면 너비 */
-  margin: 0 auto;
-  background-color: #f2f3f6;
+  max-width: 400px; /* ?�마?�폰 ?�면 ?�비 */
+  margin: 0 auto 0 calc(0px + 4px); /* auto 중심 유지 + 아주 살짝 오른쪽 이동 */
+  background-color: #FBFDF7;
   position: relative;
 }
 
 .page-header {
-  flex-shrink: 0; /* 헤더는 줄어들지 않도록 설정 */
+  flex-shrink: 0; /* ?�더??줄어?��? ?�도�??�정 */
   display: flex;
   align-items: center;
   padding: 15px;
   gap: 10px;
-  background-color: white;
+  background-color: #FBFDF7;
   border-bottom: 1px solid #e9e9e9;
 }
 
@@ -588,17 +588,17 @@ html { overflow-y: auto; }
 }
 
 .page-content {
-  flex-grow: 1; /* 콘텐츠 영역이 남은 공간을 모두 차지하도록 */
-  overflow-y: auto; /* 내용이 많아지면 스크롤 생성 */
+  flex-grow: 1; /* 콘텐�??�역???��? 공간??모두 차�??�도�?*/
+  overflow-y: auto; /* ?�용??많아지�??�크�??�성 */
   padding: 20px;
 }
 
-/* --- BottomNavBar.js 스타일 --- */
+/* --- BottomNavBar.js ?��???--- */
 .bottom-nav-bar {
-  flex-shrink: 0; /* 하단 바는 줄어들지 않도록 설정 */
+  flex-shrink: 0; /* ?�단 바는 줄어?��? ?�도�??�정 */
   display: flex;
   justify-content: space-around;
-  background-color: white;
+  background-color: #FBFDF7;
   border-top: 1px solid #e9e9e9;
   padding: 8px 0;
 }
@@ -616,14 +616,14 @@ html { overflow-y: auto; }
 }
 
 .nav-item.active {
-  color: #466D1D; /* 활성화된 탭 색상 */
+  color: #466D1D; /* ?�성?�된 ???�상 */
 }
 
 .nav-icon {
   font-size: 1.5rem;
 }
 
-/* 새로운 글로벌 뒤로가기 버튼 스타일 */
+/* ?�로??글로벌 ?�로가�?버튼 ?��???*/
 .global-back-button {
   background: none;
   border: none;
@@ -633,54 +633,54 @@ html { overflow-y: auto; }
   font-size: 1rem;
   color: #555;
   font-weight: 500;
-  padding: 0; /* 불필요한 패딩 제거 */
+  padding: 0; /* 불필?�한 ?�딩 ?�거 */
 }
 
-/* PageLayout 내부의 햄버거 메뉴 위치 조정 */
+/* PageLayout ?��????�버�?메뉴 ?�치 조정 */
 .page-header .hamburger-menu {
-  position: static; /* absolute 속성 제거 */
+  position: static; /* absolute ?�성 ?�거 */
   font-size: 1.8rem;
   padding: 0;
-  top: auto; /* 기존 top, left 값 초기화 */
+  top: auto; /* 기존 top, left �?초기??*/
   left: auto;
 }
 
 .page-content {
-  /* 페이지 내용이 들어갈 공간 */
+  /* ?�이지 ?�용???�어�?공간 */
 }
 
 
-/* --- MainScreen.js 전용 스타일 (새로 추가) --- */
+/* --- MainScreen.js ?�용 ?��???(?�로 추�?) --- */
 
-/* --- MainScreen.js 전용 스타일 (최종 수정본) --- */
+/* --- MainScreen.js ?�용 ?��???(최종 ?�정�? --- */
 
 .main-screen {
   width: 100%;
-  max-width: 400px; /* 스마트폰 화면 너비 */
+  max-width: 400px; /* ?�마?�폰 ?�면 ?�비 */
   flex: 1;
   min-height: 0;
   margin: 0 auto;
-  background-color: #f2f3f6;
+  background-color: #FBFDF7;
   display: flex;
   flex-direction: column;
-  position: relative; /* 자식 요소의 position: absolute 기준점 */
+  position: relative; /* ?�식 ?�소??position: absolute 기�???*/
 }
 
-/* --- 사용자 정보 헤더 스타일 --- */
+/* --- ?�용???�보 ?�더 ?��???--- */
 .main-screen__user-header {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0; /* left, right 모두 0으로 설정하여 부모 너비에 맞춤 */
+  right: 0; /* left, right 모두 0?�로 ?�정?�여 부�??�비??맞춤 */
   z-index: 100;
-  padding: 15px; /* 채팅창과 여백 통일 */
+  padding: 15px; /* 채팅창과 ?�백 ?�일 */
   background: linear-gradient(180deg, rgba(242,243,246,0.95) 0%, rgba(242,243,246,0.8) 70%, rgba(242,243,246,0) 100%);
   backdrop-filter: blur(10px);
 }
 
 .main-screen__user-info {
   display: flex;
-  justify-content: flex-start; /* 왼쪽 정렬 유지 */
+  justify-content: flex-start; /* ?�쪽 ?�렬 ?��? */
   align-items: center;
   gap: 12px;
 }
@@ -697,7 +697,7 @@ html { overflow-y: auto; }
 
 .main-screen__logout-button {
   padding: 6px 12px;
-  background-color: #466D1D;
+  background-color: #FBFDF7;
   color: white;
   border: none;
   border-radius: 15px;
@@ -708,7 +708,7 @@ html { overflow-y: auto; }
 }
 
 .main-screen__logout-button:hover {
-  background-color: #6b8e68;
+  background-color: #FBFDF7;
 }
 
 .main-screen__logout-button:active {
@@ -717,46 +717,47 @@ html { overflow-y: auto; }
 
 .main-screen__scroll-view {
   flex-grow: 1;
-  overflow-y: auto; /* 페이지 컨테이너 내부 스크롤 사용 */
-  scrollbar-gutter: stable both-edges; /* 스크롤바 공간을 항상 예약해 좌우 대칭 유지 */
+  overflow-y: auto; /* ?�이지 컨테?�너 ?��? ?�크�??�용 */
+  scrollbar-gutter: stable both-edges; /* ?�크롤바 공간????�� ?�약??좌우 ?��??��? */
   padding-top: 40px;
-  padding-right: 16px; /* 스크롤바 고려 */
-  padding-left: 4px;  /* 맨 바깥 유닛 좌측 여백 추가 축소 */
+  padding-right: 16px; /* ?�크롤바 고려 */
+  padding-left: 8px;  /* 좌측 여백을 약간 늘려 전체를 살짝 오른쪽으로 */
   box-sizing: border-box;
 }
 
-/* --- 상단 프로필 영역 --- */
-.main-topbar { position: sticky; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #fff; z-index: 100; }
+/* --- ?�단 ?�로???�역 --- */
+.main-topbar { position: sticky; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #FBFDF7; z-index: 100; }
+.main-topbar { padding-left: 20px; padding-right: 12px; }
 .fig-header { border-bottom: none; }
 .fig-header__title { font-size: 18px; font-weight: 800; color: #1A1C19; }
 .fig-header__right { color: #414942; font-size: 18px; min-width: 24px; display: flex; align-items: center; }
 .icon-button { background: none; border: none; padding: 0; cursor: pointer; color: #6B7280; font-size: 20px; display: inline-flex; align-items: center; }
 .icon-button:active { transform: scale(0.98); }
 .chip { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 9999px; font-size: 12px; font-weight: 700; }
-.chip--muted { background: #ffffff; color: #6B7280; border: 1px solid #e5e7eb; }
+.chip--muted { background: #FBFDF7; color: #6B7280; border: 1px solid #e5e7eb; }
 .chip--primary { background: #2f6b19; color: #fff; border: none; cursor: pointer; }
 
-/* 아이 선택 드롭다운 헤더 버튼 */
+/* ?�이 ?�택 ?�롭?�운 ?�더 버튼 */
 .child-selector { background: none; border: none; display: inline-flex; align-items: center; gap: 6px; font-size: 18px; font-weight: 800; color: #1A1C19; cursor: pointer; }
 .child-selector:focus { outline: none; }
 
-/* 아이 목록 드롭다운 */
-.child-dropdown { position: absolute; top: 56px; left: 4px; right: 16px; background: #fff; border: 1px solid #e9e9e9; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); padding: 6px; z-index: 20000; display: flex; flex-direction: column; max-height: 50vh; overflow-y: auto; }
-.child-dropdown__item { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 10px 12px; border: none; background: #fff; border-radius: 8px; cursor: pointer; }
-.child-dropdown__item:hover { background: #f7f8fa; }
+/* ?�이 목록 ?�롭?�운 */
+.child-dropdown { position: absolute; top: 56px; left: 4px; right: 16px; background: #FBFDF7; border: 1px solid #e9e9e9; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); padding: 6px; z-index: 20000; display: flex; flex-direction: column; max-height: 50vh; overflow-y: auto; }
+.child-dropdown__item { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 10px 12px; border: none; background: #FBFDF7; border-radius: 8px; cursor: pointer; }
+.child-dropdown__item:hover { background: #FBFDF7; }
 .child-dropdown__item.active { background: #f0f7f2; }
 .child-dropdown__name { font-weight: 700; color: #111827; font-size: 14px; }
 .child-dropdown__sub { font-size: 12px; color: #6B7280; }
 
 .profile-hero { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 4px 16px 0 4px; }
-.profile-hero__image-wrapper { position: relative; width: 180px; height: 180px; border-radius: 50%; overflow: visible; background: #fff; box-shadow: 0 12px 20px rgba(0,0,0,0.06); margin-bottom: 12px; cursor: pointer; border: 6px solid #ffffff; z-index: 5000; }
+.profile-hero__image-wrapper { position: relative; width: 180px; height: 180px; border-radius: 50%; overflow: visible; background: #FBFDF7; box-shadow: 0 12px 20px rgba(0,0,0,0.06); margin-bottom: 12px; cursor: pointer; border: 6px solid #ffffff; z-index: 5000; }
 .profile-hero__image { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .profile-hero__name { font-size: 24px; font-weight: 800; color: #1C1B1F; margin-bottom: 2px; }
 .profile-hero__months { font-size: 16px; color: #49454F; margin-bottom: 18px; }
 
-/* 프로필 이미지 좌우 내비게이션 버튼 */
-/* 이미지 좌우 오버레이 화살표 */
-/* 컨테이너 양쪽 사이드 화살표 */
+/* ?�로???��?지 좌우 ?�비게이??버튼 */
+/* ?��?지 좌우 ?�버?�이 ?�살??*/
+/* 컨테?�너 ?�쪽 ?�이???�살??*/
 .profile-hero { position: relative; }
 
 .main-screen__profile-image {
@@ -765,20 +766,20 @@ html { overflow-y: auto; }
   z-index: 10;
 }
 
-/* 좌우 화살표 버튼 제거로 관련 스타일 삭제 */
+/* 좌우 ?�살??버튼 ?�거�?관???��?????�� */
 
 
-/* --- 하단 컨텐츠 영역 --- */
+/* --- ?�단 컨텐�??�역 --- */
 .main-screen__content-box {
-  background-color: white;
-  border-radius: 30px; /* 하단 모서리도 둥글게 */
+  background-color: #FBFDF7;
+  border-radius: 30px; /* ?�단 모서리도 ?��?�?*/
   padding: 25px;
   z-index: 15;
-  margin: 8px 0 16px 0; /* 좌우 여백은 상위 스크롤뷰가 관리 */
+  margin: 8px 0 16px 0; /* 좌우 ?�백?� ?�위 ?�크롤뷰가 관�?*/
   display: flex;
   flex-direction: column;
-  gap: 16px; /* 카드 간 여백 축소 */
-  overflow: hidden; /* 내부 요소가 라운드 밖으로 넘치지 않게 */
+  gap: 16px; /* 카드 �??�백 축소 */
+  overflow: hidden; /* ?��? ?�소가 ?�운??밖으�??�치지 ?�게 */
 }
 
 .main-screen__title-bar {
@@ -788,7 +789,7 @@ html { overflow-y: auto; }
 }
 
 .main-screen__badge {
-  background-color: #f0f2f5;
+  background-color: #FBFDF7;
   border-radius: 20px;
   padding: 8px 15px;
   font-size: 0.9rem;
@@ -816,7 +817,7 @@ html { overflow-y: auto; }
 
 .main-screen__widget {
   flex: 1;
-  background-color: #f7f8fa;
+  background-color: #FBFDF7;
   border-radius: 15px;
   padding: 15px;
   display: flex;
@@ -824,7 +825,7 @@ html { overflow-y: auto; }
   gap: 12px;
 }
 
-/* 원형 점수 게이지 */
+/* ?�형 ?�수 게이지 */
 .circular-score {
   position: relative;
   display: flex;
@@ -886,31 +887,31 @@ html { overflow-y: auto; }
   align-self: stretch;
 }
 
-/* 카드 공통 스타일 */
-.card { background: #fff; border: 1px solid #e9e9e9; border-radius: 16px; padding: 16px; box-shadow: 0px 1px 2px #0000000D; }
+/* 카드 공통 ?��???*/
+.card { background: #FBFDF7; border: 1px solid #e9e9e9; border-radius: 16px; padding: 16px; box-shadow: 0px 1px 2px #0000000D; }
 .card--info { padding-left: 4px; padding-right: 4px; }
 .card--info .card__title { margin-left: 6px; }
-.main-screen__content-box > .card { margin-left: -8px; }
+.main-screen__content-box > .card { margin-left: -2px; }
 .card__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .card__title { font-size: 18px; font-weight: 800; color: #1C1B1F; }
 .card__action { background: none; border: none; font-size: 12px; color: #056125; font-weight: 700; cursor: pointer; }
 .card__center { display: flex; flex-direction: column; align-items: center; }
 
-/* 아이 정보 그리드 */
+/* ?�이 ?�보 그리??*/
 .info-grid { display: grid; grid-template-columns: 1fr 1fr; row-gap: 6px; column-gap: 8px; margin-left: 0; margin-right: 0; }
-.info-grid__row { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #F7F8FA; border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #1A1C19; white-space: nowrap; min-height: 44px; width: 100%; box-sizing: border-box; }
+.info-grid__row { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #FBFDF7; border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #1A1C19; white-space: nowrap; min-height: 44px; width: 100%; box-sizing: border-box; }
 .info-grid__row span { min-width: 0; }
 .info-grid__row span + span { overflow: hidden; text-overflow: ellipsis; }
 
-/* 리스트 (최근 일지) */
+/* 리스??(최근 ?��?) */
 .list { display: flex; flex-direction: column; gap: 6px; }
-.main-screen__content-box > .list { margin-left: -8px; }
-.list-item { display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border: 1px solid #e9e9e9; border-radius: 16px; padding: 12px; cursor: pointer; box-shadow: 0px 1px 2px #0000000D; }
+.main-screen__content-box > .list { margin-left: -2px; }
+.list-item { display: flex; align-items: center; justify-content: space-between; background: #FBFDF7; border: 1px solid #e9e9e9; border-radius: 16px; padding: 12px; cursor: pointer; box-shadow: 0px 1px 2px #0000000D; }
 .list-item__text { display: flex; flex-direction: column; gap: 4px; }
 .list-item__title { font-size: 14px; font-weight: 800; color: #111827; }
 .list-item__subtitle { font-size: 12px; color: #6B7280; }
 .list-item__chevron { color: #6B7280; }
-.list-item--empty { background: #F7F8FA; border-style: dashed; }
+.list-item--empty { background: #FBFDF7; border-style: dashed; }
 
 .main-screen__widget-item {
   display: flex;
@@ -920,7 +921,7 @@ html { overflow-y: auto; }
 }
 
 .main-screen__checkmark {
-  color: #34A853;
+  color: #056125;
   font-weight: bold;
 }
 
@@ -930,25 +931,25 @@ html { overflow-y: auto; }
 }
 
 
-/* --- 하단 채팅창 --- */
+/* --- ?�단 채팅�?--- */
 .main-screen__chat-bar {
-  /* position: absolute 속성들 제거 */
-  flex-shrink: 0; /* 크기가 줄어들지 않도록 설정 */
+  /* position: absolute ?�성???�거 */
+  flex-shrink: 0; /* ?�기가 줄어?��? ?�도�??�정 */
   width: 100%;
-  background-color: white;
+  background-color: #FBFDF7;
   padding: 10px 15px 20px 15px;
   border-top: 1px solid #e9e9e9;
   z-index: 20;
   box-sizing: border-box;
 }
 
-/* MessageInput 컴포넌트에 적용될 스타일 */
-.new-chat-form { display: flex; align-items: center; background: #FFFFFF; border-radius: 9999px; padding: 8px 14px; border: 1px solid #D1D5DB; }
+/* MessageInput 컴포?�트???�용???��???*/
+.new-chat-form { display: flex; align-items: center; background: #FBFDF7; border-radius: 9999px; padding: 8px 14px; border: 1px solid #D1D5DB; }
 .new-chat-button-plus { background: none; border: none; font-size: 24px; color: #49454F; cursor: pointer; padding: 0 8px; }
 .new-chat-input { flex-grow: 1; border: none; background: transparent; padding: 10px 8px; font-size: 16px; outline: none; color: #44483E; }
 .new-chat-button-send { background: #056125; border: none; color: #FFFFFF; cursor: pointer; padding: 8px; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; }
 
-/* --- ChatWindow.js 뒤로가기 버튼 스타일 (App.css에 추가) --- */
+/* --- ChatWindow.js ?�로가�?버튼 ?��???(App.css??추�?) --- */
 
 .chat-window-header {
   padding: 15px 20px 0 20px;
@@ -974,7 +975,7 @@ html { overflow-y: auto; }
   font-size: 1rem;
   color: #555;
   font-weight: 500;
-  margin-left: auto; /* 오른쪽에 배치 */
+  margin-left: auto; /* ?�른쪽에 배치 */
 }
 
 .chat-window-action-button:disabled {
@@ -986,7 +987,7 @@ html { overflow-y: auto; }
   margin-left: 5px;
 }
 
-/* --- 회원가입 페이지 전용 스타일 --- */
+/* --- ?�원가???�이지 ?�용 ?��???--- */
 .input-group {
   display: flex;
   flex-direction: column;
@@ -1039,12 +1040,12 @@ html { overflow-y: auto; }
   cursor: not-allowed;
 }
 
-/* === 아동 정보 페이지 스타일 === */
+/* === ?�동 ?�보 ?�이지 ?��???=== */
 .child-info-page {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
-  background-color: #f4f7f6;
+  background-color: #FBFDF7;
   min-height: 100vh;
 }
 
@@ -1064,7 +1065,7 @@ html { overflow-y: auto; }
 }
 
 .add-child-btn {
-  background: linear-gradient(135deg, #466D1D, #6b8e68);
+  background: #FBFDF7;
   color: white;
   border: none;
   padding: 12px 24px;
@@ -1081,9 +1082,9 @@ html { overflow-y: auto; }
   box-shadow: 0 6px 20px rgba(70, 109, 29, 0.4);
 }
 
-/* 아동 추가 폼 스타일 */
+/* ?�동 추�? ???��???*/
 .add-child-form {
-  background: white;
+  background: #FBFDF7;
   padding: 30px;
   border-radius: 15px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
@@ -1125,7 +1126,7 @@ html { overflow-y: auto; }
   border-radius: 10px;
   font-size: 1rem;
   transition: all 0.3s ease;
-  background-color: #f8f9fa;
+  background-color: #FBFDF7;
 }
 
 .form-group input:focus,
@@ -1133,7 +1134,7 @@ html { overflow-y: auto; }
 .form-group textarea:focus {
   outline: none;
   border-color: #466D1D;
-  background-color: white;
+  background-color: #FBFDF7;
   box-shadow: 0 0 0 3px rgba(70, 109, 29, 0.1);
 }
 
@@ -1145,7 +1146,7 @@ html { overflow-y: auto; }
 }
 
 .submit-btn {
-  background: linear-gradient(135deg, #466D1D, #6b8e68);
+  background: #FBFDF7;
   color: white;
   border: none;
   padding: 12px 30px;
@@ -1178,7 +1179,7 @@ html { overflow-y: auto; }
   transform: translateY(-2px);
 }
 
-/* 아동 목록 스타일 */
+/* ?�동 목록 ?��???*/
 .children-list {
   margin-top: 30px;
 }
@@ -1186,7 +1187,7 @@ html { overflow-y: auto; }
 .no-children {
   text-align: center;
   padding: 60px 20px;
-  background: white;
+  background: #FBFDF7;
   border-radius: 15px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
 }
@@ -1203,9 +1204,9 @@ html { overflow-y: auto; }
   gap: 25px;
 }
 
-/* 아동 프로필 카드 스타일 */
+/* ?�동 ?�로??카드 ?��???*/
 .child-profile-card {
-  background: white;
+  background: #FBFDF7;
   border-radius: 20px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -1223,7 +1224,7 @@ html { overflow-y: auto; }
   padding: 20px;
   align-items: center;
   gap: 15px;
-  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  background: #FBFDF7;
 }
 
 .profile-image-container {
@@ -1272,7 +1273,7 @@ html { overflow-y: auto; }
 }
 
 .development-stage {
-  background: linear-gradient(135deg, #466D1D, #6b8e68);
+  background: #FBFDF7;
   color: white;
   padding: 4px 12px;
   border-radius: 15px;
@@ -1319,10 +1320,10 @@ html { overflow-y: auto; }
   transform: scale(1.1);
 }
 
-/* 편집 폼 스타일 */
+/* ?�집 ???��???*/
 .edit-form {
   padding: 20px;
-  background: #f8f9fa;
+  background: #FBFDF7;
   border-top: 1px solid #e9ecef;
 }
 
@@ -1331,7 +1332,7 @@ html { overflow-y: auto; }
 }
 
 .edit-form .save-btn {
-  background: #28a745;
+  background: #056125;
   color: white;
   border: none;
   padding: 8px 20px;
@@ -1342,7 +1343,7 @@ html { overflow-y: auto; }
 }
 
 .edit-form .save-btn:hover {
-  background: #218838;
+  background: #056125;
 }
 
 .edit-form .cancel-btn {
@@ -1360,7 +1361,7 @@ html { overflow-y: auto; }
   background: #5a6268;
 }
 
-/* 프로필 상세 정보 */
+/* ?�로???�세 ?�보 */
 .profile-details {
   padding: 20px;
 }
@@ -1376,7 +1377,7 @@ html { overflow-y: auto; }
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #f8f9fa;
+  background: #FBFDF7;
   padding: 8px 15px;
   border-radius: 20px;
   font-size: 0.9rem;
@@ -1390,7 +1391,7 @@ html { overflow-y: auto; }
 
 .toggle-details-btn {
   width: 100%;
-  background: linear-gradient(135deg, #466D1D, #6b8e68);
+  background: #FBFDF7;
   color: white;
   border: none;
   padding: 10px;
@@ -1428,7 +1429,7 @@ html { overflow-y: auto; }
   font-size: 0.9rem;
 }
 
-/* 페이지 푸터 */
+/* ?�이지 ?�터 */
 .page-footer {
   margin-top: 40px;
   text-align: center;
@@ -1448,12 +1449,12 @@ html { overflow-y: auto; }
 }
 
 .back-link:hover {
-  background: #466D1D;
+  background: #FBFDF7;
   color: white;
   transform: translateY(-2px);
 }
 
-/* === 메인스크린 + 버튼 스타일 === */
+/* === 메인?�크�?+ 버튼 ?��???=== */
 .main-screen__profile-image-wrapper {
   position: relative;
   display: inline-block;
@@ -1465,10 +1466,10 @@ html { overflow-y: auto; }
   right: -14px;
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #466D1D, #6b8e68);
+  background: #056125;
   border: 3px solid white;
   border-radius: 50%;
-  color: white;
+  color: #FFFFFF;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1476,22 +1477,22 @@ html { overflow-y: auto; }
   font-size: 1rem;
   font-weight: bold;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(70, 109, 29, 0.4);
-  z-index: 9999; /* 최우선 표시 */
+  box-shadow: 0 4px 15px rgba(5, 97, 37, 0.4);
+  z-index: 9999; /* 최우???�시 */
 }
 
 .main-screen__add-child-button:hover {
   transform: scale(1.1) translateY(-2px);
-  box-shadow: 0 6px 20px rgba(70, 109, 29, 0.6);
-  background: linear-gradient(135deg, #5a7f2a, #7da076);
+  box-shadow: 0 6px 20px rgba(5, 97, 37, 0.6);
+  background: #056125;
 }
 
 .main-screen__add-child-button:active {
   transform: scale(0.95);
-  box-shadow: 0 2px 10px rgba(70, 109, 29, 0.4);
+  box-shadow: 0 2px 10px rgba(5, 97, 37, 0.4);
 }
 
-/* 프로필 이미지에 호버 효과 추가 */
+/* ?�로???��?지???�버 ?�과 추�? */
 .main-screen__profile-image-wrapper:hover .main-screen__profile-image {
   transform: scale(1.02);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
@@ -1501,7 +1502,7 @@ html { overflow-y: auto; }
   transition: all 0.3s ease;
 }
 
-/* === 메인스크린 빈 상태 스타일 === */
+/* === 메인?�크�?�??�태 ?��???=== */
 .main-screen__loading {
   display: flex;
   justify-content: center;
@@ -1524,7 +1525,7 @@ html { overflow-y: auto; }
   width: 150px;
   height: 150px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  background: #FBFDF7;
   border: 3px dashed #466D1D;
   display: flex;
   align-items: center;
@@ -1545,10 +1546,10 @@ html { overflow-y: auto; }
   right: -10px;
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #466D1D, #6b8e68);
+  background: #056125;
   border: 4px solid white;
   border-radius: 50%;
-  color: white;
+  color: #FFFFFF;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1556,7 +1557,7 @@ html { overflow-y: auto; }
   font-size: 1.2rem;
   font-weight: bold;
   transition: all 0.3s ease;
-  box-shadow: 0 6px 20px rgba(70, 109, 29, 0.4);
+  box-shadow: 0 6px 20px rgba(5, 97, 37, 0.4);
   z-index: 10;
 }
 
@@ -1584,7 +1585,7 @@ html { overflow-y: auto; }
 }
 
 .main-screen__add-child-text-button {
-  background: linear-gradient(135deg, #466D1D, #6b8e68);
+  background: #FBFDF7;
   color: white;
   border: none;
   padding: 15px 30px;
@@ -1604,14 +1605,14 @@ html { overflow-y: auto; }
 .main-screen-container {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* 내부 스크롤바를 이 컨테이너 오른쪽에 고정 */
-  max-width: 400px; /* 스마트폰 화면 너비 */
+  height: 100vh; /* ?��? ?�크롤바�???컨테?�너 ?�른쪽에 고정 */
+  max-width: 400px; /* ?�마?�폰 ?�면 ?�비 */
   margin: 0 auto;
-  background-color: #f2f3f6;
+  background-color: #FBFDF7;
   position: relative;
 }
 
-/* 메인스크린 동적 컨텐츠 스타일 */
+/* 메인?�크�??�적 컨텐�??��???*/
 .main-screen__nickname {
   color: #6c757d;
   font-size: 0.8em;
@@ -1629,7 +1630,7 @@ html { overflow-y: auto; }
   background: transparent;
 }
 
-/* 반응형 디자인 */
+/* 반응???�자??*/
 @media (max-width: 768px) {
   .child-info-page {
     padding: 15px;
@@ -1667,14 +1668,14 @@ html { overflow-y: auto; }
     justify-content: center;
   }
 
-  /* 모바일에서 + 버튼 크기 조정 */
+  /* 모바?�에??+ 버튼 ?�기 조정 */
   .main-screen__add-child-button { width: 35px; height: 35px; top: -12px; right: -12px; }
 }
 
-/* === 자녀 상세 페이지 스타일 === */
+/* === ?��? ?�세 ?�이지 ?��???=== */
 .child-detail-page {
   min-height: 100vh;
-  background: #f4f7f6;
+  background: #FBFDF7;
   padding: 20px;
   max-width: 1000px;
   margin: 0 auto;
@@ -1689,7 +1690,7 @@ html { overflow-y: auto; }
   color: #6c757d;
 }
 
-/* 헤더 스타일 */
+/* ?�더 ?��???*/
 .detail-header {
   display: flex;
   justify-content: space-between;
@@ -1713,7 +1714,7 @@ html { overflow-y: auto; }
 }
 
 .back-button:hover {
-  background: #466D1D;
+  background: #FBFDF7;
   color: white;
   transform: translateY(-2px);
 }
@@ -1734,7 +1735,7 @@ html { overflow-y: auto; }
   display: flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, #28a745, #20c997);
+  background: linear-gradient(135deg, #056125, #20c997);
   color: white;
   border: none;
   padding: 12px 24px;
@@ -1757,9 +1758,9 @@ html { overflow-y: auto; }
   transform: none;
 }
 
-/* 자녀 요약 카드 */
+/* ?��? ?�약 카드 */
 .child-summary-card {
-  background: white;
+  background: #FBFDF7;
   padding: 25px;
   border-radius: 20px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
@@ -1801,11 +1802,11 @@ html { overflow-y: auto; }
 }
 
 .stage-badge {
-  background: linear-gradient(135deg, #466D1D, #6b8e68);
+  background: #FBFDF7;
   color: white;
 }
 
-/* 폼 스타일 */
+/* ???��???*/
 .detail-form {
   display: flex;
   flex-direction: column;
@@ -1813,7 +1814,7 @@ html { overflow-y: auto; }
 }
 
 .form-section {
-  background: white;
+  background: #FBFDF7;
   padding: 25px;
   border-radius: 15px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -1867,7 +1868,7 @@ html { overflow-y: auto; }
   border-radius: 10px;
   font-size: 1rem;
   transition: all 0.3s ease;
-  background-color: #f8f9fa;
+  background-color: #FBFDF7;
   font-family: inherit;
 }
 
@@ -1876,7 +1877,7 @@ html { overflow-y: auto; }
 .form-group textarea:focus {
   outline: none;
   border-color: #466D1D;
-  background-color: white;
+  background-color: #FBFDF7;
   box-shadow: 0 0 0 3px rgba(70, 109, 29, 0.1);
 }
 
@@ -1896,7 +1897,7 @@ html { overflow-y: auto; }
   margin: 0;
 }
 
-/* 반응형 디자인 */
+/* 반응???�자??*/
 @media (max-width: 768px) {
   .child-detail-page {
     padding: 15px;
@@ -1927,15 +1928,15 @@ html { overflow-y: auto; }
   }
 }
 
-/* MainScreen.js의 자녀 정보 및 일지 섹션 스타일 */
+/* MainScreen.js???��? ?�보 �??��? ?�션 ?��???*/
 .main-screen__info-section {
-  flex: 1; /* 두 섹션이 동일한 너비를 가지도록 설정 */
+  flex: 1; /* ???�션???�일???�비�?가지?�록 ?�정 */
   display: flex;
   flex-direction: column;
 }
 
 .main-screen__widgets-container .main-screen__widget {
-  height: 100%; /* 위젯의 높이를 섹션에 꽉 채움 */
+  height: 100%; /* ?�젯???�이�??�션??�?채�? */
 }
 
 .main-screen__diary-summary {
@@ -1943,11 +1944,11 @@ html { overflow-y: auto; }
   color: #555;
   line-height: 1.5;
   margin: 0;
-  /* 텍스트가 길어질 경우 여러 줄로 표시하고 말줄임표(...) 처리 */
+  /* ?�스?��? 길어�?경우 ?�러 줄로 ?�시?�고 말줄?�표(...) 처리 */
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* 최대 2줄까지 표시 */
+  -webkit-line-clamp: 2; /* 최�? 2줄까지 ?�시 */
   -webkit-box-orient: vertical;
 }
 
@@ -1961,7 +1962,7 @@ html { overflow-y: auto; }
   box-shadow: 0 6px 12px rgba(0,0,0,0.08);
 }
 
-/* --- DiaryPage.js 전용 스타일 --- */
+/* --- DiaryPage.js ?�용 ?��???--- */
 .diary-page__content {
   padding: 0 20px 20px 20px;
 }
@@ -1994,7 +1995,7 @@ html { overflow-y: auto; }
   align-items: flex-start;
   gap: 20px;
   padding: 20px;
-  background-color: white;
+  background-color: #FBFDF7;
   border-radius: 15px;
   border: 1px solid #e9e9e9;
   cursor: pointer;
@@ -2015,7 +2016,7 @@ html { overflow-y: auto; }
   justify-content: center;
   width: 60px;
   height: 60px;
-  background-color: #f0f2f5;
+  background-color: #FBFDF7;
   border-radius: 12px;
   font-weight: bold;
 }
@@ -2040,15 +2041,15 @@ html { overflow-y: auto; }
   color: #333;
   line-height: 1.6;
   
-  /* 텍스트가 길어질 경우 말줄임표 처리 */
+  /* ?�스?��? 길어�?경우 말줄?�표 처리 */
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* 2줄까지만 표시 */
+  -webkit-line-clamp: 2; /* 2줄까지�??�시 */
   -webkit-box-orient: vertical;
 }
 
-/* --- DiaryDetailPage.js 전용 스타일 --- */
+/* --- DiaryDetailPage.js ?�용 ?��???--- */
 .diary-detail__content {
   padding: 0 20px 40px 20px;
 }
@@ -2075,7 +2076,7 @@ html { overflow-y: auto; }
 }
 
 .diary-detail__body {
-  background-color: #ffffff;
+  background-color: #FBFDF7;
   border-radius: 15px;
   padding: 25px;
   border: 1px solid #e9e9e9;
@@ -2086,16 +2087,16 @@ html { overflow-y: auto; }
   font-size: 1.05rem;
   line-height: 1.8;
   color: #333;
-  white-space: pre-wrap; /* \n을 줄바꿈으로 인식하도록 설정 */
+  white-space: pre-wrap; /* \n??줄바꿈으�??�식?�도�??�정 */
 }
 
-/* ChatWindow.js 메시지 컨테이너 스타일 추가 */
+/* ChatWindow.js 메시지 컨테?�너 ?��???추�? */
 .chat-window__messages-container {
   padding: 0 20px;
   box-sizing: border-box;
 }
 
-/* ChatWindow.js의 상단 헤더 스타일 추가 */
+/* ChatWindow.js???�단 ?�더 ?��???추�? */
 .main-screen__header {
   padding: 40px;
   flex-shrink: 0;
@@ -2108,14 +2109,14 @@ html { overflow-y: auto; }
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  background-color: #fff;
-  /* border-top: 4px solid #FFF3ED; */ /* 상단 보더 제거 */
+  background-color: #FBFDF7;
+  /* border-top: 4px solid #FFF3ED; */ /* ?�단 보더 ?�거 */
   flex-shrink: 0;
 }
 
 .page-title {
   margin: 0;
-  font-size: 20px; /* 폰트 크기 증가 */
+  font-size: 20px; /* ?�트 ?�기 증�? */
   font-weight: bold;
   color: #111827;
 }
@@ -2127,15 +2128,15 @@ html { overflow-y: auto; }
   padding: 0;
   display: flex;
   align-items: center;
-  color: #056125; /* 아이콘 색상 녹색으로 변경 */
+  color: #056125; /* ?�이�??�상 ?�색?�로 변�?*/
 }
 
 .header-placeholder {
-  width: 24px; /* BackButton 아이콘 크기와 동일하게 설정 */
+  width: 24px; /* BackButton ?�이�??�기?� ?�일?�게 ?�정 */
 }
 
 
-/* --- DiaryPage.js 새로운 디자인 CSS --- */
+/* --- DiaryPage.js ?�로???�자??CSS --- */
 .box {
 	width: 24px;
 	height: 24px;
@@ -2157,13 +2158,13 @@ html { overflow-y: auto; }
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
-  gap: 4px; /* 텍스트 간 간격 유지 */
+  gap: 4px; /* ?�스??�?간격 ?��? */
 }
 .column4, .column5, .column6 { flex: 1; display: flex; flex-direction: column; align-items: center; border-radius: 8px; padding: 8px 25px; cursor: pointer; }
 .contain {
 	display: flex;
 	flex-direction: column;
-	background: #FFFFFF;
+	background: #FBFDF7;
 }
 .image {
 	width: 24px;
@@ -2186,24 +2187,24 @@ html { overflow-y: auto; }
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	background: #FFFFFF;
+	background: #FBFDF7;
 	padding: 16px;
 	margin-bottom: 32px;
 	box-shadow: 0px 1px 2px #0000000D;
 }
 .row-view2, .row-view3 {
 	display: flex;
-	align-items: center; /* 세로 중앙 정렬 통일 */
+	align-items: center; /* ?�로 중앙 ?�렬 ?�일 */
 	margin-left: 16px;
 	gap: 16px;
 	cursor: pointer;
-  padding: 8px 0; /* 상하 여백 추가하여 간격 확보 */
+  padding: 8px 0; /* ?�하 ?�백 추�??�여 간격 ?�보 */
 }
 .row-view4 {
 	align-self: stretch;
 	display: flex;
 	align-items: flex-start;
-	background: #FFFFFF;
+	background: #FBFDF7;
 	padding: 9px 8px 8px 8px;
 }
 .timeline-container {
@@ -2216,7 +2217,7 @@ html { overflow-y: auto; }
 	align-self: stretch;
 	display: flex;
 	flex-direction: column;
-	background: #FFFFFF;
+	background: #FBFDF7;
 	border-radius: 20px;
 }
 .text {
@@ -2244,11 +2245,11 @@ html { overflow-y: auto; }
 	font-weight: bold;
 }
 
-/* MessageInput.js 관력 스타일 */
+/* MessageInput.js 관???��???*/
 .message-input-container {
   position: relative;
   padding: 8px;
-  background-color: #f0f2f5;
+  background-color: #FBFDF7;
 }
 
 .file-preview {
@@ -2257,7 +2258,7 @@ html { overflow-y: auto; }
   align-items: center;
   padding: 8px 12px;
   margin-bottom: 8px;
-  background-color: #ffffff;
+  background-color: #FBFDF7;
   border-radius: 8px;
   border: 1px solid #e0e0e0;
   font-size: 14px;
@@ -2275,12 +2276,12 @@ html { overflow-y: auto; }
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: #ffffff;
+  background-color: #FBFDF7;
   padding: 8px;
   border-radius: 18px;
 }
 
-.new-chat-button-plus, .new-chat-button-send {
+.new-chat-button-plus {
   background: none;
   border: none;
   cursor: pointer;
@@ -2288,7 +2289,18 @@ html { overflow-y: auto; }
   display: flex;
   align-items: center;
   font-size: 24px;
-  color: #65676b;
+  color: #056125;
+}
+
+.new-chat-button-send {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  font-size: 24px;
+  color: #FFFFFF;
 }
 
 .new-chat-input {
