@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
-const { runSupervisor } = require('../services/supervisor');
+const { runSupervisiorAgent } = require('../services/supervisiorAgent');
 const { getGeminiRestEndpoint, normalizeGeminiModel } = require('../services/modelFactory');
 
 // 파일 업로드(multipart/form-data) 지원: 메모리 스토리지 사용
@@ -275,7 +275,7 @@ router.post('/', async (req, res) => {
     }
 
     // 텍스트 전용은 슈퍼바이저를 통해 실행 (확장 가능)
-    const { content } = await runSupervisor({
+    const { content } = await runSupervisiorAgent({
       input,
       history: reconstructedHistory,
       file: null,

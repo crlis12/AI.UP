@@ -24,7 +24,7 @@ import ChatWindow from './components/ChatWindow';
 
 // LLM 호출을 백엔드 API로 위임합니다.
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
-import { BACKEND_BASE_URL, DEFAULT_AGENT_CONFIG } from './utils/config';
+import { BACKEND_BASE_URL, DEFAULT_AGENT_CONFIG, DEFAULT_REPORT_SPEC } from './utils/agentConfig';
 
 
 // BASE URL은 공통 config 사용
@@ -99,7 +99,8 @@ function App() {
     setMessages(prev => [...prev, newUserMessage]);
     setIsLoading(true);
     try {
-      const endpoint = `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/agent`;
+      // 항상 보고서 에이전트로 호출
+      const endpoint = `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/report`;
       let resp;
       if (file) {
         const formData = new FormData();
@@ -107,6 +108,7 @@ function App() {
         formData.append('history', JSON.stringify(history));
         formData.append('file', file); // 중요: 파일 필드명 'file'
         formData.append('config', JSON.stringify(DEFAULT_AGENT_CONFIG));
+        formData.append('spec', JSON.stringify(DEFAULT_REPORT_SPEC));
         resp = await fetch(endpoint, {
           method: 'POST',
           body: formData, // Content-Type 헤더 지정 금지 (브라우저가 자동 설정)
@@ -115,7 +117,7 @@ function App() {
         resp = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ input: messageText, history, config: DEFAULT_AGENT_CONFIG }),
+          body: JSON.stringify({ input: messageText, history, config: DEFAULT_AGENT_CONFIG, spec: DEFAULT_REPORT_SPEC }),
         });
       }
       const data = await resp.json();
