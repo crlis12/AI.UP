@@ -1,11 +1,12 @@
 const { createGeminiChat, normalizeGeminiModel } = require('./modelFactory');
 
 function buildSystemPrompt({ systemPrompt, spec }) {
-  const base = systemPrompt || 'You are a professional report writing assistant. Produce accurate, well-structured, and concise reports.';
+  const base = systemPrompt || (spec && typeof spec === 'object' && spec.default) || 'You are a professional report writing assistant. Produce accurate, well-structured, and concise reports.';
   const lines = [base];
   if (!spec || typeof spec !== 'object') return lines.join('\n');
 
   for (const [key, value] of Object.entries(spec)) {
+    if (key === 'default') continue; // default는 시스템 프롬프트로만 사용하고 본문에 출력하지 않음
     if (value === undefined || value === null) continue;
     const keyLabel = String(key).trim();
     if (Array.isArray(value)) {
