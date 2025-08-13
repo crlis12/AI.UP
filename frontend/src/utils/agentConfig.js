@@ -12,10 +12,14 @@ export const DEFAULT_AGENT_CONFIG = {
 // 에이전트 레지스트리: endpoint와 개별 설정(override)만 기록
 export const AGENTS = {
   reportAgent: {
+    label: '보고서 에이전트',
+    description: '요약/보고서 생성 특화 에이전트',
     endpoint: '/report',
-    config: { model: 'gemini-2.5-flash', temperature: 0.0},
+    config: { model: 'gemini-2.5-flash', temperature: 0.0 },
   },
   supervisiorAgent: {
+    label: '슈퍼바이저 에이전트',
+    description: '등록된 역할형 서브 에이전트를 오케스트레이션',
     endpoint: '/agent',
     // config override 없음 => DEFAULT_AGENT_CONFIG 사용
   },
@@ -58,4 +62,31 @@ export function getAgentSpec(agentName) {
 export function getAgentEndpoint(agentName) {
   const path = (agentName && AGENTS?.[agentName]?.endpoint) || '/report';
   return `${BACKEND_BASE_URL}${path}`;
+}
+
+// 현재 사용 가능한 에이전트 목록(이름 배열)
+export function listAgentNames() {
+  return Object.keys(AGENTS);
+}
+
+// 현재 사용 가능한 에이전트 메타 목록(이름/라벨/설명/엔드포인트/최종 설정/스펙)
+export function listAgents() {
+  return Object.keys(AGENTS).map((name) => ({
+    name,
+    label: AGENTS[name]?.label || name,
+    description: AGENTS[name]?.description || '',
+    endpoint: getAgentEndpoint(name),
+    config: getAgentConfig(name),
+    spec: getAgentSpec(name),
+  }));
+}
+
+// 슈퍼바이저가 오케스트레이션할 수 있는 역할형 서브 에이전트 목록(표시용)
+export const SUPERVISOR_ROLES = {
+  defaultResponder: { label: '기본 응답자', description: '일반 대화/응답을 수행' },
+  // 필요 시 childAgents.js에 registerAgent로 추가한 역할들을 여기에도 등록하여 UI 노출
+};
+
+export function listSupervisorRoles() {
+  return Object.keys(SUPERVISOR_ROLES);
 }
