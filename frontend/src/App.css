@@ -566,7 +566,7 @@ html { overflow-y: auto; }
   flex-direction: column;
   height: 100vh;
   max-width: 400px; /* ?�마?�폰 ?�면 ?�비 */
-  margin: 0 auto 0 calc(0px + 4px); /* auto 중심 유지 + 아주 살짝 오른쪽 이동 */
+  margin: 0 auto; /* 정확한 중앙 정렬 복원 */
   background-color: #FBFDF7;
   position: relative;
 }
@@ -721,13 +721,13 @@ html { overflow-y: auto; }
   scrollbar-gutter: stable both-edges; /* ?�크롤바 공간????�� ?�약??좌우 ?��??��? */
   padding-top: 40px;
   padding-right: 16px; /* ?�크롤바 고려 */
-  padding-left: 8px;  /* 좌측 여백을 약간 늘려 전체를 살짝 오른쪽으로 */
+  padding-left: 4px;  /* 중앙 정렬 복원 */
   box-sizing: border-box;
 }
 
 /* --- ?�단 ?�로???�역 --- */
 .main-topbar { position: sticky; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #FBFDF7; z-index: 100; }
-.main-topbar { padding-left: 20px; padding-right: 12px; }
+/* .main-topbar 좌우 여백은 기본값 유지 (중앙 정렬 보장) */
 .fig-header { border-bottom: none; }
 .fig-header__title { font-size: 18px; font-weight: 800; color: #1A1C19; }
 .fig-header__right { color: #414942; font-size: 18px; min-width: 24px; display: flex; align-items: center; }
@@ -891,7 +891,7 @@ html { overflow-y: auto; }
 .card { background: #FBFDF7; border: 1px solid #e9e9e9; border-radius: 16px; padding: 16px; box-shadow: 0px 1px 2px #0000000D; }
 .card--info { padding-left: 4px; padding-right: 4px; }
 .card--info .card__title { margin-left: 6px; }
-.main-screen__content-box > .card { margin-left: -2px; }
+.main-screen__content-box > .card { margin-left: -8px; }
 .card__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .card__title { font-size: 18px; font-weight: 800; color: #1C1B1F; }
 .card__action { background: none; border: none; font-size: 12px; color: #056125; font-weight: 700; cursor: pointer; }
@@ -905,7 +905,7 @@ html { overflow-y: auto; }
 
 /* 리스??(최근 ?��?) */
 .list { display: flex; flex-direction: column; gap: 6px; }
-.main-screen__content-box > .list { margin-left: -2px; }
+.main-screen__content-box > .list { margin-left: -8px; }
 .list-item { display: flex; align-items: center; justify-content: space-between; background: #FBFDF7; border: 1px solid #e9e9e9; border-radius: 16px; padding: 12px; cursor: pointer; box-shadow: 0px 1px 2px #0000000D; }
 .list-item__text { display: flex; flex-direction: column; gap: 4px; }
 .list-item__title { font-size: 14px; font-weight: 800; color: #111827; }
