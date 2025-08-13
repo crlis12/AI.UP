@@ -83,7 +83,15 @@ function DiaryPage() {
           const calendarIcon = 'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/d67u1cc4_expires_30_days.png'; // 연한 녹색 아이콘으로 통일
 
           return (
-            <div key={item.id} onClick={() => navigate(`/diary/detail/${item.id}`)} style={{width: '100%'}}>
+            <div
+              key={item.id}
+              onClick={() =>
+                navigate(`/diary/detail/${item.id}`, {
+                  state: { childId }
+                })
+              }
+              style={{width: '100%'}}
+            >
               {isFirst ? (
                 <div className="row-view2">
                   <div className="column2">

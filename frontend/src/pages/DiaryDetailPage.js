@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { FiChevronLeft } from 'react-icons/fi';
 
 function DiaryDetailPage() {
   const { diaryId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [diary, setDiary] = useState(null);
   const [loading, setLoading] = useState(true);
+  const childIdFromState = location.state?.childId;
 
   useEffect(() => {
     const fetchDiaryDetail = async () => {
@@ -49,7 +51,16 @@ function DiaryDetailPage() {
     <div className="main-screen">
       <div className="main-screen__scroll-view">
         <div className="chat-window-header">
-          <button onClick={() => navigate(-1)} className="chat-window-back-button">
+          <button
+            onClick={() => {
+              if (childIdFromState) {
+                navigate(`/diary/${childIdFromState}`, { replace: true });
+              } else {
+                navigate(-1);
+              }
+            }}
+            className="chat-window-back-button"
+          >
             <FiChevronLeft size={25} />
             <span>목록으로</span>
           </button>

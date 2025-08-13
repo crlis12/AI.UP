@@ -42,7 +42,7 @@ function BottomNavBar() {
       </button>
       <button className={`nav-item ${getActiveClass('/growth')}`} onClick={() => navigate('/growth')}>
         <FiTrendingUp className="nav-icon" />
-        <span className="nav-text">성장</span>
+        <span className="nav-text">리포트</span>
       </button>
       <button className={`nav-item ${getActiveClass('/diary')}`} onClick={() => handleNavigate('diary')}>
         <FiBookOpen className="nav-icon" />
