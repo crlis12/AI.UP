@@ -216,9 +216,8 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
 	return (
 		<div className="main-screen-container"> 
 			<div className="main-screen">
-                {/* 상단 바: 뒤로가기 + 아이 선택 드롭다운 + 자리맞춤 */}
+					{/* 상단 바: 아이 선택 드롭다운 + 알림 */}
                 <div className="main-topbar">
-                    <button className="global-back-button" onClick={() => navigate(-1)} aria-label="뒤로가기"><FiChevronLeft /></button>
                     <button className="child-selector" onClick={toggleChildMenu} aria-haspopup="listbox" aria-expanded={isChildMenuOpen}>
                         <span>{children[currentChildIndex]?.name || '아이'}</span>
                         <FiChevronDown />
