@@ -308,7 +308,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
 							{/* 하단 컨텐츠 영역 */}
                             <div className="main-screen__content-box">
                                 {/* 아이 정보 카드 */}
-                                <div className="card">
+                                <div className="card card--info">
                                     <div className="card__header">
                                         <div className="card__title">아이 정보</div>
                                         <button className="card__action" onClick={() => navigate(`/child-detail/${children[currentChildIndex]?.id || ''}`)}>전체보기</button>
