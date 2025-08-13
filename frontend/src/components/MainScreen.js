@@ -44,33 +44,63 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     // 자녀 목록 조회
     const fetchChildrenAndDiaries = async () => {
         try {
-            if (!currentUser) return;
+            console.log('=== 자녀 정보 조회 시작 ===');
+            console.log('currentUser:', currentUser);
+            
+            if (!currentUser) {
+                console.error('currentUser가 없습니다');
+                return;
+            }
+            
+            if (!currentUser.id) {
+                console.error('currentUser.id가 없습니다:', currentUser);
+                return;
+            }
+            
             setLoading(true);
+            console.log('API 호출 시작, URL:', `${API_BASE}/children/parent/${currentUser.id}`);
             
             const childrenResponse = await fetch(`${API_BASE}/children/parent/${currentUser.id}`);
+            console.log('자녀 조회 응답 상태:', childrenResponse.status);
+            console.log('자녀 조회 응답 헤더:', childrenResponse.headers);
+            
             const childrenData = await childrenResponse.json();
+            console.log('자녀 조회 응답 데이터:', childrenData);
             
             if (childrenData.success && childrenData.children.length > 0) {
+                console.log('자녀 데이터 설정:', childrenData.children);
                 setChildren(childrenData.children);
                 
                 // 첫 번째 자녀의 최신 일지 가져오기
                 const firstChildId = childrenData.children[0].id;
+                console.log('첫 번째 자녀 ID:', firstChildId);
+                
                 const diaryResponse = await fetch(`${API_BASE}/diaries/child/${firstChildId}`);
+                console.log('일지 조회 응답 상태:', diaryResponse.status);
+                
                 const diaryData = await diaryResponse.json();
+                console.log('일지 조회 응답 데이터:', diaryData);
 
                 if (diaryData.success && diaryData.diaries.length > 0) {
                     setDiaries(diaryData.diaries);
                 } else {
+                    console.log('일지가 없음, 빈 배열 설정');
                     setDiaries([]); // 일지가 없을 경우
                 }
             } else {
+                console.log('자녀가 없음 또는 조회 실패');
+                console.log('success:', childrenData.success);
+                console.log('children length:', childrenData.children?.length);
                 setChildren([]); // 자녀가 없을 경우
                 setDiaries([]);
             }
         } catch (error) {
             console.error('자녀 및 일지 조회 오류:', error);
+            console.error('오류 상세:', error.message);
+            console.error('오류 스택:', error.stack);
         } finally {
             setLoading(false);
+            console.log('=== 자녀 정보 조회 완료 ===');
         }
     };
 
@@ -291,6 +321,23 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
 														<span>키: {children[currentChildIndex].height}cm</span>
 													</div>
 												)}
+												{/* 발달 리포트 버튼 추가 */}
+												<div className="main-screen__widget-item">
+													<button 
+														className="main-screen__report-button"
+														onClick={() => {
+															const childId = children[currentChildIndex]?.id;
+															console.log('리포트 버튼 클릭, childId:', childId);
+															if (childId) {
+																navigate(`/report/${childId}`);
+															} else {
+																alert('자녀 정보를 찾을 수 없습니다.');
+															}
+														}}
+													>
+														📊 발달 리포트 보기
+													</button>
+												</div>
 											</div>
 										</div>
 										{/* 오늘의 일지 섹션 */}

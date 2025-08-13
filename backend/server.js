@@ -7,6 +7,7 @@ const childrenRoutes = require('./routes/children');
 const summarizeRoutes = require('./routes/summarize');
 const agentRoutes = require('./routes/agent');
 const diaryRoutes = require('./routes/diaries');
+const reportsRoutes = require('./routes/reports');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -37,6 +38,7 @@ app.use('/auth', authRoutes);
 app.use('/children', childrenRoutes);
 app.use('/summarize', summarizeRoutes);
 app.use('/diaries', diaryRoutes);
+app.use('/reports', reportsRoutes);
 app.use('/agent', agentRoutes);
 
 // 기본 라우트 (선택 사항)

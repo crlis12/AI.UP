@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiHome, FiTrendingUp, FiBookOpen, FiMessageSquare, FiSettings } from 'react-icons/fi';
+import { FiHome, FiBarChart2, FiBookOpen, FiMessageSquare, FiSettings } from 'react-icons/fi';
 import '../App.css'; // 공통 스타일 사용
 
 function BottomNavBar() {
@@ -40,9 +40,9 @@ function BottomNavBar() {
         <FiHome className="nav-icon" />
         <span className="nav-text">홈</span>
       </button>
-      <button className={`nav-item ${getActiveClass('/growth')}`} onClick={() => navigate('/growth')}>
-        <FiTrendingUp className="nav-icon" />
-        <span className="nav-text">성장</span>
+      <button className={`nav-item ${getActiveClass('/report')}`} onClick={() => handleNavigate('report')}>
+        <FiBarChart2 className="nav-icon" />
+        <span className="nav-text">리포트</span>
       </button>
       <button className={`nav-item ${getActiveClass('/diary')}`} onClick={() => handleNavigate('diary')}>
         <FiBookOpen className="nav-icon" />

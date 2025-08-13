@@ -14,7 +14,7 @@ function DiaryDetailPage() {
       try {
         setLoading(true);
         const response = await fetch(`${API_BASE}/diaries/${diaryId}`);
-ㅁ        const data = await response.json();
+        const data = await response.json();
 
         if (data.success) {
           setDiary(data.diary);

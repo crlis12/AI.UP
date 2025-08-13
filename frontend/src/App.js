@@ -17,6 +17,7 @@ import VerifyCodePage from './pages/VerifyCodePage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import DiaryPage from './pages/DiaryPage'; // DiaryPage 임포트 추가
 import DiaryDetailPage from './pages/DiaryDetailPage'; // DiaryDetailPage 임포트 추가
+import ReportDetailPage from './pages/ReportDetailPage'; // ReportDetailPage 임포트 추가
 
 // 컴포넌트 임포트 (src/components 폴더에 있다고 가정)
 import MainScreen from './components/MainScreen';
@@ -46,15 +47,23 @@ function App() {
 
   // 2. localStorage와 연동하는 useEffect 추가
   useEffect(() => {
+    console.log('=== App.js 초기화 시작 ===');
 
     // 로그인 상태 확인 (기존 로직 유지)
     const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    console.log('localStorage isLoggedIn:', localStorage.getItem('isLoggedIn'));
+    console.log('loggedIn 상태:', loggedIn);
     setIsLoggedIn(loggedIn);
     
     // 사용자 정보 확인
     const savedUser = localStorage.getItem('currentUser');
+    console.log('localStorage currentUser:', savedUser);
     if (savedUser) {
-      setCurrentUser(JSON.parse(savedUser));
+      const parsedUser = JSON.parse(savedUser);
+      console.log('파싱된 사용자 정보:', parsedUser);
+      setCurrentUser(parsedUser);
+    } else {
+      console.log('저장된 사용자 정보가 없습니다');
     }
     
     // **새로운 로직: 웰컴 화면을 봤는지 확인**
@@ -66,6 +75,8 @@ function App() {
     if (savedChildInfo) {
       setChildInfo(JSON.parse(savedChildInfo));
     }
+    
+    console.log('=== App.js 초기화 완료 ===');
   }, []);
 
   // 로그인 처리 함수
@@ -166,6 +177,7 @@ function App() {
         <Route path="/child-detail/:childId" element={isLoggedIn ? <ChildDetailPage /> : <Navigate to="/login" />} />
         <Route path="/diary/:childId" element={isLoggedIn ? <DiaryPage /> : <Navigate to="/login" />} /> {/* DiaryPage 라우트 추가 */}
         <Route path="/diary/detail/:diaryId" element={isLoggedIn ? <DiaryDetailPage /> : <Navigate to="/login" />} /> {/* DiaryDetailPage 라우트 추가 */}
+        <Route path="/report/:childId" element={isLoggedIn ? <ReportDetailPage /> : <Navigate to="/login" />} /> {/* ReportDetailPage 라우트 추가 */}
 
         <Route path="/ai-analysis" element={isLoggedIn ? <AIAnalysisPage /> : <Navigate to="/login" />} />
       </Routes>

@@ -1845,6 +1845,32 @@ body {
   box-shadow: 0 6px 12px rgba(0,0,0,0.08);
 }
 
+/* 메인스크린 리포트 버튼 스타일 */
+.main-screen__report-button {
+  width: 100%;
+  background: linear-gradient(135deg, #466D1D, #6b8e68);
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(70, 109, 29, 0.2);
+}
+
+.main-screen__report-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(70, 109, 29, 0.3);
+  background: linear-gradient(135deg, #5a7f2a, #7da076);
+}
+
+.main-screen__report-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(70, 109, 29, 0.2);
+}
+
 /* --- DiaryPage.js 전용 스타일 --- */
 .diary-page__content {
   padding: 0 20px 20px 20px;
@@ -2181,5 +2207,348 @@ body {
   outline: none;
   background: none;
   font-size: 16px;
+}
+
+/* === 리포트 상세 페이지 스타일 === */
+.report-detail__content {
+  padding: 0 20px 40px 20px;
+}
+
+.report-detail__header {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.report-detail__title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #466D1D;
+  margin: 0 0 15px 0;
+  text-align: center;
+}
+
+.report-child-info {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.child-info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8f9fa;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.info-icon {
+  color: #466D1D;
+  font-size: 1rem;
+}
+
+/* 전체 점수 카드 */
+.report-summary-card {
+  background: linear-gradient(135deg, #466D1D, #6b8e68);
+  color: white;
+  padding: 30px;
+  border-radius: 20px;
+  margin-bottom: 30px;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(70, 109, 29, 0.3);
+}
+
+.summary-score-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+.total-score {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.score-number {
+  font-size: 4rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.score-label {
+  font-size: 1.5rem;
+  opacity: 0.9;
+}
+
+.overall-status {
+  display: flex;
+  justify-content: center;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 12px 20px;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+}
+
+.summary-description {
+  font-size: 1.1rem;
+  opacity: 0.95;
+  line-height: 1.5;
+}
+
+.summary-description p {
+  margin: 0;
+}
+
+/* 영역별 점수 섹션 */
+.report-scores-section {
+  margin-bottom: 40px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #466D1D;
+  margin: 0 0 25px 0;
+}
+
+.section-icon {
+  font-size: 1.3rem;
+}
+
+.scores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.score-card {
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.score-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.score-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.score-domain {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.score-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.score-value {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  margin-bottom: 15px;
+}
+
+.score-value .score-number {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #466D1D;
+}
+
+.score-max {
+  font-size: 1.2rem;
+  color: #6c757d;
+}
+
+.score-progress {
+  width: 100%;
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* 권장사항 섹션 */
+.report-recommendations-section {
+  margin-bottom: 40px;
+}
+
+.recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.recommendation-item {
+  display: flex;
+  gap: 15px;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border-left: 4px solid #466D1D;
+}
+
+.recommendation-number {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  background: #466D1D;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.recommendation-text {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* 다음 평가 안내 */
+.report-next-assessment {
+  margin-bottom: 30px;
+}
+
+.next-assessment-card {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  padding: 25px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border: 1px solid #dee2e6;
+}
+
+.next-assessment-icon {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  background: #466D1D;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.next-assessment-info h3 {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #466D1D;
+  margin: 0 0 8px 0;
+}
+
+.next-date {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.next-description {
+  font-size: 0.95rem;
+  color: #6c757d;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* 로딩 및 에러 상태 */
+.loading-container, .error-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  text-align: center;
+  gap: 20px;
+}
+
+.loading-text, .error-text {
+  font-size: 1.2rem;
+  color: #6c757d;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .report-detail__content {
+    padding: 0 15px 30px 15px;
+  }
+  
+  .report-detail__title {
+    font-size: 1.6rem;
+  }
+  
+  .child-info-item {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
+  
+  .summary-score-container {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .score-number {
+    font-size: 3rem !important;
+  }
+  
+  .scores-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .next-assessment-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .section-title {
+    font-size: 1.3rem;
+  }
 }
 
