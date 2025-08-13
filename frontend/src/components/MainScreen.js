@@ -198,6 +198,13 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
         }
     }, [isChildMenuOpen]);
 
+    // 언마운트 시 스크롤 잠금 해제 보장
+    useEffect(() => {
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, []);
+
     // 필요 시 디버깅 로그 사용
 
     // 날짜별로 유일한 최신 일지만 필터링
@@ -349,7 +356,15 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                                     <div className="list">
                                         {uniqueDiaries.length > 0 ? (
                                             uniqueDiaries.slice(0, 2).map(diary => (
-                                                <div key={diary.id} className="list-item" onClick={() => navigate(`/diary/detail/${diary.id}`)}>
+                                                <div
+                                                    key={diary.id}
+                                                    className="list-item"
+                                                    onClick={() =>
+                                                        navigate(`/diary/detail/${diary.id}`, {
+                                                            state: { childId: children[currentChildIndex]?.id }
+                                                        })
+                                                    }
+                                                >
                                                     <div className="list-item__text">
                                                         <div className="list-item__title">{new Date(diary.diary_date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} 두 발로 점프 성공!</div>
                                                         <div className="list-item__subtitle">{new Date(diary.diary_date).getFullYear()}년 {new Date(diary.diary_date).toLocaleDateString('ko-KR')}</div>
