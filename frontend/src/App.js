@@ -94,9 +94,37 @@ function App() {
   // 새로운 메시지를 받아 대화 목록에 추가하고 LLM 응답을 받는 함수
   const handleSendMessage = async (messageText, file) => {
     if (isLoading) return;
-    const newUserMessage = new HumanMessage(messageText);
+
+    // 화면 표시: "영상/이미지 버블"과 "텍스트 버블"을 분리해서 추가
+    // 렌더 순서: 위(먼저 추가한 것) → 아래(나중 추가한 것)
     const history = [...messages];
-    setMessages(prev => [...prev, newUserMessage]);
+
+    if (file) {
+      const pendingMessages = [];
+      if (messageText && messageText.trim()) {
+        pendingMessages.push(new HumanMessage(messageText));
+      }
+      try {
+        const localUrl = URL.createObjectURL(file);
+        const mediaPart = file.type?.startsWith('image/')
+          ? { type: 'image_url', image_url: localUrl }
+          : file.type?.startsWith('video/')
+            ? { type: 'video_url', video_url: localUrl }
+            : { type: 'text', text: `첨부: ${file.name}` };
+        const mediaMessage = new HumanMessage({ content: [mediaPart] });
+        // 위에 영상, 아래에 텍스트가 보이도록: 먼저 미디어를 push, 그다음 텍스트를 push
+        setMessages((prev) => [...prev, mediaMessage, ...pendingMessages]);
+      } catch (_) {
+        // 실패 시 텍스트만 표시
+        if (pendingMessages.length > 0) {
+          setMessages((prev) => [...prev, ...pendingMessages]);
+        }
+      }
+    } else {
+      // 파일이 없는 경우 기존과 동일하게 텍스트 메시지만 추가
+      const newUserTextMessage = new HumanMessage(messageText || '');
+      setMessages((prev) => [...prev, newUserTextMessage]);
+    }
     setIsLoading(true);
     try {
       const endpoint = `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/agent`;

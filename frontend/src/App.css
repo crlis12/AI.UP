@@ -8,6 +8,12 @@ body {
   background-color: #f4f7f6; /* 부드러운 배경색 */
 }
 
+/* 스크롤바로 인한 레이아웃 흔들림 방지 및 브라우저(페이지) 스크롤 사용 */
+html { overflow-y: auto; }
+@supports (scrollbar-gutter: stable) {
+  html { scrollbar-gutter: stable; }
+}
+
 /* --- 전체 레이아웃 --- */
 .main-layout {
   display: flex;
@@ -114,7 +120,7 @@ body {
   margin: 0 auto;
   padding: 0 20px;
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column; /* 최신이 아래로 쌓이게 일반 방향 사용 */
 }
 
 .message {
@@ -139,8 +145,34 @@ body {
   align-self: flex-end;
 }
 
+/* 사용자 미디어 버블은 배경을 투명하게 하여 테두리 느낌 제거 */
+.message.user.media {
+  background-color: transparent;
+  color: inherit;
+  padding: 8px 0; /* 미디어 주변 최소 여백만 */
+}
+
 .message p {
   margin: 0;
+}
+
+/* 채팅 내 미디어 크기 제한 */
+.message-image {
+  max-width: 70vw; /* 화면 너비 기준 제한 */
+  max-height: 260px;
+  width: auto;
+  height: auto;
+  border-radius: 10px;
+  display: block;
+}
+
+.message-video {
+  max-width: 70vw;
+  max-height: 260px;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  display: block;
 }
 
 .message-form {
@@ -685,20 +717,47 @@ body {
 
 .main-screen__scroll-view {
   flex-grow: 1;
-  overflow-y: auto;
-  /* 사용자 헤더와 채팅창 높이만큼 상하단에 공간을 확보 */
-  padding-top: 70px;
-  /* padding-bottom 제거 */
+  overflow-y: auto; /* 페이지 컨테이너 내부 스크롤 사용 */
+  scrollbar-gutter: stable both-edges; /* 스크롤바 공간을 항상 예약해 좌우 대칭 유지 */
+  padding-top: 40px;
+  padding-right: 16px; /* 스크롤바 고려 */
+  padding-left: 4px;  /* 맨 바깥 유닛 좌측 여백 추가 축소 */
+  box-sizing: border-box;
 }
 
 /* --- 상단 프로필 영역 --- */
-.main-screen__profile-container {
-  position: relative;
-  padding: 40px 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+.main-topbar { position: sticky; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #fff; z-index: 100; }
+.fig-header { border-bottom: none; }
+.fig-header__title { font-size: 18px; font-weight: 800; color: #1A1C19; }
+.fig-header__right { color: #414942; font-size: 18px; min-width: 24px; display: flex; align-items: center; }
+.icon-button { background: none; border: none; padding: 0; cursor: pointer; color: #6B7280; font-size: 20px; display: inline-flex; align-items: center; }
+.icon-button:active { transform: scale(0.98); }
+.chip { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 9999px; font-size: 12px; font-weight: 700; }
+.chip--muted { background: #ffffff; color: #6B7280; border: 1px solid #e5e7eb; }
+.chip--primary { background: #2f6b19; color: #fff; border: none; cursor: pointer; }
+
+/* 아이 선택 드롭다운 헤더 버튼 */
+.child-selector { background: none; border: none; display: inline-flex; align-items: center; gap: 6px; font-size: 18px; font-weight: 800; color: #1A1C19; cursor: pointer; }
+.child-selector:focus { outline: none; }
+
+/* 아이 목록 드롭다운 */
+.child-dropdown { position: absolute; top: 56px; left: 4px; right: 16px; background: #fff; border: 1px solid #e9e9e9; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); padding: 6px; z-index: 20000; display: flex; flex-direction: column; max-height: 50vh; overflow-y: auto; }
+.child-dropdown__item { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 10px 12px; border: none; background: #fff; border-radius: 8px; cursor: pointer; }
+.child-dropdown__item:hover { background: #f7f8fa; }
+.child-dropdown__item.active { background: #f0f7f2; }
+.child-dropdown__name { font-weight: 700; color: #111827; font-size: 14px; }
+.child-dropdown__sub { font-size: 12px; color: #6B7280; }
+
+.profile-hero { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 4px 16px 0 4px; }
+.profile-hero__image-wrapper { position: relative; width: 180px; height: 180px; border-radius: 50%; overflow: visible; background: #fff; box-shadow: 0 12px 20px rgba(0,0,0,0.06); margin-bottom: 12px; cursor: pointer; border: 6px solid #ffffff; z-index: 5000; }
+.profile-hero__image { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.profile-hero__name { font-size: 24px; font-weight: 800; color: #1C1B1F; margin-bottom: 2px; }
+.profile-hero__months { font-size: 16px; color: #49454F; margin-bottom: 18px; }
+
+/* 프로필 이미지 좌우 내비게이션 버튼 */
+/* 이미지 좌우 오버레이 화살표 */
+/* 컨테이너 양쪽 사이드 화살표 */
+.profile-hero { position: relative; }
 
 .main-screen__profile-image {
   width: 70%;
@@ -706,38 +765,20 @@ body {
   z-index: 10;
 }
 
-.main-screen__arrow-button {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #aaa;
-  z-index: 20;
-  padding: 10px;
-}
-
-.main-screen__arrow-button:first-of-type {
-  left: 20px;
-}
-
-.main-screen__arrow-button:last-of-type {
-  right: 20px;
-}
+/* 좌우 화살표 버튼 제거로 관련 스타일 삭제 */
 
 
 /* --- 하단 컨텐츠 영역 --- */
 .main-screen__content-box {
   background-color: white;
-  border-radius: 30px 30px 0 0;
+  border-radius: 30px; /* 하단 모서리도 둥글게 */
   padding: 25px;
-  transform: translateY(-20px); 
   z-index: 15;
-  margin-bottom: -50px;
+  margin: 8px 0 16px 0; /* 좌우 여백은 상위 스크롤뷰가 관리 */
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: 16px; /* 카드 간 여백 축소 */
+  overflow: hidden; /* 내부 요소가 라운드 밖으로 넘치지 않게 */
 }
 
 .main-screen__title-bar {
@@ -783,6 +824,94 @@ body {
   gap: 12px;
 }
 
+/* 원형 점수 게이지 */
+.circular-score {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.circular-score__svg {
+  transform: rotate(-90deg);
+}
+
+.circular-score__bg {
+  stroke: #e9ecef;
+}
+
+.circular-score__fg {
+  stroke: #1c542f;
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+.circular-score__content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.circular-score__value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #056125;
+}
+
+.circular-score__sublabel {
+  font-size: 0.8rem;
+  color: #6B7280;
+}
+
+.circular-score__label {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: #6B7280;
+}
+
+.main-screen__report-button {
+  margin-top: 12px;
+  background-color: #056125;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  align-self: stretch;
+}
+
+/* 카드 공통 스타일 */
+.card { background: #fff; border: 1px solid #e9e9e9; border-radius: 16px; padding: 16px; box-shadow: 0px 1px 2px #0000000D; }
+.card--info { padding-left: 4px; padding-right: 4px; }
+.card--info .card__title { margin-left: 6px; }
+.main-screen__content-box > .card { margin-left: -8px; }
+.card__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.card__title { font-size: 18px; font-weight: 800; color: #1C1B1F; }
+.card__action { background: none; border: none; font-size: 12px; color: #056125; font-weight: 700; cursor: pointer; }
+.card__center { display: flex; flex-direction: column; align-items: center; }
+
+/* 아이 정보 그리드 */
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; row-gap: 6px; column-gap: 8px; margin-left: 0; margin-right: 0; }
+.info-grid__row { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #F7F8FA; border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #1A1C19; white-space: nowrap; min-height: 44px; width: 100%; box-sizing: border-box; }
+.info-grid__row span { min-width: 0; }
+.info-grid__row span + span { overflow: hidden; text-overflow: ellipsis; }
+
+/* 리스트 (최근 일지) */
+.list { display: flex; flex-direction: column; gap: 6px; }
+.main-screen__content-box > .list { margin-left: -8px; }
+.list-item { display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border: 1px solid #e9e9e9; border-radius: 16px; padding: 12px; cursor: pointer; box-shadow: 0px 1px 2px #0000000D; }
+.list-item__text { display: flex; flex-direction: column; gap: 4px; }
+.list-item__title { font-size: 14px; font-weight: 800; color: #111827; }
+.list-item__subtitle { font-size: 12px; color: #6B7280; }
+.list-item__chevron { color: #6B7280; }
+.list-item--empty { background: #F7F8FA; border-style: dashed; }
+
 .main-screen__widget-item {
   display: flex;
   justify-content: space-between;
@@ -814,18 +943,10 @@ body {
 }
 
 /* MessageInput 컴포넌트에 적용될 스타일 */
-.new-chat-form {
-  display: flex; align-items: center; background-color: #f0f2f5; border-radius: 25px; padding: 5px;
-}
-.new-chat-button-plus {
-  background: none; border: none; font-size: 1.8rem; font-weight: 300; color: #555; cursor: pointer; padding: 0 10px;
-}
-.new-chat-input {
-  flex-grow: 1; border: none; background: transparent; padding: 10px 5px; font-size: 1rem; outline: none;
-}
-.new-chat-button-send {
-  background: none; border: none; font-size: 1.5rem; color: #555; cursor: pointer; padding: 0 12px;
-}
+.new-chat-form { display: flex; align-items: center; background: #FFFFFF; border-radius: 9999px; padding: 8px 14px; border: 1px solid #D1D5DB; }
+.new-chat-button-plus { background: none; border: none; font-size: 24px; color: #49454F; cursor: pointer; padding: 0 8px; }
+.new-chat-input { flex-grow: 1; border: none; background: transparent; padding: 10px 8px; font-size: 16px; outline: none; color: #44483E; }
+.new-chat-button-send { background: #056125; border: none; color: #FFFFFF; cursor: pointer; padding: 8px; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; }
 
 /* --- ChatWindow.js 뒤로가기 버튼 스타일 (App.css에 추가) --- */
 
@@ -1340,8 +1461,8 @@ body {
 
 .main-screen__add-child-button {
   position: absolute;
-  top: -5px;
-  right: -5px;
+  top: -14px;
+  right: -14px;
   width: 40px;
   height: 40px;
   background: linear-gradient(135deg, #466D1D, #6b8e68);
@@ -1356,7 +1477,7 @@ body {
   font-weight: bold;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(70, 109, 29, 0.4);
-  z-index: 10;
+  z-index: 9999; /* 최우선 표시 */
 }
 
 .main-screen__add-child-button:hover {
@@ -1483,7 +1604,7 @@ body {
 .main-screen-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100vh; /* 내부 스크롤바를 이 컨테이너 오른쪽에 고정 */
   max-width: 400px; /* 스마트폰 화면 너비 */
   margin: 0 auto;
   background-color: #f2f3f6;
@@ -1547,12 +1668,7 @@ body {
   }
 
   /* 모바일에서 + 버튼 크기 조정 */
-  .main-screen__add-child-button {
-    width: 35px;
-    height: 35px;
-    top: -3px;
-    right: -3px;
-  }
+  .main-screen__add-child-button { width: 35px; height: 35px; top: -12px; right: -12px; }
 }
 
 /* === 자녀 상세 페이지 스타일 === */
