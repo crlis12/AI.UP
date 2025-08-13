@@ -7,6 +7,7 @@ const childrenRoutes = require('./routes/children');
 const summarizeRoutes = require('./routes/summarize');
 const agentRoutes = require('./routes/agent');
 const diaryRoutes = require('./routes/diaries');
+const reportRoutes = require('./routes/report');
 
 const app = express();
 const PORT = 3001; // 포트 번호를 직접 명시
@@ -26,6 +27,7 @@ app.use('/children', childrenRoutes);
 app.use('/summarize', summarizeRoutes);
 app.use('/diaries', diaryRoutes);
 app.use('/agent', agentRoutes);
+app.use('/report', reportRoutes);
 
 
 // 기본 라우트 (선택 사항)

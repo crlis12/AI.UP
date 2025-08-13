@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
+const { runSupervisiorAgent } = require('../services/supervisiorAgent');
+const { getGeminiRestEndpoint, normalizeGeminiModel } = require('../services/modelFactory');
 
 // 파일 업로드(multipart/form-data) 지원: 메모리 스토리지 사용
 let multerInstance = null;
@@ -51,8 +53,7 @@ function parseDataUrl(dataUrl) {
   return { mimeType: match[1], base64: match[2] };
 }
 
-// Gemini REST 엔드포인트 (비디오 분석용)
-const GEMINI_API_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+// 비디오 분석용 REST 엔드포인트는 요청 설정에 따라 동적으로 생성
 
 function historyToGeminiContents(history) {
   if (!Array.isArray(history)) return [];
@@ -140,6 +141,24 @@ router.post('/', async (req, res) => {
 
     // 멀티파트 파싱 이후에 body 접근
     let { input, history, fileBase64, fileMimeType: bodyMimeType, fileDataUrl } = req.body || {};
+    // 설정 주입: 요청 바디에서 모델, vendor, temperature, systemPrompt, agentRole, videoAnalysisModel 수용
+    let rawConfig = {};
+    if (req.body?.config) {
+      if (typeof req.body.config === 'string') {
+        try { rawConfig = JSON.parse(req.body.config); } catch (_) { rawConfig = {}; }
+      } else if (typeof req.body.config === 'object') {
+        rawConfig = req.body.config;
+      }
+    } else if (req.body && typeof req.body === 'object') {
+      // 상위 필드로 전달된 경우에도 허용
+      rawConfig = req.body;
+    }
+    const vendor = rawConfig.vendor || 'gemini';
+    const model = rawConfig.model || 'gemini-2.5-flash';
+    const temperature = typeof rawConfig.temperature === 'number' ? rawConfig.temperature : undefined;
+    const systemPrompt = rawConfig.systemPrompt || undefined;
+    const agentRole = rawConfig.agentRole || undefined;
+    const videoAnalysisModel = rawConfig.videoAnalysisModel || undefined;
     // history가 멀티파트에서 문자열로 올 수 있으므로 파싱
     if (typeof history === 'string') {
       try { history = JSON.parse(history); } catch (_) { history = []; }
@@ -195,7 +214,9 @@ router.post('/', async (req, res) => {
           if (inText && typeof inText === 'string') userParts.push({ text: inText });
           userParts.push({ fileData: { fileUri, mimeType } });
           contents.push({ role: 'user', parts: userParts });
-          const response = await axios.post(GEMINI_API_ENDPOINT, { contents });
+          const analysisModelToUse = normalizeGeminiModel(videoAnalysisModel || model || 'gemini-2.5-flash');
+          const endpoint = getGeminiRestEndpoint(analysisModelToUse, process.env.GEMINI_API_KEY);
+          const response = await axios.post(endpoint, { contents });
           const candidateParts = response?.data?.candidates?.[0]?.content?.parts || [];
           const analysis = candidateParts.map((p) => p?.text || '').filter(Boolean).join('\n');
           return analysis || '분석 결과가 비어 있습니다.';
@@ -203,18 +224,19 @@ router.post('/', async (req, res) => {
 
         const video_analysis = await analyzeVideo({ input, history: reconstructedHistory });
 
-        const model = new ChatGoogleGenerativeAI({
+        const chatModel = new ChatGoogleGenerativeAI({
           apiKey: process.env.GEMINI_API_KEY,
-          model: 'gemini-2.5-flash',
+          model: normalizeGeminiModel(model || 'gemini-2.5-flash'),
+          ...(typeof temperature === 'number' ? { temperature } : {}),
         });
 
         const prompt = ChatPromptTemplate.fromMessages([
-          ['system', "You are a helpful assistant. Please answer the user's questions using the provided video analysis if relevant."],
+          ['system', systemPrompt || "You are a helpful assistant. Please answer the user's questions using the provided video analysis if relevant."],
           new MessagesPlaceholder('history'),
           ['human', '사용자 질문: {input}\n\n영상 분석 참고:\n{video_analysis}'],
         ]);
 
-        const chain = RunnableSequence.from([prompt, model]);
+        const chain = RunnableSequence.from([prompt, chatModel]);
         const response = await chain.invoke({ input, history: reconstructedHistory, video_analysis });
         const content = typeof response?.content === 'string'
           ? response.content
@@ -231,12 +253,13 @@ router.post('/', async (req, res) => {
 
       const lastHuman = new HumanMessage({ content: parts });
 
-      const model = new ChatGoogleGenerativeAI({
+      const chatModel = new ChatGoogleGenerativeAI({
         apiKey: process.env.GEMINI_API_KEY,
-        model: 'gemini-2.5-flash',
+        model: normalizeGeminiModel(model || 'gemini-2.5-flash'),
+        ...(typeof temperature === 'number' ? { temperature } : {}),
       });
 
-      const response = await model.invoke([...reconstructedHistory, lastHuman]);
+      const response = await chatModel.invoke([...reconstructedHistory, lastHuman]);
       const content = typeof response?.content === 'string'
         ? response.content
         : Array.isArray(response?.content)
@@ -251,25 +274,13 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ success: false, message: 'input이 누락되었거나 형식이 올바르지 않습니다.' });
     }
 
-    const model = new ChatGoogleGenerativeAI({
-      apiKey: process.env.GEMINI_API_KEY,
-      model: 'gemini-2.5-flash',
+    // 텍스트 전용은 슈퍼바이저를 통해 실행 (확장 가능)
+    const { content } = await runSupervisiorAgent({
+      input,
+      history: reconstructedHistory,
+      file: null,
+      config: { vendor, model, temperature, systemPrompt, agentRole },
     });
-
-    const prompt = ChatPromptTemplate.fromMessages([
-      ['system', "You are a helpful assistant. Please answer the user's questions."],
-      new MessagesPlaceholder('history'),
-      ['human', '{input}'],
-    ]);
-
-    const chain = RunnableSequence.from([prompt, model]);
-    const response = await chain.invoke({ input, history: reconstructedHistory });
-    const content = typeof response?.content === 'string'
-      ? response.content
-      : Array.isArray(response?.content)
-        ? response.content.map((p) => p?.text || '').join('\n')
-        : String(response?.content ?? '');
-
     return res.json({ success: true, content });
   } catch (error) {
     console.error('Agent route error:', error?.response?.data || error);
