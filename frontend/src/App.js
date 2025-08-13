@@ -11,11 +11,11 @@ import SigninPage from './pages/SigninPage';
 import SignupPage from './pages/SignupPage';
 import ChildInfoPage from './pages/ChildInfoPage';
 import ChildDetailPage from './pages/ChildDetailPage';
+import DiaryPage from "./pages/DiaryPage";
 import AIAnalysisPage from './pages/AIAnalysisPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage'; // 이름 복구
 import VerifyCodePage from './pages/VerifyCodePage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-import DiaryPage from './pages/DiaryPage'; // DiaryPage 임포트 추가
 import DiaryDetailPage from './pages/DiaryDetailPage'; // DiaryDetailPage 임포트 추가
 
 // 컴포넌트 임포트 (src/components 폴더에 있다고 가정)
