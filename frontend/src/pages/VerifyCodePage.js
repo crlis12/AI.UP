@@ -3,8 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
-const BACKEND_API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+import API_BASE from '../utils/api';
 
 function VerifyCodePage() {
   const [code, setCode] = useState(['', '', '', '', '', '']); // 6자리로 변경
@@ -52,7 +51,7 @@ function VerifyCodePage() {
     setIsLoading(true);
     try {
       // API 경로에서 /api 제거
-      await axios.post(`${BACKEND_API_URL}/auth/verify-code`, { email, code: verificationCode });
+      await axios.post(`${API_BASE}/auth/verify-code`, { email, code: verificationCode });
       navigate('/reset-password', { state: { email } }); // code는 전달할 필요 없음
     } catch (error) {
       const message = error.response?.data?.message || '인증번호가 올바르지 않습니다.';

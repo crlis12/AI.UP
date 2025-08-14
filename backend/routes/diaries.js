@@ -28,7 +28,7 @@ router.get('/child/:childId', (req, res) => {
 
   db.query(query, [childId], (err, results) => {
     if (err) {
-      console.error('일지 조회 DB 오류:', err);
+      console.error('일기 조회 DB 오류:', err);
       return res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
     }
     res.json({ success: true, diaries: results });
@@ -42,11 +42,11 @@ router.get('/:diaryId', (req, res) => {
 
   db.query(query, [diaryId], (err, results) => {
     if (err) {
-      console.error('일지 상세 조회 DB 오류:', err);
+      console.error('일기 상세 조회 DB 오류:', err);
       return res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
     }
     if (results.length === 0) {
-      return res.status(404).json({ success: false, message: '일지를 찾을 수 없습니다.' });
+      return res.status(404).json({ success: false, message: '일기를 찾을 수 없습니다.' });
     }
     res.json({ success: true, diary: results[0] });
   });
@@ -87,6 +87,57 @@ router.post('/', upload.none(), (req, res) => {
       success: true,
       message: '일지가 저장되었습니다.',
       diary: { id, child_id, date: dateOnly, content },
+    });
+  });
+});
+
+// 일기 수정
+router.put('/:diaryId', (req, res) => {
+  const { diaryId } = req.params;
+  const { date, content } = req.body;
+
+  if (!date || !content) {
+    return res.status(400).json({ success: false, message: '날짜와 내용은 필수입니다.' });
+  }
+
+  const query = 'UPDATE diaries SET date = ?, content = ?, updated_at = NOW() WHERE id = ?';
+  
+  db.query(query, [date, content, diaryId], (err, result) => {
+    if (err) {
+      console.error('일기 수정 DB 오류:', err);
+      return res.status(500).json({ success: false, message: '일기 수정 중 서버 오류가 발생했습니다.' });
+    }
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: '일기를 찾을 수 없습니다.' });
+    }
+    
+    res.json({ 
+      success: true, 
+      message: '일기가 성공적으로 수정되었습니다.'
+    });
+  });
+});
+
+// 일기 삭제
+router.delete('/:diaryId', (req, res) => {
+  const { diaryId } = req.params;
+
+  const query = 'DELETE FROM diaries WHERE id = ?';
+  
+  db.query(query, [diaryId], (err, result) => {
+    if (err) {
+      console.error('일기 삭제 DB 오류:', err);
+      return res.status(500).json({ success: false, message: '일기 삭제 중 서버 오류가 발생했습니다.' });
+    }
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: '일기를 찾을 수 없습니다.' });
+    }
+    
+    res.json({ 
+      success: true, 
+      message: '일기가 성공적으로 삭제되었습니다.'
     });
   });
 });
