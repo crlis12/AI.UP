@@ -58,7 +58,11 @@ function BottomNavBar() {
   const handleNavigate = (path) => {
     const childId = localStorage.getItem('currentChildId');
     if (childId) {
-      navigate(`/${path}/${childId}`);
+      if (path === 'diary') {
+        navigate(`/diary/list/${childId}`);
+      } else {
+        navigate(`/${path}/${childId}`);
+      }
     } else {
       // 자녀가 없을 경우 자녀 선택 모달을 표시합니다.
       setTargetPath(path);
@@ -82,78 +86,28 @@ function BottomNavBar() {
   };
 
   return (
-    <>
-      <div className="bottom-nav-bar">
-        <button className={`nav-item ${getActiveClass('/main')}`} onClick={() => navigate('/main')}>
-          <FiHome className="nav-icon" />
-          <span className="nav-text">홈</span>
-        </button>
-        <button className={`nav-item ${getActiveClass('/report')}`} onClick={() => handleNavigate('report')}>
-          <FiBarChart2 className="nav-icon" />
-          <span className="nav-text">리포트</span>
-        </button>
-        <button className={`nav-item ${getActiveClass('/diary')}`} onClick={() => handleNavigate('diary')}>
-          <FiBookOpen className="nav-icon" />
-          <span className="nav-text">일기</span>
-        </button>
-        <button className={`nav-item ${getActiveClass('/chat')}`} onClick={() => handleNavigate('chat')}>
-          <FiMessageSquare className="nav-icon" />
-          <span className="nav-text">AI챗</span>
-        </button>
-        <button className={`nav-item ${getActiveClass('/settings')}`} onClick={() => navigate('/settings')}>
-          <FiSettings className="nav-icon" />
-          <span className="nav-text">설정</span>
-        </button>
-      </div>
-
-      {/* 자녀 선택 모달 */}
-      {showChildSelection && (
-        <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="child-selection-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>자녀를 선택해주세요</h3>
-              <button className="close-btn" onClick={handleCloseModal}>
-                <FiX />
-              </button>
-            </div>
-            <div className="modal-content">
-              {children.length === 0 ? (
-                <div className="no-children">
-                  <p>등록된 자녀가 없습니다.</p>
-                  <button 
-                    className="add-child-btn"
-                    onClick={() => {
-                      handleCloseModal();
-                      navigate('/child-info');
-                    }}
-                  >
-                    자녀 등록하기
-                  </button>
-                </div>
-              ) : (
-                <div className="children-list">
-                  {children.map((child) => (
-                    <div 
-                      key={child.id} 
-                      className="child-item"
-                      onClick={() => handleChildSelect(child)}
-                    >
-                      <div className="child-info">
-                        <h4>{child.name}</h4>
-                        {child.nickname && <span className="nickname">"{child.nickname}"</span>}
-                        <span className="age">
-                          {new Date().getFullYear() - new Date(child.birth_date).getFullYear()}세
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+    <div className="bottom-nav-bar">
+      <button className={`nav-item ${getActiveClass('/main')}`} onClick={() => navigate('/main')}>
+        <FiHome className="nav-icon" />
+        <span className="nav-text">홈</span>
+      </button>
+      <button className={`nav-item ${getActiveClass('/ai-analysis')}`} onClick={() => navigate('/ai-analysis')}>
+        <FiBarChart2 className="nav-icon" />
+        <span className="nav-text">리포트</span>
+      </button>
+      <button className={`nav-item ${getActiveClass('/diary')}`} onClick={() => handleNavigate('diary')}>
+        <FiBookOpen className="nav-icon" />
+        <span className="nav-text">일지</span>
+      </button>
+      <button className={`nav-item ${getActiveClass('/chat')}`} onClick={() => handleNavigate('chat')}>
+        <FiMessageSquare className="nav-icon" />
+        <span className="nav-text">AI챗</span>
+      </button>
+      <button className={`nav-item ${getActiveClass('/settings')}`} onClick={() => navigate('/settings')}>
+        <FiSettings className="nav-icon" />
+        <span className="nav-text">설정</span>
+      </button>
+    </div>
   );
 }
 

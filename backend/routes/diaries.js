@@ -1,12 +1,30 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
-// 특정 아동의 모든 일기 조회
+// multer 설정: uploads/diaries 폴더에 저장
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, '..', 'uploads', 'diaries');
+    try { fs.mkdirSync(dir, { recursive: true }); } catch (_) {}
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const base = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9_-]/g, '');
+    cb(null, `${Date.now()}_${base}${ext}`);
+  }
+});
+const upload = multer({ storage });
+
+// 특정 아동의 모든 일지 조회 (새 스키마: date, content)
 router.get('/child/:childId', (req, res) => {
   const { childId } = req.params;
 
-  const query = 'SELECT * FROM diaries WHERE child_id = ? ORDER BY date DESC';
+  const query = 'SELECT * FROM diaries WHERE child_id = ? ORDER BY date DESC, created_at DESC';
 
   db.query(query, [childId], (err, results) => {
     if (err) {
@@ -17,7 +35,7 @@ router.get('/child/:childId', (req, res) => {
   });
 });
 
-// 특정 일기 상세 조회
+// 특정 일지 상세 조회 (새 스키마)
 router.get('/:diaryId', (req, res) => {
   const { diaryId } = req.params;
   const query = 'SELECT * FROM diaries WHERE id = ?';
@@ -34,36 +52,41 @@ router.get('/:diaryId', (req, res) => {
   });
 });
 
-// 새로운 일기 생성
-router.post('/', (req, res) => {
-  console.log('=== 일기 생성 요청 받음 ===');
-  console.log('요청 body:', req.body);
-  
-  const { child_id, date, content } = req.body;
-  
-  console.log('추출된 값들:', { child_id, date, content });
+// helper: format JS Date to YYYY-MM-DD
+function formatDateOnly(d) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
 
-  if (!child_id || !date || !content) {
-    console.log('필수 정보 누락 - child_id:', !!child_id, 'date:', !!date, 'content:', !!content);
-    return res.status(400).json({ success: false, message: '필수 정보(child_id, date, content)가 누락되었습니다.' });
+// 새로운 일지 생성 (summary 컬럼이 없을 수도 있어 안전 처리)
+// 새 스키마에 맞춘 생성/업서트 (child_id+date 유니크)
+router.post('/', upload.none(), (req, res) => {
+  const { child_id, content, date } = req.body;
+
+  if (!child_id || !content) {
+    return res.status(400).json({ success: false, message: '필수 정보(child_id, content)가 누락되었습니다.' });
   }
 
-  const query = 'INSERT INTO diaries (child_id, date, content, created_at) VALUES (?, ?, ?, NOW())';
-  
-  db.query(query, [child_id, date, content], (err, result) => {
+  const dateOnly = date ? date : formatDateOnly(new Date());
+
+  const upsert = `
+    INSERT INTO diaries (child_id, date, content)
+    VALUES (?, ?, ?)
+    ON DUPLICATE KEY UPDATE content = VALUES(content), updated_at = CURRENT_TIMESTAMP
+  `;
+
+  db.query(upsert, [child_id, dateOnly, content], (err, result) => {
     if (err) {
-      console.error('일기 생성 DB 오류:', err);
-      return res.status(500).json({ success: false, message: '일기 저장 중 서버 오류가 발생했습니다.' });
+      console.error('일지 생성/업데이트 DB 오류:', err);
+      return res.status(500).json({ success: false, message: '일지 저장 중 서버 오류가 발생했습니다.' });
     }
-    res.status(201).json({ 
-      success: true, 
-      message: '일기가 성공적으로 저장되었습니다.',
-      diary: {
-        id: result.insertId,
-        child_id,
-        date,
-        content
-      } 
+    const id = result.insertId || null;
+    return res.status(201).json({
+      success: true,
+      message: '일지가 저장되었습니다.',
+      diary: { id, child_id, date: dateOnly, content },
     });
   });
 });

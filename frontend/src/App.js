@@ -15,10 +15,9 @@ import AIAnalysisPage from './pages/AIAnalysisPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage'; // 이름 복구
 import VerifyCodePage from './pages/VerifyCodePage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-import DiaryListPage from './pages/DiaryListPage'; // 일기 목록 페이지
-import DiaryWritePage from './pages/DiaryWritePage'; // 일기 작성 페이지
-import DiaryEditPage from './pages/DiaryEditPage'; // 일기 수정 페이지
-import ReportDetailPage from './pages/ReportDetailPage'; // ReportDetailPage 임포트 추가
+import DiaryPage from './pages/DiaryPage'; // DiaryPage 임포트 추가
+import DiaryWritePage from './pages/DiaryWritePage';
+import DiaryDetailPage from './pages/DiaryDetailPage'; // DiaryDetailPage 임포트 추가
 
 // 컴포넌트 임포트 (src/components 폴더에 있다고 가정)
 import MainScreen from './components/MainScreen';
@@ -106,9 +105,37 @@ function App() {
   // 새로운 메시지를 받아 대화 목록에 추가하고 LLM 응답을 받는 함수
   const handleSendMessage = async (messageText, file) => {
     if (isLoading) return;
-    const newUserMessage = new HumanMessage(messageText);
+
+    // 화면 표시: "영상/이미지 버블"과 "텍스트 버블"을 분리해서 추가
+    // 렌더 순서: 위(먼저 추가한 것) → 아래(나중 추가한 것)
     const history = [...messages];
-    setMessages(prev => [...prev, newUserMessage]);
+
+    if (file) {
+      const pendingMessages = [];
+      if (messageText && messageText.trim()) {
+        pendingMessages.push(new HumanMessage(messageText));
+      }
+      try {
+        const localUrl = URL.createObjectURL(file);
+        const mediaPart = file.type?.startsWith('image/')
+          ? { type: 'image_url', image_url: localUrl }
+          : file.type?.startsWith('video/')
+            ? { type: 'video_url', video_url: localUrl }
+            : { type: 'text', text: `첨부: ${file.name}` };
+        const mediaMessage = new HumanMessage({ content: [mediaPart] });
+        // 위에 영상, 아래에 텍스트가 보이도록: 먼저 미디어를 push, 그다음 텍스트를 push
+        setMessages((prev) => [...prev, mediaMessage, ...pendingMessages]);
+      } catch (_) {
+        // 실패 시 텍스트만 표시
+        if (pendingMessages.length > 0) {
+          setMessages((prev) => [...prev, ...pendingMessages]);
+        }
+      }
+    } else {
+      // 파일이 없는 경우 기존과 동일하게 텍스트 메시지만 추가
+      const newUserTextMessage = new HumanMessage(messageText || '');
+      setMessages((prev) => [...prev, newUserTextMessage]);
+    }
     setIsLoading(true);
     try {
       const endpoint = `${API_BASE}/agent`;
@@ -176,13 +203,11 @@ function App() {
 
         <Route path="/child-info" element={isLoggedIn ? <ChildInfoPage /> : <Navigate to="/login" />} />
         <Route path="/child-detail/:childId" element={isLoggedIn ? <ChildDetailPage /> : <Navigate to="/login" />} />
-        
-        {/* 일기 라우트 */}
-        <Route path="/diary/:childId" element={isLoggedIn ? <DiaryListPage /> : <Navigate to="/login" />} />
-        <Route path="/diary/write/:childId" element={isLoggedIn ? <DiaryWritePage /> : <Navigate to="/login" />} />
-        <Route path="/diary/edit/:diaryId" element={isLoggedIn ? <DiaryEditPage /> : <Navigate to="/login" />} />
-        
-        <Route path="/report/:childId" element={isLoggedIn ? <ReportDetailPage /> : <Navigate to="/login" />} /> {/* ReportDetailPage 라우트 추가 */}
+        {/* 일지 작성 기본 경로 */}
+        <Route path="/diary/:childId" element={isLoggedIn ? <DiaryWritePage /> : <Navigate to="/login" />} />
+        {/* 일지 목록 경로 */}
+        <Route path="/diary/list/:childId" element={isLoggedIn ? <DiaryPage /> : <Navigate to="/login" />} />
+        <Route path="/diary/detail/:diaryId" element={isLoggedIn ? <DiaryDetailPage /> : <Navigate to="/login" />} /> {/* DiaryDetailPage 라우트 추가 */}
 
         <Route path="/ai-analysis" element={isLoggedIn ? <AIAnalysisPage /> : <Navigate to="/login" />} />
       </Routes>

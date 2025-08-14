@@ -88,10 +88,6 @@ function ChatWindow({ messages, onSendMessage }) {
 				<FiChevronLeft size={25} /> 
 				<span>뒤로가기</span>
 				</button>
-				<button onClick={handleSummarizeAndSave} className="chat-window-action-button" disabled={isLoading}>
-				<FiFileText size={20} />
-				<span>{isLoading ? '저장 중...' : '요약 및 저장'}</span>
-				</button>
 			</div>
 
 			{/* 스크롤 가능한 메시지 영역 */}

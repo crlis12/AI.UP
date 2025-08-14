@@ -1,14 +1,15 @@
 // src/components/MainScreen.js
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import API_BASE from '../utils/api';
 import '../App.css'; 
 
-import { FiChevronLeft, FiChevronRight, FiPlus } from "react-icons/fi";
+import { FiChevronDown, FiBell, FiPlus, FiChevronRight, FiChevronLeft } from "react-icons/fi";
 import MessageInput from "./MessageInput";
 import babyProfile from '../assets/baby_image.png';
 import { useNavigate, Link } from "react-router-dom"; // Link 추가
 import BottomNavBar from "./BottomNavBar";
+import CircularScore from "./CircularScore";
 
 
 // 2. props에서 onSendMessage 함수를 받도록 수정합니다.
@@ -21,6 +22,8 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     const [currentChildIndex, setCurrentChildIndex] = useState(0);
     const [loading, setLoading] = useState(true);
     const [diaries, setDiaries] = useState([]); // 최신 일지 목록 상태 추가
+    const [isChildMenuOpen, setIsChildMenuOpen] = useState(false);
+    const childMenuRef = useRef(null);
 
     const handleInitialSend = (messageText, file) => {
         if (children.length > 0 && currentChildIndex >= 0) {
@@ -118,6 +121,18 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
         return age;
     };
 
+    // 개월 수 계산 (생후 N개월)
+    const calculateMonths = (birthDate) => {
+        if (!birthDate) return 0;
+        const today = new Date();
+        const birth = new Date(birthDate);
+        let months = (today.getFullYear() - birth.getFullYear()) * 12 + (today.getMonth() - birth.getMonth());
+        if (today.getDate() < birth.getDate()) {
+            months -= 1;
+        }
+        return Math.max(0, months);
+    };
+
     // 아동 정보 페이지로 이동하는 함수
     const handleAddChildClick = () => {
         navigate('/child-info');
@@ -141,6 +156,27 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
             const newChildId = children[newIndex].id;
             localStorage.setItem('currentChildId', newChildId); // localStorage에 저장
             await fetchDiaries(newChildId); // 새 자녀의 일지 불러오기
+        }
+    };
+
+    const handleSelectChildIndex = async (index) => {
+        if (index < 0 || index >= children.length) return;
+        setCurrentChildIndex(index);
+        const newChildId = children[index].id;
+        localStorage.setItem('currentChildId', newChildId);
+        await fetchDiaries(newChildId);
+        setIsChildMenuOpen(false);
+    };
+
+    const toggleChildMenu = () => {
+        if (children.length === 0) return;
+        setIsChildMenuOpen(prev => !prev);
+        // 스크롤 잠금/해제
+        const body = document.body;
+        if (!isChildMenuOpen) {
+            body.style.overflow = 'hidden';
+        } else {
+            body.style.overflow = '';
         }
     };
 
@@ -182,6 +218,22 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
         }
     }, [currentUser]);
 
+    // 외부 클릭으로는 닫히지 않도록 변경 (토글 버튼/항목 선택 시에만 닫힘)
+
+    // 드롭다운이 닫힐 때 스크롤 잠금 해제 보장
+    useEffect(() => {
+        if (!isChildMenuOpen) {
+            document.body.style.overflow = '';
+        }
+    }, [isChildMenuOpen]);
+
+    // 언마운트 시 스크롤 잠금 해제 보장
+    useEffect(() => {
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, []);
+
     // 필요 시 디버깅 로그 사용
 
     // 날짜별로 유일한 최신 일지만 필터링
@@ -200,18 +252,34 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
 	return (
 		<div className="main-screen-container"> 
 			<div className="main-screen">
-				{/* 사용자 정보 헤더 */}
-				<div className="main-screen__user-header">
-					<div className="main-screen__user-info">
-						<span className="main-screen__nickname">{currentUser?.nickname || '사용자'}</span>
-						<button 
-							className="main-screen__logout-button"
-							onClick={handleLogoutClick}
-						>
-							로그아웃
-						</button>
-					</div>
-				</div>
+					{/* 상단 바: 아이 선택 드롭다운 + 알림 */}
+                <div className="main-topbar">
+                    <button className="child-selector" onClick={toggleChildMenu} aria-haspopup="listbox" aria-expanded={isChildMenuOpen}>
+                        <span>{children[currentChildIndex]?.name || '아이'}</span>
+                        <FiChevronDown />
+                    </button>
+                    <div className="fig-header__right">
+                        <button className="icon-button" aria-label="알림"><FiBell /></button>
+                    </div>
+                </div>
+                {isChildMenuOpen && (
+                    <div className="child-dropdown" ref={childMenuRef} role="listbox">
+                        {children.map((c, idx) => (
+                            <button
+                                key={c.id}
+                                className={`child-dropdown__item ${idx === currentChildIndex ? 'active' : ''}`}
+                                onClick={() => handleSelectChildIndex(idx)}
+                                role="option"
+                                aria-selected={idx === currentChildIndex}
+                            >
+                                <span className="child-dropdown__name">{c.name}</span>
+                                {c.birth_date && (
+                                    <span className="child-dropdown__sub">생후 {calculateMonths(c.birth_date)}개월</span>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                )}
 
 
 				{/* 스크롤되는 영역 */}
@@ -252,124 +320,95 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
 					) : (
 						/* 자녀가 있을 때 */
 						<>
-							{/* 상단 프로필 영역 */}
-							<div className="main-screen__profile-container">
-								<button 
-									className="main-screen__arrow-button"
-									onClick={handlePrevChild}
-									disabled={children.length <= 1}
-								>
-									<FiChevronLeft size={30} />
-								</button>
-								<div className="main-screen__profile-image-wrapper">
-									<img
-										src={children[currentChildIndex]?.profile_image || babyProfile}
-										alt={`${children[currentChildIndex]?.name} 프로필`}
-										className="main-screen__profile-image"
-									/>
-									<button 
-										className="main-screen__add-child-button"
-										onClick={handleAddChildClick}
-										title="아이 추가하기"
-									>
-										<FiPlus size={20} />
-									</button>
-								</div>
-								<button 
-									className="main-screen__arrow-button"
-									onClick={handleNextChild}
-									disabled={children.length <= 1}
-								>
-									<FiChevronRight size={30} />
-								</button>
-							</div>
+									{/* 상단 프로필 히어로 */}
+                                    <div className="profile-hero">
+                                        <div className="profile-hero__image-wrapper">
+											<img
+												src={children[currentChildIndex]?.profile_image || babyProfile}
+												alt={`${children[currentChildIndex]?.name} 프로필`}
+												className="profile-hero__image"
+											/>
+											<button 
+												className="main-screen__add-child-button"
+												onClick={handleAddChildClick}
+												title="아이 추가하기"
+											>
+												<FiPlus size={20} />
+											</button>
+										</div>
+										<div className="profile-hero__name">{children[currentChildIndex]?.name}</div>
+										<div className="profile-hero__months">생후 {calculateMonths(children[currentChildIndex]?.birth_date)}개월</div>
+									</div>
 
 							{/* 하단 컨텐츠 영역 */}
-							<div className="main-screen__content-box">
-								<div className="main-screen__title-bar">
-									<span className="main-screen__badge">
-										{children[currentChildIndex]?.development_stage || `${calculateAge(children[currentChildIndex]?.birth_date)}세`}
-									</span>
-									<h1 className="main-screen__name">
-										{children[currentChildIndex]?.name}
-										{children[currentChildIndex]?.nickname && (
-											<span className="main-screen__nickname"> "{children[currentChildIndex].nickname}"</span>
-										)}
-									</h1>
-								</div>
-								<div className="main-screen__checklist-section">
-									<div className="main-screen__widgets-container">
-										{/* 자녀 정보 섹션 */}
-										<div className="main-screen__info-section">
-											<h2 className="main-screen__subtitle">자녀 정보</h2>
-											<div className="main-screen__widget">
-												<div className="main-screen__widget-item">
-													<span>나이: {calculateAge(children[currentChildIndex]?.birth_date)}세</span>
-												</div>
-												{children[currentChildIndex]?.birth_date && (
-													<div className="main-screen__widget-item">
-														<span>생년월일: {new Date(children[currentChildIndex].birth_date).toLocaleDateString('ko-KR')}</span>
-													</div>
-												)}
-												{children[currentChildIndex]?.weight && (
-													<div className="main-screen__widget-item">
-														<span>몸무게: {children[currentChildIndex].weight}kg</span>
-													</div>
-												)}
-												{children[currentChildIndex]?.height && (
-													<div className="main-screen__widget-item">
-														<span>키: {children[currentChildIndex].height}cm</span>
-													</div>
-												)}
-												{/* 발달 리포트 버튼 추가 */}
-												<div className="main-screen__widget-item">
-													<button 
-														className="main-screen__report-button"
-														onClick={() => {
-															const childId = children[currentChildIndex]?.id;
-															console.log('리포트 버튼 클릭, childId:', childId);
-															if (childId) {
-																navigate(`/report/${childId}`);
-															} else {
-																alert('자녀 정보를 찾을 수 없습니다.');
-															}
-														}}
-													>
-														📊 발달 리포트 보기
-													</button>
-												</div>
-											</div>
-										</div>
-										{/* 오늘의 일지 섹션 */}
-										<div className="main-screen__info-section">
-											<h2 className="main-screen__subtitle">오늘의 일지</h2>
-											<div 
-												className="main-screen__widget diary-widget clickable"
-												onClick={() => {
-													const currentChild = children[currentChildIndex];
-													if (currentChild && currentChild.id) {
-														navigate(`/diary/${currentChild.id}`, { state: { childName: currentChild.name } });
-													} else {
-														console.error("일지 페이지로 이동할 수 없습니다: 자녀 정보가 없습니다.");
-													}
-												}}
-											>
-												{uniqueDiaries.length > 0 ? (
-													uniqueDiaries.map(diary => (
-														<p key={diary.id} className="main-screen__diary-summary">
-															{new Date(diary.diary_date).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })} - {diary.summary.slice(0, 30)}{diary.summary.length > 30 ? '...' : ''}
-														</p>
-													))
-												) : (
-													<p className="main-screen__diary-summary">
-														아직 작성된 일지가 없습니다.
-													</p>
-												)}
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
+                            <div className="main-screen__content-box">
+                                {/* 아이 정보 카드 */}
+                                <div className="card card--info">
+                                    <div className="card__header">
+                                        <div className="card__title">아이 정보</div>
+                                        <button className="card__action" onClick={() => navigate(`/child-detail/${children[currentChildIndex]?.id || ''}`)}>전체보기</button>
+                                    </div>
+                                    <div className="info-grid">
+                                        <div className="info-grid__row"><span>나이</span><span>{calculateAge(children[currentChildIndex]?.birth_date)}세</span></div>
+                                        {children[currentChildIndex]?.birth_date && (
+                                            <div className="info-grid__row"><span>생년월일</span><span>{new Date(children[currentChildIndex].birth_date).toLocaleDateString('ko-KR')}</span></div>
+                                        )}
+                                        {children[currentChildIndex]?.height && (
+                                            <div className="info-grid__row"><span>키</span><span>{children[currentChildIndex].height}cm</span></div>
+                                        )}
+                                        {children[currentChildIndex]?.weight && (
+                                            <div className="info-grid__row"><span>몸무게</span><span>{children[currentChildIndex].weight}kg</span></div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* 발달 영역 현황 카드 */}
+                                <div className="card">
+                                    <div className="card__header">
+                                        <div className="card__title">발달 영역 현황</div>
+                                    </div>
+                                    <div className="card__center">
+                                        <CircularScore score={90} label="종합발달점수" subLabel="상위 10%" />
+                                        <button className="main-screen__report-button" onClick={() => navigate('/ai-analysis')}>리포트 보기</button>
+                                    </div>
+                                </div>
+
+                                {/* 최근 일지 카드 */}
+                                <div className="card">
+                                    <div className="card__header">
+                                        <div className="card__title">최근 일지</div>
+                                        <button className="card__action" onClick={() => {
+                                            const cc = children[currentChildIndex];
+                                            if (cc && cc.id) navigate(`/diary/${cc.id}`, { state: { childName: cc.name } });
+                                        }}>전체보기</button>
+                                    </div>
+                                    <div className="list">
+                                        {uniqueDiaries.length > 0 ? (
+                                            uniqueDiaries.slice(0, 2).map(diary => (
+                                                <div
+                                                    key={diary.id}
+                                                    className="list-item"
+                                                    onClick={() =>
+                                                        navigate(`/diary/detail/${diary.id}`, {
+                                                            state: { childId: children[currentChildIndex]?.id }
+                                                        })
+                                                    }
+                                                >
+                                                    <div className="list-item__text">
+                                                        <div className="list-item__title">{new Date(diary.diary_date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} 두 발로 점프 성공!</div>
+                                                        <div className="list-item__subtitle">{new Date(diary.diary_date).getFullYear()}년 {new Date(diary.diary_date).toLocaleDateString('ko-KR')}</div>
+                                                    </div>
+                                                    <FiChevronRight className="list-item__chevron" />
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="list-item list-item--empty">
+                                                <div className="list-item__text">아직 작성된 일지가 없습니다.</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
 						</>
 					)}
 				</div>

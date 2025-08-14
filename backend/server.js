@@ -5,16 +5,20 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const childrenRoutes = require('./routes/children');
 const summarizeRoutes = require('./routes/summarize');
-const agentRoutes = require('./routes/agent');
 const diaryRoutes = require('./routes/diaries');
-const reportsRoutes = require('./routes/reports');
-
+const reportRoutes = require('./routes/report');
+const multimodalRoutes = require('./routes/multimodal');
+const questionRoutes = require('./routes/question');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // 미들웨어 설정
-app.use(express.json());
+app.use(express.json()); // JSON 요청 본문 파싱
+app.use(cors()); // CORS 허용 (프론트엔드와 백엔드가 다른 포트에서 실행될 때 필요)
+// 업로드 파일 정적 제공
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // CORS 설정
 const allowedOrigins = [
@@ -43,12 +47,10 @@ console.log('✓ /children 라우터 등록됨');
 app.use('/summarize', summarizeRoutes);
 console.log('✓ /summarize 라우터 등록됨');
 app.use('/diaries', diaryRoutes);
-console.log('✓ /diaries 라우터 등록됨');
-app.use('/reports', reportsRoutes);
-console.log('✓ /reports 라우터 등록됨');
-app.use('/agent', agentRoutes);
-console.log('✓ /agent 라우터 등록됨');
-console.log('=== 라우터 등록 완료 ===');
+app.use('/report', reportRoutes);
+app.use('/multimodal', multimodalRoutes);
+app.use('/question', questionRoutes);
+
 
 // 기본 라우트 (선택 사항)
 app.get('/', (req, res) => {
