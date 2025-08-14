@@ -17,12 +17,6 @@ export const AGENTS = {
     endpoint: '/report',
     config: { model: 'gemini-2.5-flash', temperature: 0.0 },
   },
-  supervisiorAgent: {
-    label: '슈퍼바이저 에이전트',
-    description: '등록된 역할형 서브 에이전트를 오케스트레이션',
-    endpoint: '/agent',
-    // config override 없음 => DEFAULT_AGENT_CONFIG 사용
-  },
 };
 
 // 에이전트 이름으로 최종 LLM 설정을 가져옵니다. (DEFAULT 병합 + override만 적용)
@@ -79,14 +73,4 @@ export function listAgents() {
     config: getAgentConfig(name),
     spec: getAgentSpec(name),
   }));
-}
-
-// 슈퍼바이저가 오케스트레이션할 수 있는 역할형 서브 에이전트 목록(표시용)
-export const SUPERVISOR_ROLES = {
-  defaultResponder: { label: '기본 응답자', description: '일반 대화/응답을 수행' },
-  // 필요 시 childAgents.js에 registerAgent로 추가한 역할들을 여기에도 등록하여 UI 노출
-};
-
-export function listSupervisorRoles() {
-  return Object.keys(SUPERVISOR_ROLES);
 }

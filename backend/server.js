@@ -5,7 +5,6 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const childrenRoutes = require('./routes/children');
 const summarizeRoutes = require('./routes/summarize');
-const agentRoutes = require('./routes/agent');
 const diaryRoutes = require('./routes/diaries');
 const reportRoutes = require('./routes/report');
 
@@ -26,7 +25,6 @@ app.use('/auth', authRoutes); // '/api' 접두사 다시 제거
 app.use('/children', childrenRoutes);
 app.use('/summarize', summarizeRoutes);
 app.use('/diaries', diaryRoutes);
-app.use('/agent', agentRoutes);
 app.use('/report', reportRoutes);
 
 
