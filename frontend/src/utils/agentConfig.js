@@ -23,6 +23,12 @@ export const AGENTS = {
     endpoint: '/multimodal',
     config: { model: 'gemini-2.5-flash', temperature: 0.2 },
   },
+  questionAgent: {
+    label: '질문 응답 에이전트',
+    description: '육아일기를 바탕으로 부모의 질문에 답변',
+    endpoint: '/question',
+    config: { model: 'gemini-2.5-flash', temperature: 0.3 },
+  },
 };
 
 // 에이전트 이름으로 최종 LLM 설정을 가져옵니다. (DEFAULT 병합 + override만 적용)
@@ -63,6 +69,17 @@ export const AGENT_SPECS = {
     captionFocus: ['주요 대상', '핵심 동작', '배경 맥락'],
     avoid: ['추측 단정', '불필요한 감탄사'],
     includeSafety: false,
+  },
+  // questionAgent 전용 스펙
+  questionAgent: {
+    default: '당신은 아이의 육아일기를 참고하여 아이의 상태를 고려해 부모의 질문에 공감과 근거를 갖춘 답변을 제공하는 상담 에이전트입니다.',
+    audience: '부모',
+    tone: '공감적이고 실용적',
+    length: '한두 문장 또는 필요한 경우 간략한 항목 나열',
+    language: 'ko',
+    format: 'plain',
+    consider: ['아이의 연령 및 발달 단계', '최근 정서/행동 변화', '수면/식습관/활동량', '안전 이슈'],
+    avoid: ['의학적 진단 단정', '불필요한 불안 유발'],
   },
 };
 
