@@ -54,7 +54,7 @@ function DiaryDetailPage() {
           <button
             onClick={() => {
               if (childIdFromState) {
-                navigate(`/diary/${childIdFromState}`, { replace: true });
+                navigate(`/diary/list/${childIdFromState}`, { replace: true });
               } else {
                 navigate(-1);
               }

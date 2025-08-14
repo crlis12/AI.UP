@@ -71,10 +71,10 @@ function DiaryPage() {
     fontWeight: 'bold',
   };
 
-  if (loading) return <PageLayout title="일지" titleStyle={titleStyle} showNavBar={true}><div>로딩 중...</div></PageLayout>;
+  if (loading) return <PageLayout title="일지 목록" titleStyle={titleStyle} showNavBar={true}><div>로딩 중...</div></PageLayout>;
 
   return (
-    <PageLayout title="일지" titleStyle={titleStyle} showNavBar={true}>
+    <PageLayout title="일지 목록" titleStyle={titleStyle} showNavBar={true}>
       <div className="timeline-container">
         {timelineItems.map((item, index) => {
           const label = getRelativeLabel(item.diary_date);
