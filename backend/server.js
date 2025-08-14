@@ -8,6 +8,7 @@ const summarizeRoutes = require('./routes/summarize');
 const diaryRoutes = require('./routes/diaries');
 const reportRoutes = require('./routes/report');
 const multimodalRoutes = require('./routes/multimodal');
+const questionRoutes = require('./routes/question');
 
 const app = express();
 const PORT = 3001; // 포트 번호를 직접 명시
@@ -28,6 +29,7 @@ app.use('/summarize', summarizeRoutes);
 app.use('/diaries', diaryRoutes);
 app.use('/report', reportRoutes);
 app.use('/multimodal', multimodalRoutes);
+app.use('/question', questionRoutes);
 
 
 // 기본 라우트 (선택 사항)
