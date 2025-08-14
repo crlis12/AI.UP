@@ -17,6 +17,12 @@ export const AGENTS = {
     endpoint: '/report',
     config: { model: 'gemini-2.5-flash', temperature: 0.0 },
   },
+  multimodalAgent: {
+    label: '멀티모달 캡셔너',
+    description: '텍스트/이미지/비디오 입력 모두 지원, 간결한 캡션/응답 생성',
+    endpoint: '/multimodal',
+    config: { model: 'gemini-2.5-flash', temperature: 0.2 },
+  },
 };
 
 // 에이전트 이름으로 최종 LLM 설정을 가져옵니다. (DEFAULT 병합 + override만 적용)
