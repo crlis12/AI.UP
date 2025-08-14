@@ -1,5 +1,12 @@
 /node_modules*
-
+/.vscode    
+/.venv
+/_queuestorage
+/__azurite_db_queue__.json
+/__azurite_db_queue_extent__.json
+/backend.zip
+/create_tables.sql
+/deploy.ps1
 
 
 # ========================
@@ -35,3 +42,4 @@
 /backend/db.js
 /backend/node_modules*
 /backend/.env*
+
