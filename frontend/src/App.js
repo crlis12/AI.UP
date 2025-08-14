@@ -16,6 +16,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage'; // 이름 복구
 import VerifyCodePage from './pages/VerifyCodePage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import DiaryPage from './pages/DiaryPage'; // DiaryPage 임포트 추가
+import DiaryWritePage from './pages/DiaryWritePage';
 import DiaryDetailPage from './pages/DiaryDetailPage'; // DiaryDetailPage 임포트 추가
 
 // 컴포넌트 임포트 (src/components 폴더에 있다고 가정)
@@ -192,7 +193,10 @@ function App() {
 
         <Route path="/child-info" element={isLoggedIn ? <ChildInfoPage /> : <Navigate to="/login" />} />
         <Route path="/child-detail/:childId" element={isLoggedIn ? <ChildDetailPage /> : <Navigate to="/login" />} />
-        <Route path="/diary/:childId" element={isLoggedIn ? <DiaryPage /> : <Navigate to="/login" />} /> {/* DiaryPage 라우트 추가 */}
+        {/* 일지 작성 기본 경로 */}
+        <Route path="/diary/:childId" element={isLoggedIn ? <DiaryWritePage /> : <Navigate to="/login" />} />
+        {/* 일지 목록 경로 */}
+        <Route path="/diary/list/:childId" element={isLoggedIn ? <DiaryPage /> : <Navigate to="/login" />} />
         <Route path="/diary/detail/:diaryId" element={isLoggedIn ? <DiaryDetailPage /> : <Navigate to="/login" />} /> {/* DiaryDetailPage 라우트 추가 */}
 
         <Route path="/ai-analysis" element={isLoggedIn ? <AIAnalysisPage /> : <Navigate to="/login" />} />
