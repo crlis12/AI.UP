@@ -150,7 +150,7 @@ router.post('/', async (req, res) => {
     const isImage = mimeType?.startsWith('image/');
     const isVideo = mimeType?.startsWith('video/');
 
-    // 텍스트 전용 입력 지원
+    // 텍스트 전용 입력 지원 (system 메시지 사용)
     if (!fileBuffer) {
       const { ChatGoogleGenerativeAI } = await loadLangChain();
       const chat = new ChatGoogleGenerativeAI({
@@ -159,8 +159,10 @@ router.post('/', async (req, res) => {
         temperature,
       });
       const sys = buildSystemPromptFromSpec({ systemPrompt: undefined, spec });
-      const prompt = `${sys}\n요청:${input || '간결한 설명을 작성해 주세요.'}`;
-      const response = await chat.invoke(prompt);
+      const response = await chat.invoke([
+        { role: 'system', content: sys },
+        { role: 'user', content: (input || '간결한 설명을 작성해 주세요.') },
+      ]);
       const content = typeof response?.content === 'string'
         ? response.content
         : Array.isArray(response?.content)
@@ -183,8 +185,9 @@ router.post('/', async (req, res) => {
       const dataUrl = `data:${mimeType};base64,${base64}`;
       const sys = buildSystemPromptFromSpec({ systemPrompt: undefined, spec });
       const response = await chat.invoke([
+        { role: 'system', content: sys },
         { role: 'user', content: [
-          { type: 'text', text: `${sys}\n요청:${input || '이미지에 대한 간결한 캡션을 작성해 주세요.'}` },
+          { type: 'text', text: (input || '이미지에 대한 간결한 캡션을 작성해 주세요.') },
           { type: 'image_url', image_url: dataUrl },
         ]},
       ]);
@@ -202,12 +205,15 @@ router.post('/', async (req, res) => {
       const sys = buildSystemPromptFromSpec({ systemPrompt: undefined, spec });
       const contents = [
         { role: 'user', parts: [
-          { text: `${sys}${input ? `\n요청:${input}`: ''}` },
+          { text: (input ? `요청:${input}` : '영상에 대한 간결한 캡션/요약을 작성해 주세요.') },
           { fileData: { fileUri, mimeType } },
         ]},
       ];
       const endpoint = getGeminiRestEndpoint(normalizeGeminiModel(model), process.env.GEMINI_API_KEY);
-      const resp = await axios.post(endpoint, { contents });
+      const resp = await axios.post(endpoint, {
+        contents,
+        systemInstruction: { role: 'system', parts: [{ text: sys }] },
+      });
       const candidateParts = resp?.data?.candidates?.[0]?.content?.parts || [];
       const analysis = candidateParts.map((p) => p?.text || '').filter(Boolean).join('\n');
       const content = analysis || '분석 결과가 비어 있습니다.';
