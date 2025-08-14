@@ -15,8 +15,9 @@ import AIAnalysisPage from './pages/AIAnalysisPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage'; // 이름 복구
 import VerifyCodePage from './pages/VerifyCodePage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-import DiaryPage from './pages/DiaryPage'; // DiaryPage 임포트 추가
-import DiaryDetailPage from './pages/DiaryDetailPage'; // DiaryDetailPage 임포트 추가
+import DiaryListPage from './pages/DiaryListPage'; // 일기 목록 페이지
+import DiaryWritePage from './pages/DiaryWritePage'; // 일기 작성 페이지
+import DiaryEditPage from './pages/DiaryEditPage'; // 일기 수정 페이지
 import ReportDetailPage from './pages/ReportDetailPage'; // ReportDetailPage 임포트 추가
 
 // 컴포넌트 임포트 (src/components 폴더에 있다고 가정)
@@ -25,7 +26,7 @@ import ChatWindow from './components/ChatWindow';
 
 // LLM 호출을 백엔드 API로 위임합니다.
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
-import { BACKEND_BASE_URL } from './utils/config';
+import API_BASE from './utils/api';
 
 
 // BASE URL은 공통 config 사용
@@ -110,7 +111,7 @@ function App() {
     setMessages(prev => [...prev, newUserMessage]);
     setIsLoading(true);
     try {
-      const endpoint = `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/agent`;
+      const endpoint = `${API_BASE}/agent`;
       let resp;
       if (file) {
         const formData = new FormData();
@@ -175,8 +176,12 @@ function App() {
 
         <Route path="/child-info" element={isLoggedIn ? <ChildInfoPage /> : <Navigate to="/login" />} />
         <Route path="/child-detail/:childId" element={isLoggedIn ? <ChildDetailPage /> : <Navigate to="/login" />} />
-        <Route path="/diary/:childId" element={isLoggedIn ? <DiaryPage /> : <Navigate to="/login" />} /> {/* DiaryPage 라우트 추가 */}
-        <Route path="/diary/detail/:diaryId" element={isLoggedIn ? <DiaryDetailPage /> : <Navigate to="/login" />} /> {/* DiaryDetailPage 라우트 추가 */}
+        
+        {/* 일기 라우트 */}
+        <Route path="/diary/:childId" element={isLoggedIn ? <DiaryListPage /> : <Navigate to="/login" />} />
+        <Route path="/diary/write/:childId" element={isLoggedIn ? <DiaryWritePage /> : <Navigate to="/login" />} />
+        <Route path="/diary/edit/:diaryId" element={isLoggedIn ? <DiaryEditPage /> : <Navigate to="/login" />} />
+        
         <Route path="/report/:childId" element={isLoggedIn ? <ReportDetailPage /> : <Navigate to="/login" />} /> {/* ReportDetailPage 라우트 추가 */}
 
         <Route path="/ai-analysis" element={isLoggedIn ? <AIAnalysisPage /> : <Navigate to="/login" />} />

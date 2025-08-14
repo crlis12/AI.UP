@@ -50,22 +50,18 @@ CREATE TABLE IF NOT EXISTS children (
     INDEX idx_parent_id (parent_id)
 );
 
--- 4. 일기 테이블
+-- 4. 일기 테이블 (간소화)
 CREATE TABLE IF NOT EXISTS diaries (
     id INT AUTO_INCREMENT PRIMARY KEY,
     child_id INT NOT NULL,
-    title VARCHAR(200),
-    content TEXT,
     date DATE NOT NULL,
-    mood VARCHAR(50),
-    activities TEXT,
-    photos TEXT,
-    ai_analysis TEXT,
+    content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (child_id) REFERENCES children(id) ON DELETE CASCADE,
     INDEX idx_child_id (child_id),
-    INDEX idx_date (date)
+    INDEX idx_date (date),
+    UNIQUE KEY unique_child_date (child_id, date)
 );
 
 -- 5. 월령 그룹 정보를 저장할 테이블
@@ -142,6 +138,8 @@ CREATE TABLE IF NOT EXISTS child_scores (
     INDEX idx_child_id (child_id),
     INDEX idx_assessment_date (assessment_date)
 );
+
+
 
 -- 테이블 생성 완료 확인
 SHOW TABLES;

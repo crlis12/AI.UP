@@ -9,6 +9,7 @@ const agentRoutes = require('./routes/agent');
 const diaryRoutes = require('./routes/diaries');
 const reportsRoutes = require('./routes/reports');
 
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -33,13 +34,21 @@ app.use(cors({
   }
 }));
 
-// 라우터
+// 라우터 등록 로그
+console.log('=== 라우터 등록 시작 ===');
 app.use('/auth', authRoutes);
+console.log('✓ /auth 라우터 등록됨');
 app.use('/children', childrenRoutes);
+console.log('✓ /children 라우터 등록됨');
 app.use('/summarize', summarizeRoutes);
+console.log('✓ /summarize 라우터 등록됨');
 app.use('/diaries', diaryRoutes);
+console.log('✓ /diaries 라우터 등록됨');
 app.use('/reports', reportsRoutes);
+console.log('✓ /reports 라우터 등록됨');
 app.use('/agent', agentRoutes);
+console.log('✓ /agent 라우터 등록됨');
+console.log('=== 라우터 등록 완료 ===');
 
 // 기본 라우트 (선택 사항)
 app.get('/', (req, res) => {
