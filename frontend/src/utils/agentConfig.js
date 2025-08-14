@@ -37,6 +37,7 @@ export const DEFAULT_REPORT_SPEC = {
 
 // 에이전트별 SPEC(역할/형식 등) 오버라이드 (선택)
 // 필요 시 개별 에이전트 스펙만 여기에 정의 (없으면 기본 스펙 사용)
+// 여기 있는 스펙들이 각 에이전트의 시스템 프롬프트로 작용해서 들어감.
 export const AGENT_SPECS = {
   // reportAgent 전용 스펙
   reportAgent: {
@@ -50,6 +51,18 @@ export const AGENT_SPECS = {
     sections: ['요약', '핵심 내용', '권고사항'],
     includeSummary: true,
     citations: false,
+  },
+  // multimodalAgent 전용 스펙
+  multimodalAgent: {
+    default: '당신은 멀티모달 캡셔닝 에이전트입니다',
+    audience: '일반 사용자',
+    tone: '간결하고 친절한',
+    length: '한두 문장',
+    language: 'ko',
+    format: 'plain',
+    captionFocus: ['주요 대상', '핵심 동작', '배경 맥락'],
+    avoid: ['추측 단정', '불필요한 감탄사'],
+    includeSafety: false,
   },
 };
 
