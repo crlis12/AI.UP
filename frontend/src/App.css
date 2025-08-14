@@ -2089,6 +2089,22 @@ html { overflow-y: auto; }
   white-space: pre-wrap; /* \n??줄바꿈으�??�식?�도�??�정 */
 }
 
+/* DiaryDetail action buttons */
+.diary-action-button {
+  flex: 1;
+  padding: 10px 12px;
+  background-color: #056125;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.diary-action-button.delete {
+  background-color: #c62828;
+}
+
 /* ChatWindow.js 메시지 컨테?�너 ?��???추�? */
 .chat-window__messages-container {
   padding: 0 20px;

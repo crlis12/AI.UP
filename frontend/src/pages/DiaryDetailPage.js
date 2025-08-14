@@ -77,6 +77,36 @@ function DiaryDetailPage() {
           <div className="diary-detail__body">
             <p>{diary.content}</p>
           </div>
+          <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+            <button
+              className="diary-action-button"
+              onClick={() => {
+                const targetChildId = childIdFromState || diary.child_id;
+                navigate(`/diary/${targetChildId}`, {
+                  state: { mode: 'edit', date: diary.date },
+                });
+              }}
+            >
+              수정하기
+            </button>
+            <button
+              className="diary-action-button delete"
+              onClick={async () => {
+                if (!window.confirm('이 일지를 삭제하시겠습니까?')) return;
+                try {
+                  const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/${diary.id}`, { method: 'DELETE' });
+                  const data = await resp.json();
+                  if (!data.success) throw new Error(data.message || '삭제 실패');
+                  const backChildId = childIdFromState || diary.child_id;
+                  navigate(`/diary/list/${backChildId}`, { replace: true });
+                } catch (e) {
+                  alert('삭제 중 오류가 발생했습니다.');
+                }
+              }}
+            >
+              삭제하기
+            </button>
+          </div>
         </div>
       </div>
     </div>

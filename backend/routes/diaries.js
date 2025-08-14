@@ -23,10 +23,24 @@ const upload = multer({ storage });
 // 특정 아동의 모든 일지 조회 (새 스키마: date, content)
 router.get('/child/:childId', (req, res) => {
   const { childId } = req.params;
+  const { date } = req.query;
 
-  const query = 'SELECT * FROM diaries WHERE child_id = ? ORDER BY date DESC, created_at DESC';
+  let query = 'SELECT * FROM diaries WHERE child_id = ?';
+  const params = [childId];
+  if (date) {
+    // Normalize incoming date to YYYY-MM-DD
+    const d = new Date(date);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const dateOnly = isNaN(d) ? String(date).slice(0, 10) : `${yyyy}-${mm}-${dd}`;
+    query += ' AND date = ? ORDER BY created_at DESC LIMIT 1';
+    params.push(dateOnly);
+  } else {
+    query += ' ORDER BY date DESC, created_at DESC';
+  }
 
-  db.query(query, [childId], (err, results) => {
+  db.query(query, params, (err, results) => {
     if (err) {
       console.error('일지 조회 DB 오류:', err);
       return res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
@@ -52,6 +66,23 @@ router.get('/:diaryId', (req, res) => {
   });
 });
 
+// 일지 삭제
+router.delete('/:diaryId', (req, res) => {
+  const { diaryId } = req.params;
+  const query = 'DELETE FROM diaries WHERE id = ?';
+
+  db.query(query, [diaryId], (err, result) => {
+    if (err) {
+      console.error('일지 삭제 DB 오류:', err);
+      return res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: '삭제할 일지를 찾을 수 없습니다.' });
+    }
+    res.json({ success: true, message: '일지가 삭제되었습니다.' });
+  });
+});
+
 // helper: format JS Date to YYYY-MM-DD
 function formatDateOnly(d) {
   const yyyy = d.getFullYear();
@@ -60,8 +91,18 @@ function formatDateOnly(d) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-// 새로운 일지 생성 (summary 컬럼이 없을 수도 있어 안전 처리)
-// 새 스키마에 맞춘 생성/업서트 (child_id+date 유니크)
+function normalizeToDateOnly(input) {
+  if (!input) return null;
+  const d = new Date(input);
+  if (!isNaN(d)) {
+    return formatDateOnly(d);
+  }
+  const s = String(input);
+  if (s.length >= 10 && /\d{4}-\d{2}-\d{2}/.test(s.slice(0, 10))) return s.slice(0, 10);
+  return null;
+}
+
+// 새로운 일지 생성 또는 같은 날짜의 기존 일지 업데이트(업서트)
 router.post('/', upload.none(), (req, res) => {
   const { child_id, content, date } = req.body;
 
@@ -69,7 +110,7 @@ router.post('/', upload.none(), (req, res) => {
     return res.status(400).json({ success: false, message: '필수 정보(child_id, content)가 누락되었습니다.' });
   }
 
-  const dateOnly = date ? date : formatDateOnly(new Date());
+  const dateOnly = normalizeToDateOnly(date) || formatDateOnly(new Date());
 
   const upsert = `
     INSERT INTO diaries (child_id, date, content)

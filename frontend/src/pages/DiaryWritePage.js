@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useMemo, useState, useEffect } from 'react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import { FiCalendar, FiChevronDown, FiPlus, FiX } from 'react-icons/fi';
 import '../App.css';
@@ -7,6 +7,8 @@ import '../App.css';
 function DiaryWritePage() {
   const navigate = useNavigate();
   const { childId } = useParams();
+  const location = useLocation();
+  const mode = location.state?.mode || 'auto'; // 'create' | 'auto'
 
   const today = useMemo(() => {
     const d = new Date();
@@ -20,6 +22,7 @@ function DiaryWritePage() {
   const [content, setContent] = useState('');
   const [files, setFiles] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [hasExisting, setHasExisting] = useState(false);
 
   const handleFileChange = (event) => {
     const fileList = Array.from(event.target.files || []);
@@ -58,6 +61,36 @@ function DiaryWritePage() {
   };
 
   const titleStyle = { fontSize: '16px', color: '#000000', fontWeight: 'bold' };
+
+  // 모드가 'create'가 아닐 때만 기존 일지 자동 불러오기
+  useEffect(() => {
+    // 라우터 state로 특정 날짜가 넘어오면 그 날짜로 초기화
+    if (location.state?.date) {
+      setDateValue(location.state.date);
+    }
+    if (mode === 'create') {
+      setHasExisting(false);
+      setContent('');
+      return;
+    }
+    const fetchExisting = async () => {
+      try {
+        const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/child/${childId}?date=${dateValue}`);
+        const data = await resp.json();
+        if (data.success && Array.isArray(data.diaries) && data.diaries.length > 0) {
+          setContent(data.diaries[0].content || '');
+          setHasExisting(true);
+        } else {
+          setHasExisting(false);
+          setContent('');
+        }
+      } catch (_) {
+        setHasExisting(false);
+      }
+    };
+    fetchExisting();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [childId, dateValue, mode]);
 
   return (
     <PageLayout title="육아 일기 작성" titleStyle={titleStyle} showNavBar={true}>
@@ -115,7 +148,7 @@ function DiaryWritePage() {
 
         {/* 저장 버튼 */}
         <button className="diary-write__save-button" onClick={handleSave} disabled={isSaving}>
-          {isSaving ? '저장 중...' : '저장하기'}
+          {isSaving ? '저장 중...' : (mode === 'create' ? '저장하기' : hasExisting ? '수정하기' : '저장하기')}
         </button>
       </div>
     </PageLayout>

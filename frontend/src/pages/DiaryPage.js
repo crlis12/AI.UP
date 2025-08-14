@@ -78,7 +78,7 @@ function DiaryPage() {
 
   const rightNode = (
     <button
-      onClick={() => navigate(`/diary/${childId}`)}
+      onClick={() => navigate(`/diary/${childId}`, { state: { mode: 'create' } })}
       aria-label="새 일기 작성"
       className="header-action-button"
       title="새 일기"
@@ -93,8 +93,8 @@ function DiaryPage() {
     <PageLayout title="일지 목록" titleStyle={titleStyle} showNavBar={true} rightNode={rightNode}>
       <div className="timeline-container">
         {timelineItems.map((item, index) => {
-          const label = getRelativeLabel(item.diary_date);
-          const sub = getKoreanDate(item.diary_date);
+          const label = getRelativeLabel(item.date);
+          const sub = getKoreanDate(item.date);
           const isFirst = index === 0;
           const calendarIcon = 'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/d67u1cc4_expires_30_days.png'; // 연한 녹색 아이콘으로 통일
 
