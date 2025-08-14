@@ -21,6 +21,35 @@ async function loadLangChain() {
 
 const { normalizeGeminiModel, getGeminiRestEndpoint } = require('../services/modelFactory');
 
+function buildSystemPromptFromSpec({ systemPrompt, spec }) {
+  const base = systemPrompt || (spec && typeof spec === 'object' && spec.default) || 'You are a helpful multimodal captioning assistant.';
+  const lines = [base];
+  if (!spec || typeof spec !== 'object') return lines.join('\n');
+
+  for (const [key, value] of Object.entries(spec)) {
+    if (key === 'default') continue;
+    if (value === undefined || value === null) continue;
+    const keyLabel = String(key).trim();
+    if (Array.isArray(value)) {
+      if (value.length === 0) continue;
+      lines.push(`${keyLabel}:`);
+      for (const item of value) {
+        if (item === undefined || item === null || String(item).trim() === '') continue;
+        lines.push(`- ${typeof item === 'string' ? item : JSON.stringify(item)}`);
+      }
+      continue;
+    }
+    if (typeof value === 'object') {
+      lines.push(`${keyLabel}: ${JSON.stringify(value)}`);
+      continue;
+    }
+    const primitive = String(value).trim();
+    if (primitive !== '') lines.push(`${keyLabel}: ${primitive}`);
+  }
+
+  return lines.join('\n');
+}
+
 async function uploadToGeminiFiles({ fileBuffer, mimeType, displayName }) {
   const boundary = '----LangChainGeminiUpload' + Math.random().toString(16).slice(2);
   const delimiter = `--${boundary}`;
@@ -81,6 +110,7 @@ router.post('/', async (req, res) => {
     let mode = 'auto';
     let model = 'gemini-2.5-flash';
     let temperature = 0.2;
+    let spec = {};
 
     if ((req.headers['content-type'] || '').includes('multipart/form-data')) {
       const upload = getMulter().single('file');
@@ -99,6 +129,11 @@ router.post('/', async (req, res) => {
         if (cfg.model) model = cfg.model;
         if (typeof cfg.temperature === 'number') temperature = cfg.temperature;
       }
+      if (req.body?.spec) {
+        let sp = req.body.spec;
+        if (typeof sp === 'string') { try { sp = JSON.parse(sp); } catch (_) { sp = {}; } }
+        spec = sp || {};
+      }
     } else if (req.is('application/json')) {
       const body = req.body || {};
       input = body.input || '';
@@ -106,6 +141,9 @@ router.post('/', async (req, res) => {
       if (body?.config) {
         if (body.config.model) model = body.config.model;
         if (typeof body.config.temperature === 'number') temperature = body.config.temperature;
+      }
+      if (body?.spec) {
+        spec = body.spec || {};
       }
     }
 
@@ -120,7 +158,8 @@ router.post('/', async (req, res) => {
         model: normalizeGeminiModel(model),
         temperature,
       });
-      const prompt = input || '간결한 설명을 작성해 주세요.';
+      const sys = buildSystemPromptFromSpec({ systemPrompt: undefined, spec });
+      const prompt = `${sys}\n요청:${input || '간결한 설명을 작성해 주세요.'}`;
       const response = await chat.invoke(prompt);
       const content = typeof response?.content === 'string'
         ? response.content
@@ -142,9 +181,10 @@ router.post('/', async (req, res) => {
       });
       const base64 = fileBuffer.toString('base64');
       const dataUrl = `data:${mimeType};base64,${base64}`;
+      const sys = buildSystemPromptFromSpec({ systemPrompt: undefined, spec });
       const response = await chat.invoke([
         { role: 'user', content: [
-          { type: 'text', text: input || '이미지에 대한 간결한 캡션을 작성해 주세요.' },
+          { type: 'text', text: `${sys}\n요청:${input || '이미지에 대한 간결한 캡션을 작성해 주세요.'}` },
           { type: 'image_url', image_url: dataUrl },
         ]},
       ]);
@@ -159,9 +199,10 @@ router.post('/', async (req, res) => {
     if (isVideo || mode === 'video') {
       const fileUri = await uploadToGeminiFiles({ fileBuffer, mimeType, displayName: 'uploaded-video' });
       await waitForGeminiFileActive(fileUri);
+      const sys = buildSystemPromptFromSpec({ systemPrompt: undefined, spec });
       const contents = [
         { role: 'user', parts: [
-          ...(input ? [{ text: input }] : []),
+          { text: `${sys}${input ? `\n요청:${input}`: ''}` },
           { fileData: { fileUri, mimeType } },
         ]},
       ];
