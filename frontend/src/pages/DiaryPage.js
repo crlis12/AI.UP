@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import PageLayout from '../components/PageLayout'; // PageLayout 임포트
+import { FiPlus } from 'react-icons/fi';
 import '../App.css';
 
 function DiaryPage() {
@@ -18,7 +19,10 @@ function DiaryPage() {
         const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/child/${childId}`);
         const data = await response.json();
         if (data.success) {
-          setDiaries(data.diaries);
+          // 새 스키마: date, content 기반. 최신 날짜 순
+          setDiaries(
+            (data.diaries || []).sort((a, b) => new Date(b.date) - new Date(a.date))
+          );
         } else {
           console.error("일지 목록 조회 실패:", data.message);
         }
@@ -34,6 +38,7 @@ function DiaryPage() {
   // --- 날짜 관련 헬퍼 함수 (생략) ---
   const toDateKey = (dateValue) => {
     const d = new Date(dateValue);
+    if (isNaN(d)) return String(dateValue);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   };
 
@@ -47,7 +52,7 @@ function DiaryPage() {
     const yKey = toDateKey(yesterday);
     if (targetKey === todayKey) return '오늘';
     if (targetKey === yKey) return '어제';
-    return target.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+    return new Date(dateValue).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
   };
   
   const getKoreanDate = (dateValue) => {
@@ -57,7 +62,7 @@ function DiaryPage() {
   const timelineItems = useMemo(() => {
     const byDateKey = new Map();
     for (const diary of diaries) {
-      const key = toDateKey(diary.diary_date);
+      const key = toDateKey(diary.date);
       if (!byDateKey.has(key)) {
         byDateKey.set(key, diary);
       }
@@ -71,10 +76,21 @@ function DiaryPage() {
     fontWeight: 'bold',
   };
 
-  if (loading) return <PageLayout title="일지 목록" titleStyle={titleStyle} showNavBar={true}><div>로딩 중...</div></PageLayout>;
+  const rightNode = (
+    <button
+      onClick={() => navigate(`/diary/${childId}`)}
+      aria-label="새 일기 작성"
+      className="header-action-button"
+      title="새 일기"
+    >
+      <FiPlus size={22} />
+    </button>
+  );
+
+  if (loading) return <PageLayout title="일지 목록" titleStyle={titleStyle} showNavBar={true} rightNode={rightNode}><div>로딩 중...</div></PageLayout>;
 
   return (
-    <PageLayout title="일지 목록" titleStyle={titleStyle} showNavBar={true}>
+    <PageLayout title="일지 목록" titleStyle={titleStyle} showNavBar={true} rightNode={rightNode}>
       <div className="timeline-container">
         {timelineItems.map((item, index) => {
           const label = getRelativeLabel(item.diary_date);
