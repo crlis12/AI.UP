@@ -1,6 +1,6 @@
 // src/components/MessageInput.js (수정 예시)
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 // 아이콘이 필요하다면 import 합니다.
 import { FiPlus, FiX } from "react-icons/fi"; // FiX 아이콘 추가
 import { IoPaperPlaneOutline } from "react-icons/io5";
@@ -10,6 +10,18 @@ const MessageInput = ({ onSendMessage, isLoading }) => {
   const [inputText, setInputText] = useState('');
   const [selectedFile, setSelectedFile] = useState(null); // 선택된 파일 상태 추가
   const fileInputRef = useRef(null);
+
+  // 미리보기 URL은 파일이 바뀔 때만 생성하고, 언마운트/변경 시 revoke
+  const previewUrl = useMemo(() => {
+    if (!selectedFile) return null;
+    return URL.createObjectURL(selectedFile);
+  }, [selectedFile]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -50,14 +62,14 @@ const MessageInput = ({ onSendMessage, isLoading }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {selectedFile.type.startsWith('image/') && (
               <img
-                src={URL.createObjectURL(selectedFile)}
+                src={previewUrl}
                 alt="preview"
                 style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8 }}
               />
             )}
             {selectedFile.type.startsWith('video/') && (
               <video
-                src={URL.createObjectURL(selectedFile)}
+                src={previewUrl}
                 style={{ width: 120, maxHeight: 80, borderRadius: 8 }}
                 controls
               />
