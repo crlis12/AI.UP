@@ -14,6 +14,9 @@ const PORT = 3001; // 포트 번호를 직접 명시
 // 미들웨어 설정
 app.use(express.json()); // JSON 요청 본문 파싱
 app.use(cors()); // CORS 허용 (프론트엔드와 백엔드가 다른 포트에서 실행될 때 필요)
+// 업로드 파일 정적 제공
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 // auth 라우터 사용

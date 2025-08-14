@@ -2134,6 +2134,19 @@ html { overflow-y: auto; }
   width: 24px; /* BackButton ?�이�??�기?� ?�일?�게 ?�정 */
 }
 
+/* Page header 우측 액션 버튼 */
+.header-action-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #056125;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.header-action-button:active { transform: scale(0.96); }
+
 
 /* --- DiaryPage.js ?�로???�자??CSS --- */
 .box {
@@ -2310,6 +2323,70 @@ html { overflow-y: auto; }
   font-size: 16px;
 }
 
+/* --- AIAnalysisPage scoped styles (from Figma) --- */
+.analysis-page .box{width:24px;height:24px}
+.analysis-page .box2{width:184px;height:16px;background:#056125;border-radius:9999px}
+.analysis-page .box3{width:172px;height:16px;background:#C4C4C4;border-radius:9999px}
+.analysis-page .box4{width:149px;height:16px;background:#056125;border-radius:9999px}
+.analysis-page .box5{width:165px;height:16px;background:#C4C4C4;border-radius:9999px}
+.analysis-page .box6{width:202px;height:16px;background:#056125;border-radius:9999px}
+.analysis-page .box7{width:184px;height:16px;background:#C4C4C4;border-radius:9999px}
+.analysis-page .box8{width:207px;height:16px;background:#056125;border-radius:9999px}
+.analysis-page .box9{width:188px;height:16px;background:#C4C4C4;border-radius:9999px}
+.analysis-page .box10{width:84px;height:16px;background:#056125;border-radius:9999px}
+.analysis-page .box11{width:179px;height:16px;background:#C4C4C4;border-radius:9999px}
+.analysis-page .box12{width:138px;height:16px;background:#056125;border-radius:9999px}
+.analysis-page .box13{width:161px;height:16px;background:#C4C4C4;border-radius:9999px}
+.analysis-page .column{align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;background:#FFFFFF;border-radius:16px;padding-top:19px;padding-bottom:19px;margin-bottom:27px;margin-left:16px;margin-right:16px;gap:1px;box-shadow:0px 1px 2px #0000000D}
+.analysis-page .column2{align-self:stretch;display:flex;flex-direction:column;background:#FFFFFF;border-radius:16px;padding-top:16px;padding-bottom:16px;margin-bottom:28px;margin-left:16px;margin-right:16px;gap:12px;box-shadow:0px 1px 2px #0000000D}
+.analysis-page .column3{align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;margin-bottom:14px;margin-left:16px;margin-right:16px;gap:12px}
+.analysis-page .column4{align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;background:#FFFFFF;border-radius:16px;padding-top:16px;padding-bottom:16px;box-shadow:0px 1px 2px #0000000D}
+.analysis-page .contain{display:flex;flex-direction:column;background:#FFFFFF}
+.analysis-page .image{width:24px;height:24px;object-fit:fill}
+.analysis-page .image2{width:36px;height:36px;object-fit:fill}
+.analysis-page .image3{border-radius:16px;height:150px;margin-left:19px;margin-right:19px;align-self:stretch;object-fit:fill}
+.analysis-page .image4{border-radius:16px;width:36px;height:36px;margin-right:8px;object-fit:fill}
+.analysis-page .image5{border-radius:16px;width:16px;height:16px;margin-right:4px;object-fit:fill}
+.analysis-page .input{color:#111827;font-size:18px;font-weight:bold;flex:1;align-self:stretch;background:none;border:none}
+.analysis-page .row-view{align-self:stretch;display:flex;justify-content:space-between;align-items:center;background:#FFFFFF;border-top-left-radius:20px;border-top-right-radius:20px;padding:16px;margin-bottom:12px;box-shadow:0px 1px 2px #0000000D}
+.analysis-page .row-view2{align-self:stretch;display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;margin-left:16px;margin-right:16px}
+.analysis-page .row-view3{display:flex;align-items:flex-start;margin-left:56px}
+.analysis-page .row-view4{align-self:stretch;display:flex;align-items:center;margin-left:16px;margin-right:16px}
+.analysis-page .row-view5{display:flex;align-items:flex-start;margin-bottom:8px;margin-left:35px}
+.analysis-page .row-view6{align-self:stretch;display:flex;align-items:flex-start;margin-bottom:16px;margin-left:24px;margin-right:24px}
+.analysis-page .row-view7{align-self:stretch;display:flex;align-items:flex-start;margin-left:24px;margin-right:24px}
+.analysis-page .scroll-view{height:1593px;align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;background:#FFFFFF;border-radius:20px}
+.analysis-page .text{color:#111812;font-size:16px;font-weight:bold}
+.analysis-page .text2{color:#111812;font-size:16px;font-weight:bold;margin-bottom:13px;margin-left:17px}
+.analysis-page .text3{color:#6B7280;font-size:12px;margin-right:36px}
+.analysis-page .text4{color:#6B7280;font-size:12px;margin-right:29px}
+.analysis-page .text5{color:#6B7280;font-size:12px}
+.analysis-page .text6{color:#111812;font-size:18px}
+.analysis-page .text7{color:#111812;font-size:14px;font-weight:bold;margin-right:24px}
+.analysis-page .text8{color:#111812;font-size:14px;font-weight:bold;margin-right:18px}
+.analysis-page .text9{color:#111812;font-size:14px;font-weight:bold;flex:1}
+.analysis-page .text10{color:#111812;font-size:14px;font-weight:bold}
+.analysis-page .text11{color:#111812;font-size:14px;font-weight:bold;margin-right:17px}
+.analysis-page .text12{color:#111812;font-size:14px;font-weight:bold;margin-right:38px}
+.analysis-page .text13{color:#111812;font-size:14px;font-weight:bold;margin-right:28px}
+.analysis-page .text14{color:#111812;font-size:16px;font-weight:bold;margin-left:4px}
+.analysis-page .text15{color:#111812;font-size:14px;font-weight:bold;margin-bottom:8px;margin-left:16px}
+.analysis-page .text16{color:#111812;font-size:12px;font-weight:bold;margin-right:11px}
+.analysis-page .text17{color:#111812;font-size:12px;font-weight:bold}
+.analysis-page .text18{color:#111812;font-size:12px;font-weight:bold;margin-right:10px}
+.analysis-page .text19{color:#111812;font-size:16px;font-weight:bold;margin-bottom:140px;margin-left:20px}
+.analysis-page .text20{color:#056125;font-size:14px;font-weight:bold;text-align:center;margin-left:17px;margin-right:17px}
+.analysis-page .text21{color:#FFFFFF;font-size:16px;font-weight:bold;margin-left:120px}
+.analysis-page .view{align-self:stretch;display:flex;flex-direction:column;align-items:center;margin-bottom:12px}
+.analysis-page .view2{flex-shrink:0;align-items:flex-start;background:#E5E7EB;border-radius:9999px;padding-right:46px;margin-right:17px}
+.analysis-page .view3{flex:1;align-items:flex-start;background:#E5E7EB;border-radius:9999px;margin-right:17px}
+.analysis-page .view4{flex-shrink:0;align-items:flex-start;background:#E5E7EB;border-radius:9999px;padding-right:81px;margin-right:17px}
+.analysis-page .view5{flex-shrink:0;align-items:flex-start;background:#E5E7EB;border-radius:9999px;padding-right:28px;margin-right:17px}
+.analysis-page .view6{flex-shrink:0;align-items:flex-start;background:#E5E7EB;border-radius:9999px;padding-right:23px;margin-right:17px}
+.analysis-page .view7{flex-shrink:0;align-items:flex-start;background:#E5E7EB;border-radius:9999px;padding-right:146px;margin-right:17px}
+.analysis-page .view8{flex-shrink:0;align-items:flex-start;background:#E5E7EB;border-radius:9999px;padding-right:92px;margin-right:17px}
+.analysis-page .view9{align-self:stretch;display:flex;flex-direction:column;background:#FFFFFF;border-radius:16px;border:1px solid #A7F3D0;padding-top:17px;padding-bottom:17px;margin-bottom:16px;margin-left:16px;margin-right:16px;box-shadow:0px 1px 2px #0000000D}
+.analysis-page .view10{align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;background:#056125;border-radius:12px;padding-top:12px;padding-bottom:12px;margin-bottom:90px;margin-left:16px;margin-right:16px}
 
 /* --- DiaryWritePage.js 스타일 --- */
 .diary-write__container { padding: 16px; }

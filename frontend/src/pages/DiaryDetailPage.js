@@ -43,8 +43,11 @@ function DiaryDetailPage() {
   }
 
   const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    if (isNaN(d)) return dateString; // YYYY-MM-DD 같은 문자열 그대로 표시
     const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
-    return new Date(dateString).toLocaleDateString('ko-KR', options);
+    return d.toLocaleDateString('ko-KR', options);
   };
 
   return (
@@ -68,11 +71,11 @@ function DiaryDetailPage() {
 
         <div className="diary-detail__content">
           <div className="diary-detail__header">
-            <span className="diary-detail__date">{formatDate(diary.diary_date)}</span>
+            <span className="diary-detail__date">{formatDate(diary.date)}</span>
             <h1 className="diary-detail__title">대화 일지</h1>
           </div>
           <div className="diary-detail__body">
-            <p>{diary.full_text}</p>
+            <p>{diary.content}</p>
           </div>
         </div>
       </div>

@@ -38,11 +38,12 @@ function DiaryWritePage() {
     }
     setIsSaving(true);
     try {
-      const summary = content.trim().slice(0, 100);
+      // 새 스키마: content + date만 전송 (파일 업로드는 별도 기능 도입 시 확장)
+      const payload = { child_id: childId, content: content.trim(), date: dateValue };
       const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ child_id: childId, summary, full_text: content.trim() }),
+        body: JSON.stringify(payload),
       });
       const data = await resp.json();
       if (!data.success) throw new Error(data.message || '일지 저장 실패');

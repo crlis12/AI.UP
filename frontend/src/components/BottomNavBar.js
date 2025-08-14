@@ -26,7 +26,11 @@ function BottomNavBar() {
   const handleNavigate = (path) => {
     const childId = localStorage.getItem('currentChildId');
     if (childId) {
-      navigate(`/${path}/${childId}`);
+      if (path === 'diary') {
+        navigate(`/diary/list/${childId}`);
+      } else {
+        navigate(`/${path}/${childId}`);
+      }
     } else {
       // 자녀가 없을 경우 기본 페이지로 이동하거나 알림을 표시합니다.
       alert("먼저 자녀를 선택해주세요.");
@@ -40,7 +44,7 @@ function BottomNavBar() {
         <FiHome className="nav-icon" />
         <span className="nav-text">홈</span>
       </button>
-      <button className={`nav-item ${getActiveClass('/growth')}`} onClick={() => navigate('/growth')}>
+      <button className={`nav-item ${getActiveClass('/ai-analysis')}`} onClick={() => navigate('/ai-analysis')}>
         <FiTrendingUp className="nav-icon" />
         <span className="nav-text">리포트</span>
       </button>
