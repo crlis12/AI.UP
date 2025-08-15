@@ -34,8 +34,12 @@ def setup_qdrant_and_model():
 def upsert_diary(client, model, diary_id, diary_text, diary_date):
     """일지를 벡터 DB에 저장/업데이트 (모델을 인자로 받음)"""
     try:
-        # 텍스트를 벡터로 임베딩 (이미 로딩된 모델 사용)
-        vector = model.encode(diary_text).tolist()
+        # 날짜 정보를 포함한 텍스트 생성
+        combined_text = f"{diary_date} {diary_text}"
+        print(f"임베딩 생성 중: '{combined_text[:100]}...'", file=sys.stderr)
+        
+        # 날짜가 포함된 텍스트를 벡터로 임베딩
+        vector = model.encode(combined_text).tolist()
         
         # 기존 ID가 있는지 확인
         try:
@@ -55,7 +59,7 @@ def upsert_diary(client, model, diary_id, diary_text, diary_date):
                 models.PointStruct(
                     id=diary_id,
                     vector=vector,
-                    payload={"date": diary_date, "text": diary_text}
+                    payload={"date": diary_date, "text": diary_text, "combined_text": combined_text}
                 )
             ],
             wait=True
