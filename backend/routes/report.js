@@ -21,8 +21,12 @@ async function runPythonSearchScript(queryData) {
     const scriptPath = path.join(__dirname, '..', 'search-engine-py', 'search_diaries.py');
     
     console.log(`[${new Date().toISOString()}] Python 검색 스크립트 실행 시작:`, scriptPath);
+    console.log(`[${new Date().toISOString()}] Python 경로:`, config.python.path);
+    console.log(`[${new Date().toISOString()}] 현재 작업 디렉토리:`, process.cwd());
     
-    const pythonProcess = spawn(config.python.path, [scriptPath]);
+    const pythonProcess = spawn(config.python.path, [scriptPath], {
+      cwd: path.dirname(scriptPath)  // Python 스크립트 디렉토리에서 실행
+    });
     
     let stdout = '';
     let stderr = '';
@@ -39,6 +43,8 @@ async function runPythonSearchScript(queryData) {
     
     pythonProcess.on('close', (code) => {
       console.log(`[${new Date().toISOString()}] Python 검색 스크립트 종료, exit code:`, code);
+      console.log(`[${new Date().toISOString()}] Python stdout 전체:`, stdout);
+      console.log(`[${new Date().toISOString()}] Python stderr 전체:`, stderr);
       
       if (code === 0) {
         try {
@@ -47,10 +53,12 @@ async function runPythonSearchScript(queryData) {
           resolve(result);
         } catch (parseError) {
           console.error(`[${new Date().toISOString()}] JSON 파싱 오류:`, parseError);
+          console.error(`[${new Date().toISOString()}] 파싱 실패한 stdout:`, stdout);
           reject(new Error(`JSON 파싱 오류: ${parseError.message}`));
         }
       } else {
         console.error(`[${new Date().toISOString()}] Python 스크립트 실행 실패, exit code: ${code}`);
+        console.error(`[${new Date().toISOString()}] stderr:`, stderr);
         reject(new Error(`Python 스크립트 실행 실패, exit code: ${code}`));
       }
     });
@@ -303,8 +311,8 @@ router.post('/rag-report', async (req, res) => {
     if (searchResult.results && Array.isArray(searchResult.results)) {
       searchResult.results.forEach((result, index) => {
         ragContext += `--- 일기 ${index + 1} ---\n`;
-        ragContext += `날짜: ${result.payload.get('date', 'N/A')}\n`;
-        ragContext += `내용: ${result.payload.get('combined_text', 'N/A')}\n`;
+        ragContext += `날짜: ${result.date || result.payload?.date || 'N/A'}\n`;
+        ragContext += `내용: ${result.combined_text || result.payload?.combined_text || result.text || 'N/A'}\n`;
         if (result.score !== undefined) {
           ragContext += `유사도 점수: ${result.score.toFixed(3)}\n`;
         }
