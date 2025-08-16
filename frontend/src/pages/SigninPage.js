@@ -9,8 +9,7 @@ import '../App.css';
 // 아이콘을 위한 임포트
 import { FaCheck } from "react-icons/fa";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
-
-const BACKEND_API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+import API_BASE from '../utils/api';
 
 function SigninPage({ onLogin }) {
   const navigate = useNavigate();
@@ -27,7 +26,7 @@ function SigninPage({ onLogin }) {
     setLoginError(''); // 이전 오류 메시지 초기화
 
     try {
-      const response = await fetch(`${BACKEND_API_URL}/auth/login`, { // 백엔드 로그인 API 호출
+      const response = await fetch(`${API_BASE}/auth/login`, { // 백엔드 로그인 API 호출
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

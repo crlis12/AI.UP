@@ -42,7 +42,6 @@ function DiaryWritePage() {
     }
     setIsSaving(true);
     try {
-      // 새 스키마: content + date만 전송 (파일 업로드는 별도 기능 도입 시 확장)
       const form = new FormData();
       form.append('child_id', childId);
       form.append('content', content.trim());
@@ -54,7 +53,6 @@ function DiaryWritePage() {
       });
       const data = await resp.json();
       if (!data.success) throw new Error(data.message || '일지 저장 실패');
-      // 저장 후 목록으로 이동
       navigate(`/diary/list/${childId}`, { replace: true });
     } catch (err) {
       console.error(err);
@@ -66,7 +64,6 @@ function DiaryWritePage() {
 
   const titleStyle = { fontSize: '16px', color: '#000000', fontWeight: 'bold' };
 
-  // 최초 1회: 라우터 state에 날짜가 오면 초기화
   useEffect(() => {
     if (!didInitDateRef.current && location.state?.date) {
       setDateValue(location.state.date);
@@ -74,7 +71,6 @@ function DiaryWritePage() {
     }
   }, [location.state]);
 
-  // 모드가 'create'가 아닐 때만 기존 일지 자동 불러오기
   useEffect(() => {
     if (mode === 'create') {
       setHasExisting(false);
@@ -164,5 +160,3 @@ function DiaryWritePage() {
 }
 
 export default DiaryWritePage;
-
-

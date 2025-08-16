@@ -4,8 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { FaArrowLeft, FaSave, FaUser, FaBirthdayCake, FaRuler, FaWeight, FaSchool, FaHeart, FaBrain } from 'react-icons/fa';
 import '../App.css';
-
-const BACKEND_API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'; // 백엔드 API URL
+import API_BASE from '../utils/api';
 
 function ChildDetailPage() {
   const { childId } = useParams();
@@ -49,7 +48,7 @@ function ChildDetailPage() {
         return;
       }
 
-      const response = await fetch(`${BACKEND_API_URL}/children/${childId}`, {
+      const response = await fetch(`${API_BASE}/children/${childId}`, {
         headers: {
           'X-User-ID': currentUser.id // **수정된 부분: 사용자 ID를 헤더로 전송**
         }
@@ -127,7 +126,7 @@ function ChildDetailPage() {
         return;
       }
 
-      const response = await fetch(`${BACKEND_API_URL}/children/${childId}`, {
+      const response = await fetch(`${API_BASE}/children/${childId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

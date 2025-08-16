@@ -1,6 +1,7 @@
 // src/components/MainScreen.js
 
 import React, { useState, useEffect, useRef } from "react";
+import API_BASE from '../utils/api';
 import '../App.css'; 
 
 import { FiChevronDown, FiBell, FiPlus, FiChevronRight, FiChevronLeft } from "react-icons/fi";
@@ -46,35 +47,63 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     // 자녀 목록 조회
     const fetchChildrenAndDiaries = async () => {
         try {
-            if (!currentUser) return;
-            setLoading(true);
+            console.log('=== 자녀 정보 조회 시작 ===');
+            console.log('currentUser:', currentUser);
             
-            const childrenResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/children/parent/${currentUser.id}`);
+            if (!currentUser) {
+                console.error('currentUser가 없습니다');
+                return;
+            }
+            
+            if (!currentUser.id) {
+                console.error('currentUser.id가 없습니다:', currentUser);
+                return;
+            }
+            
+            setLoading(true);
+            console.log('API 호출 시작, URL:', `${API_BASE}/children/parent/${currentUser.id}`);
+            
+            const childrenResponse = await fetch(`${API_BASE}/children/parent/${currentUser.id}`);
+            console.log('자녀 조회 응답 상태:', childrenResponse.status);
+            console.log('자녀 조회 응답 헤더:', childrenResponse.headers);
+            
             const childrenData = await childrenResponse.json();
+            console.log('자녀 조회 응답 데이터:', childrenData);
             
             if (childrenData.success && childrenData.children.length > 0) {
+                console.log('자녀 데이터 설정:', childrenData.children);
                 setChildren(childrenData.children);
                 
                 // 첫 번째 자녀의 최신 일지 가져오기
                 const firstChildId = childrenData.children[0].id;
-                // 첫 자녀 ID를 localStorage에 저장
-                localStorage.setItem('currentChildId', firstChildId);
-                const diaryResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/child/${firstChildId}`);
+                console.log('첫 번째 자녀 ID:', firstChildId);
+                
+                const diaryResponse = await fetch(`${API_BASE}/diaries/child/${firstChildId}`);
+                console.log('일지 조회 응답 상태:', diaryResponse.status);
+                
                 const diaryData = await diaryResponse.json();
+                console.log('일지 조회 응답 데이터:', diaryData);
 
                 if (diaryData.success && diaryData.diaries.length > 0) {
                     setDiaries(diaryData.diaries);
                 } else {
+                    console.log('일지가 없음, 빈 배열 설정');
                     setDiaries([]); // 일지가 없을 경우
                 }
             } else {
+                console.log('자녀가 없음 또는 조회 실패');
+                console.log('success:', childrenData.success);
+                console.log('children length:', childrenData.children?.length);
                 setChildren([]); // 자녀가 없을 경우
                 setDiaries([]);
             }
         } catch (error) {
             console.error('자녀 및 일지 조회 오류:', error);
+            console.error('오류 상세:', error.message);
+            console.error('오류 스택:', error.stack);
         } finally {
             setLoading(false);
+            console.log('=== 자녀 정보 조회 완료 ===');
         }
     };
 
@@ -154,7 +183,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     // 특정 자녀의 최신 일지를 불러오는 함수
     const fetchDiaries = async (childId) => {
         try {
-            const diaryResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/child/${childId}`);
+            const diaryResponse = await fetch(`${API_BASE}/diaries/child/${childId}`);
             const diaryData = await diaryResponse.json();
 
             if (diaryData.success && diaryData.diaries.length > 0) {

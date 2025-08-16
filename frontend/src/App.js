@@ -25,7 +25,7 @@ import ChatWindow from './components/ChatWindow';
 
 // LLM 호출을 백엔드 API로 위임합니다.
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
-import { BACKEND_BASE_URL } from './utils/config';
+import API_BASE from './utils/api';
 
 
 // BASE URL은 공통 config 사용
@@ -47,15 +47,23 @@ function App() {
 
   // 2. localStorage와 연동하는 useEffect 추가
   useEffect(() => {
+    console.log('=== App.js 초기화 시작 ===');
 
     // 로그인 상태 확인 (기존 로직 유지)
     const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    console.log('localStorage isLoggedIn:', localStorage.getItem('isLoggedIn'));
+    console.log('loggedIn 상태:', loggedIn);
     setIsLoggedIn(loggedIn);
     
     // 사용자 정보 확인
     const savedUser = localStorage.getItem('currentUser');
+    console.log('localStorage currentUser:', savedUser);
     if (savedUser) {
-      setCurrentUser(JSON.parse(savedUser));
+      const parsedUser = JSON.parse(savedUser);
+      console.log('파싱된 사용자 정보:', parsedUser);
+      setCurrentUser(parsedUser);
+    } else {
+      console.log('저장된 사용자 정보가 없습니다');
     }
     
     // **새로운 로직: 웰컴 화면을 봤는지 확인**
@@ -67,6 +75,8 @@ function App() {
     if (savedChildInfo) {
       setChildInfo(JSON.parse(savedChildInfo));
     }
+    
+    console.log('=== App.js 초기화 완료 ===');
   }, []);
 
   // 로그인 처리 함수
@@ -128,7 +138,7 @@ function App() {
     }
     setIsLoading(true);
     try {
-      const endpoint = `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/agent`;
+      const endpoint = `${API_BASE}/agent`;
       let resp;
       if (file) {
         const formData = new FormData();

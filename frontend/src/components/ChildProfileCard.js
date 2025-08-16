@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaEdit, FaTrash, FaBirthdayCake, FaRuler, FaWeight, FaSchool } from 'react-icons/fa';
 import babyImage from '../assets/baby_image.png';
+import API_BASE from '../utils/api';
 
 const ChildProfileCard = ({ child, onUpdate }) => {
   const navigate = useNavigate();
@@ -42,7 +43,7 @@ const ChildProfileCard = ({ child, onUpdate }) => {
     }
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/children/${child.id}`, {
+      const response = await fetch(`${API_BASE}/children/${child.id}`, {
         method: 'DELETE',
       });
 
