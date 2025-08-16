@@ -1,13 +1,13 @@
 // src/components/MainScreen.js
 
-import React, { useState, useEffect, useRef } from "react";
-import API_BASE from '../utils/api';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import API_BASE, { questionsAPI } from '../utils/api';
 import '../App.css'; 
 
-import { FiChevronDown, FiBell, FiPlus, FiChevronRight, FiChevronLeft } from "react-icons/fi";
+import { FiChevronDown, FiBell, FiPlus, FiChevronRight } from "react-icons/fi";
 import MessageInput from "./MessageInput";
 import babyProfile from '../assets/baby_image.png';
-import { useNavigate, Link } from "react-router-dom"; // Link 추가
+import { useNavigate } from "react-router-dom";
 import BottomNavBar from "./BottomNavBar";
 import CircularScore from "./CircularScore";
 
@@ -24,6 +24,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     const [diaries, setDiaries] = useState([]); // 최신 일지 목록 상태 추가
     const [isChildMenuOpen, setIsChildMenuOpen] = useState(false);
     const childMenuRef = useRef(null);
+    const [, setChildQuestions] = useState([]); // 자녀별 질문 데이터 (console 출력용)
 
     const handleInitialSend = (messageText, file) => {
         if (children.length > 0 && currentChildIndex >= 0) {
@@ -45,7 +46,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     };
 
     // 자녀 목록 조회
-    const fetchChildrenAndDiaries = async () => {
+    const fetchChildrenAndDiaries = useCallback(async () => {
         try {
             console.log('=== 자녀 정보 조회 시작 ===');
             console.log('currentUser:', currentUser);
@@ -76,7 +77,9 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                 
                 // 첫 번째 자녀의 최신 일지 가져오기
                 const firstChildId = childrenData.children[0].id;
+                const firstChildName = childrenData.children[0].name;
                 console.log('첫 번째 자녀 ID:', firstChildId);
+                console.log('첫 번째 자녀 이름:', firstChildName);
                 
                 const diaryResponse = await fetch(`${API_BASE}/diaries/child/${firstChildId}`);
                 console.log('일지 조회 응답 상태:', diaryResponse.status);
@@ -90,6 +93,8 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                     console.log('일지가 없음, 빈 배열 설정');
                     setDiaries([]); // 일지가 없을 경우
                 }
+
+                // 첫 번째 자녀의 질문 데이터는 별도 useEffect에서 처리
             } else {
                 console.log('자녀가 없음 또는 조회 실패');
                 console.log('success:', childrenData.success);
@@ -105,7 +110,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
             setLoading(false);
             console.log('=== 자녀 정보 조회 완료 ===');
         }
-    };
+    }, [currentUser]);
 
     // 나이 계산 함수
     const calculateAge = (birthDate) => {
@@ -138,33 +143,39 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
         navigate('/child-info');
     };
 
-    // 이전/다음 자녀로 이동
-    const handlePrevChild = async () => { // async로 변경
-        if (children.length > 0) {
-            const newIndex = currentChildIndex > 0 ? currentChildIndex - 1 : children.length - 1;
-            setCurrentChildIndex(newIndex);
-            const newChildId = children[newIndex].id;
-            localStorage.setItem('currentChildId', newChildId); // localStorage에 저장
-            await fetchDiaries(newChildId); // 새 자녀의 일지 불러오기
-        }
-    };
+    // 이전/다음 자녀로 이동 (현재 UI에서 사용하지 않으므로 주석 처리)
+    // const handlePrevChild = async () => { 
+    //     if (children.length > 0) {
+    //         const newIndex = currentChildIndex > 0 ? currentChildIndex - 1 : children.length - 1;
+    //         setCurrentChildIndex(newIndex);
+    //         const newChildId = children[newIndex].id;
+    //         const newChildName = children[newIndex].name;
+    //         localStorage.setItem('currentChildId', newChildId);
+    //         await fetchDiaries(newChildId);
+    //         await fetchChildQuestions(newChildId, newChildName);
+    //     }
+    // };
 
-    const handleNextChild = async () => { // async로 변경
-        if (children.length > 0) {
-            const newIndex = currentChildIndex < children.length - 1 ? currentChildIndex + 1 : 0;
-            setCurrentChildIndex(newIndex);
-            const newChildId = children[newIndex].id;
-            localStorage.setItem('currentChildId', newChildId); // localStorage에 저장
-            await fetchDiaries(newChildId); // 새 자녀의 일지 불러오기
-        }
-    };
+    // const handleNextChild = async () => {
+    //     if (children.length > 0) {
+    //         const newIndex = currentChildIndex < children.length - 1 ? currentChildIndex + 1 : 0;
+    //         setCurrentChildIndex(newIndex);
+    //         const newChildId = children[newIndex].id;
+    //         const newChildName = children[newIndex].name;
+    //         localStorage.setItem('currentChildId', newChildId);
+    //         await fetchDiaries(newChildId);
+    //         await fetchChildQuestions(newChildId, newChildName);
+    //     }
+    // };
 
     const handleSelectChildIndex = async (index) => {
         if (index < 0 || index >= children.length) return;
         setCurrentChildIndex(index);
         const newChildId = children[index].id;
+        const newChildName = children[index].name;
         localStorage.setItem('currentChildId', newChildId);
         await fetchDiaries(newChildId);
+        // 질문 데이터는 useEffect에서 자동으로 로드됨
         setIsChildMenuOpen(false);
     };
 
@@ -197,26 +208,137 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
         }
     };
 
-    // 채팅 시작 핸들러
-    const handleStartChat = () => {
-        if (children.length > 0 && currentChildIndex >= 0) {
-            const childId = children[currentChildIndex].id;
-            navigate(`/chat/${childId}`); // 수정: childId를 URL에 포함
-        } else {
-            alert("먼저 아이를 등록해주세요.");
-            navigate('/child-info');
+    // 자녀별 질문 데이터를 불러오는 함수
+    const fetchChildQuestions = useCallback(async (childId, childName) => {
+        if (!childId) {
+            console.log('❌ childId가 없습니다. 질문 데이터를 조회하지 않습니다.');
+            return;
         }
-    };
+        
+        try {
+            console.log('🔍 [메인페이지] 자녀 질문 데이터 조회 시작');
+            console.log('   - 자녀 ID:', childId);
+            console.log('   - 자녀 이름:', childName);
+            console.log('   - API 호출 중...');
+            
+            const questionsData = await questionsAPI.getQuestionsForChild(childId);
+            
+            console.log('✅ [메인페이지] 자녀 질문 데이터 조회 성공!');
+            console.log('   - 전체 응답 데이터:', questionsData);
+            
+            if (questionsData.child) {
+                console.log('👶 자녀 정보:');
+                console.log('   - 이름:', questionsData.child.name);
+                console.log('   - 나이(개월):', questionsData.child.ageInMonths);
+            }
+            
+                    // 안전한 데이터 확인
+        console.log('📊 questionsData 상세 정보:');
+        console.log('   - questionsData:', questionsData);
+        console.log('   - questionsData.questions:', questionsData?.questions);
+        console.log('   - questions 타입:', typeof questionsData?.questions);
+        console.log('   - questions 길이:', questionsData?.questions?.length);
+        
+        if (questionsData && questionsData.questions && Array.isArray(questionsData.questions) && questionsData.questions.length > 0) {
+            console.log('📝 조회된 질문 수:', questionsData.questions.length + '개');
+            console.log('📋 질문 목록:');
+            
+            // 발달 영역별로 그룹핑하여 출력
+            const questionsByDomain = {};
+            
+            try {
+                questionsData.questions.forEach((q, index) => {
+                    console.log('   - 질문 처리 중:', index, q);
+                    
+                    const domainName = q?.domain_name || '알 수 없는 영역';
+                    
+                    if (!questionsByDomain[domainName]) {
+                        questionsByDomain[domainName] = [];
+                    }
+                    questionsByDomain[domainName].push(q);
+                });
+                
+                Object.keys(questionsByDomain).forEach(domainName => {
+                    console.log('🎯 [' + domainName + '] 영역 (' + questionsByDomain[domainName].length + '개 질문):');
+                    
+                    questionsByDomain[domainName].forEach((q, idx) => {
+                        console.log('   ' + (idx + 1) + '. [ID: ' + (q?.question_id || 'N/A') + '] ' + (q?.question_text || '질문 없음'));
+                        
+                        if (q?.question_note) {
+                            console.log('      💡 참고: ' + q.question_note);
+                        }
+                        if (q?.is_additional) {
+                            console.log('      ➕ 추가 질문 (카테고리: ' + (q.additional_category || 'N/A') + ')');
+                        }
+                    });
+                });
+            } catch (groupingError) {
+                console.error('❌ 질문 그룹핑 중 오류:', groupingError);
+                console.log('📝 전체 질문 목록 (그룹핑 없이):');
+                questionsData.questions.forEach((q, idx) => {
+                    console.log('   ' + (idx + 1) + '. ' + (q?.question_text || '질문 없음'));
+                });
+            }
+        } else {
+            console.log('⚠️ 해당 자녀의 나이에 맞는 질문이 없습니다.');
+            console.log('   - questionsData 존재:', !!questionsData);
+            console.log('   - questions 존재:', !!questionsData?.questions);
+            console.log('   - questions 배열 여부:', Array.isArray(questionsData?.questions));
+            console.log('   - questions 길이:', questionsData?.questions?.length || 0);
+        }
+            
+            setChildQuestions(questionsData.questions || []);
+            
+        } catch (error) {
+            console.error('❌ [메인페이지] 자녀 질문 데이터 조회 실패:');
+            console.error('   - 오류 메시지:', error.message);
+            console.error('   - 전체 오류:', error);
+            // 실패해도 메인페이지는 계속 사용 가능하도록 빈 배열 설정
+            setChildQuestions([]);
+        }
+    }, []);
 
-    // 현재 선택된 자녀 정보
-    const currentChild = children[currentChildIndex];
+    // 채팅 시작 핸들러 (현재 사용하지 않으므로 주석 처리)
+    // const handleStartChat = () => {
+    //     if (children.length > 0 && currentChildIndex >= 0) {
+    //         const childId = children[currentChildIndex].id;
+    //         navigate(`/chat/${childId}`);
+    //     } else {
+    //         alert("먼저 아이를 등록해주세요.");
+    //         navigate('/child-info');
+    //     }
+    // };
+
+    // 현재 선택된 자녀 정보 (현재 사용하지 않으므로 주석 처리)
+    // const currentChild = children[currentChildIndex];
 
     // 컴포넌트 마운트 시 자녀 목록 및 첫 자녀의 일지 조회
     useEffect(() => {
         if (currentUser) {
             fetchChildrenAndDiaries();
         }
-    }, [currentUser]);
+    }, [currentUser, fetchChildrenAndDiaries]);
+
+    // 자녀가 변경될 때마다 질문 데이터 로드
+    useEffect(() => {
+        console.log('🔄 useEffect 실행됨 - 자녀 질문 데이터 로드 시도');
+        console.log('   - children.length:', children.length);
+        console.log('   - currentChildIndex:', currentChildIndex);
+        console.log('   - children:', children);
+        
+        if (children.length > 0 && currentChildIndex >= 0) {
+            const currentChild = children[currentChildIndex];
+            console.log('   - currentChild:', currentChild);
+            if (currentChild) {
+                console.log('✅ fetchChildQuestions 호출 시작!');
+                fetchChildQuestions(currentChild.id, currentChild.name);
+            } else {
+                console.log('❌ currentChild가 없습니다');
+            }
+        } else {
+            console.log('❌ 조건 불만족 - children 없거나 currentChildIndex 잘못됨');
+        }
+    }, [children, currentChildIndex, fetchChildQuestions]);
 
     // 외부 클릭으로는 닫히지 않도록 변경 (토글 버튼/항목 선택 시에만 닫힘)
 
@@ -260,6 +382,9 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                     </button>
                     <div className="fig-header__right">
                         <button className="icon-button" aria-label="알림"><FiBell /></button>
+                        <button className="logout-button" onClick={handleLogoutClick} aria-label="로그아웃">
+                            로그아웃
+                        </button>
                     </div>
                 </div>
                 {isChildMenuOpen && (
