@@ -2382,7 +2382,13 @@ html { overflow-y: auto; }
 .analysis-page .column{align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;background:#FFFFFF;border-radius:16px;padding-top:19px;padding-bottom:19px;margin-bottom:27px;margin-left:16px;margin-right:16px;gap:1px;box-shadow:0px 1px 2px #0000000D}
 .analysis-page .column2{align-self:stretch;display:flex;flex-direction:column;background:#FFFFFF;border-radius:16px;padding-top:16px;padding-bottom:16px;margin-bottom:28px;margin-left:16px;margin-right:16px;gap:12px;box-shadow:0px 1px 2px #0000000D}
 .analysis-page .column3{align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;margin-bottom:14px;margin-left:16px;margin-right:16px;gap:12px}
-.analysis-page .column4{align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;background:#FFFFFF;border-radius:16px;padding-top:16px;padding-bottom:16px;box-shadow:0px 1px 2px #0000000D}
+.analysis-page .column4{align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;background:transparent;border-radius:0;padding-top:0;padding-bottom:0;box-shadow:none}
+/* 영역별 비교 항목 묶음과 간격 */
+.analysis-page .metric-group{width:100%; padding:12px 0; box-sizing:border-box; display:grid; grid-template-columns:72px minmax(0,1fr); column-gap:12px; align-items:center}
+.analysis-page .metric-group .text15{padding-left:0; grid-column:1/2; grid-row:1 / span 2; align-self:center; text-align:left}
+.analysis-page .metric-group .row-view5{grid-column:2/3; margin-left:0; margin-right:0}
+.analysis-page .metric-group .row-view6{grid-column:2/3; margin-left:0; margin-right:0}
+.analysis-page .metric-group + .metric-group{border-top:1px solid #e9e9e9}
 .analysis-page .contain{display:flex;flex-direction:column;background:#FFFFFF}
 .analysis-page .image{width:24px;height:24px;object-fit:fill}
 .analysis-page .image2{width:36px;height:36px;object-fit:fill}
@@ -2393,9 +2399,9 @@ html { overflow-y: auto; }
 .analysis-page .row-view{align-self:stretch;display:flex;justify-content:space-between;align-items:center;background:#FFFFFF;border-top-left-radius:20px;border-top-right-radius:20px;padding:16px;margin-bottom:12px;box-shadow:0px 1px 2px #0000000D}
 .analysis-page .row-view2{align-self:stretch;display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;margin-left:16px;margin-right:16px}
 .analysis-page .row-view3{display:flex;align-items:flex-start;margin-left:56px}
-.analysis-page .row-view4{align-self:stretch;display:flex;align-items:center;margin-left:16px;margin-right:16px}
-.analysis-page .row-view5{display:flex;align-items:flex-start;margin-bottom:8px;margin-left:35px}
-.analysis-page .row-view6{align-self:stretch;display:flex;align-items:flex-start;margin-bottom:16px;margin-left:24px;margin-right:24px}
+.analysis-page .row-view4{align-self:stretch;display:grid;grid-template-columns: 36px minmax(24px,auto) 16px 40px;align-items:center;column-gap:8px;margin-left:16px;margin-right:16px}
+.analysis-page .row-view5{display:grid;grid-template-columns:64px minmax(0,1fr) 32px;align-items:center;column-gap:8px;margin-bottom:6px;margin-left:16px;margin-right:16px}
+.analysis-page .row-view6{display:grid;grid-template-columns:64px minmax(0,1fr) 32px;align-items:center;column-gap:8px;margin-bottom:12px;margin-left:16px;margin-right:16px}
 .analysis-page .row-view7{align-self:stretch;display:flex;align-items:flex-start;margin-left:24px;margin-right:24px}
 .analysis-page .scroll-view{height:auto;align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;background:#FFFFFF;border-radius:20px}
 .analysis-page .text{color:#111812;font-size:16px;font-weight:bold}
@@ -2404,21 +2410,32 @@ html { overflow-y: auto; }
 .analysis-page .text4{color:#6B7280;font-size:12px;margin-right:29px}
 .analysis-page .text5{color:#6B7280;font-size:12px}
 .analysis-page .text6{color:#111812;font-size:18px}
-.analysis-page .text7{color:#111812;font-size:14px;font-weight:bold;margin-right:24px}
-.analysis-page .text8{color:#111812;font-size:14px;font-weight:bold;margin-right:18px}
-.analysis-page .text9{color:#111812;font-size:14px;font-weight:bold;flex:1}
+.analysis-page .text7{color:#111812;font-size:14px;font-weight:bold}
+.analysis-page .text8{color:#111812;font-size:14px;font-weight:bold}
+.analysis-page .text9{color:#111812;font-size:14px;font-weight:bold}
 .analysis-page .text10{color:#111812;font-size:14px;font-weight:bold}
-.analysis-page .text11{color:#111812;font-size:14px;font-weight:bold;margin-right:17px}
-.analysis-page .text12{color:#111812;font-size:14px;font-weight:bold;margin-right:38px}
-.analysis-page .text13{color:#111812;font-size:14px;font-weight:bold;margin-right:28px}
+.analysis-page .text11{color:#111812;font-size:14px;font-weight:bold}
+.analysis-page .text12{color:#111812;font-size:14px;font-weight:bold}
+.analysis-page .text13{color:#111812;font-size:14px;font-weight:bold}
+
+/* 정렬을 위한 공통 클래스 */
+.analysis-page .metric-label{justify-self:start}
+.analysis-page .metric-score{justify-self:end}
+
+/* 그리드 내 각 요소 고정 폭/정렬 */
+.analysis-page .row-view4 .image4{grid-column:1/2; justify-self:start}
+.analysis-page .row-view4 .metric-label{grid-column:2/3}
+.analysis-page .row-view4 .image5{grid-column:3/4; justify-self:center}
+.analysis-page .row-view4 .metric-score{grid-column:4/5}
 .analysis-page .text14{color:#111812;font-size:16px;font-weight:bold;margin-left:4px}
-.analysis-page .text15{color:#111812;font-size:14px;font-weight:bold;margin-bottom:8px;margin-left:16px}
-.analysis-page .text16{color:#111812;font-size:12px;font-weight:bold;margin-right:11px}
+.analysis-page .text15{color:#111812;font-size:14px;font-weight:bold;margin-bottom:8px;margin-left:0;display:block;text-align:left}
+.analysis-page .text16{color:#111812;font-size:12px;font-weight:bold;margin-right:0;justify-self:start;text-align:left}
 .analysis-page .text17{color:#111812;font-size:12px;font-weight:bold}
-.analysis-page .text18{color:#111812;font-size:12px;font-weight:bold;margin-right:10px}
+.analysis-page .text18{color:#111812;font-size:12px;font-weight:bold;margin-right:0;justify-self:start;text-align:left}
 .analysis-page .text19{color:#111812;font-size:16px;font-weight:bold;margin-bottom:140px;margin-left:20px}
 .analysis-page .text20{color:#056125;font-size:14px;font-weight:bold;text-align:center;margin-left:17px;margin-right:17px}
-.analysis-page .text21{color:#FFFFFF;font-size:16px;font-weight:bold;margin-left:120px}
+.analysis-page .text21{color:#FFFFFF;font-size:16px;font-weight:bold;margin-left:0;text-align:center;width:100%;display:block}
+.analysis-page .vertical-kor{writing-mode:vertical-rl;text-orientation:upright;line-height:1}
 .analysis-page .view{align-self:stretch;display:flex;flex-direction:column;align-items:center;margin-bottom:12px}
 .analysis-page .view2,
 .analysis-page .view3,
@@ -2426,9 +2443,59 @@ html { overflow-y: auto; }
 .analysis-page .view5,
 .analysis-page .view6,
 .analysis-page .view7,
-.analysis-page .view8{flex:1;display:flex;align-items:center;background:#E5E7EB;border-radius:9999px;height:12px;margin-right:12px;position:relative;padding-right:0}
+.analysis-page .view8{flex:1;display:flex;align-items:center;background:#E5E7EB;border-radius:9999px;height:14px;margin-right:0;position:relative;padding-right:0;width:100%}
+
+/* 진행 바 오른쪽 끝 숫자 붙이기 위해 여백 제거 */
+.analysis-page .row-view5 .text17,
+.analysis-page .row-view6 .text17{justify-self:end; text-align:right}
 .analysis-page .view9{align-self:stretch;display:flex;flex-direction:column;background:#FFFFFF;border-radius:16px;border:1px solid #A7F3D0;padding-top:17px;padding-bottom:17px;margin-bottom:16px;margin-left:16px;margin-right:16px;box-shadow:0px 1px 2px #0000000D}
-.analysis-page .view10{align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;background:#056125;border-radius:12px;padding-top:12px;padding-bottom:12px;margin-bottom:90px;margin-left:16px;margin-right:16px}
+.analysis-page .view10{align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#056125;border-radius:12px;padding-top:12px;padding-bottom:12px;margin-bottom:90px;margin-left:16px;margin-right:16px}
+
+/* --- ReportDetailPage styles --- */
+.report-detail__content { padding: 0 16px 24px 16px; }
+.report-detail__header { padding: 12px 0; margin: 0 0 8px 0; border-bottom: 1px solid #e9e9e9; }
+.report-header-info { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.report-detail__title { margin: 0; font-size: 20px; font-weight: 800; color: #1C1B1F; }
+.report-child-info { display: flex; gap: 8px; flex-wrap: wrap; }
+.child-info-item { display: flex; align-items: center; gap: 6px; color: #6B7280; font-size: 12px; background: #FBFDF7; border: 1px solid #e9e9e9; border-radius: 9999px; padding: 6px 10px; }
+.info-icon { color: #466D1D; }
+
+.report-summary-card { background: #FBFDF7; border: 1px solid #e9e9e9; border-radius: 16px; padding: 16px; box-shadow: 0px 1px 2px #0000000D; margin-top: 8px; }
+.summary-score-container { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.total-score { display: flex; align-items: baseline; gap: 4px; }
+.total-score .score-number { font-size: 36px; font-weight: 800; color: #056125; line-height: 1; }
+.total-score .score-label { font-size: 12px; color: #6B7280; }
+.overall-status { display: flex; justify-content: flex-end; flex: 1; }
+.status-badge { display: inline-flex; align-items: center; gap: 6px; color: #fff; border-radius: 9999px; padding: 6px 10px; font-weight: 700; font-size: 12px; }
+.summary-description { margin-top: 8px; color: #414942; font-size: 14px; }
+
+.report-scores-section { margin-top: 16px; }
+.section-title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800; color: #1C1B1F; margin: 0 0 8px 0; }
+.section-icon { color: #466D1D; }
+.scores-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+@media (max-width: 360px) { .scores-grid { grid-template-columns: 1fr; } }
+.score-card { background: #FBFDF7; border: 1px solid #e9e9e9; border-radius: 12px; padding: 12px; box-shadow: 0px 1px 2px #0000000D; }
+.score-card-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.score-domain { margin: 0; font-size: 14px; font-weight: 700; color: #111827; }
+.score-status { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 12px; }
+.score-value { display: flex; align-items: baseline; gap: 4px; margin-bottom: 8px; }
+.score-value .score-number { font-size: 20px; font-weight: 800; color: #056125; }
+.score-value .score-max { font-size: 12px; color: #6B7280; }
+.score-progress { height: 8px; background: #f0f2f5; border-radius: 9999px; overflow: hidden; }
+.progress-bar { height: 100%; border-radius: 9999px; }
+
+.report-recommendations-section { margin-top: 16px; }
+.recommendations-list { display: flex; flex-direction: column; gap: 8px; }
+.recommendation-item { display: flex; align-items: flex-start; gap: 10px; background: #FBFDF7; border: 1px solid #e9e9e9; border-radius: 12px; padding: 12px; }
+.recommendation-number { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; background: #056125; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; }
+.recommendation-text { margin: 0; color: #333; font-size: 14px; line-height: 1.5; }
+
+.report-next-assessment { margin-top: 16px; }
+.next-assessment-card { display: flex; align-items: center; gap: 12px; background: #FBFDF7; border: 1px solid #e9e9e9; border-radius: 12px; padding: 12px; }
+.next-assessment-icon { width: 36px; height: 36px; border-radius: 50%; background: #f0f7f2; color: #056125; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.next-assessment-info h3 { margin: 0 0 4px 0; font-size: 14px; color: #111827; }
+.next-assessment-info .next-date { margin: 0; font-size: 14px; font-weight: 700; color: #056125; }
+.next-assessment-info .next-description { margin: 4px 0 0 0; color: #6B7280; font-size: 12px; }
 
 /* --- DiaryWritePage.js 스타일 --- */
 .diary-write__container { padding: 16px; }
@@ -2449,4 +2516,7 @@ html { overflow-y: auto; }
   .analysis-page .row-view2{margin-left:12px;margin-right:12px}
   .analysis-page .column{margin-left:0;margin-right:0}
 }
+
+/* --- Debug: 레이아웃 박스 경계 표시 (사용시 컨테이너에 debug-borders 클래스 추가) --- */
+.debug-borders * { outline: 0; }
 
