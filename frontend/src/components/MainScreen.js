@@ -1,13 +1,13 @@
 // src/components/MainScreen.js
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import API_BASE from '../utils/api';
 import '../App.css'; 
 
-import { FiChevronDown, FiBell, FiPlus, FiChevronRight, FiChevronLeft } from "react-icons/fi";
+import { FiChevronDown, FiBell, FiPlus, FiChevronRight } from "react-icons/fi";
 import MessageInput from "./MessageInput";
 import babyProfile from '../assets/baby_image.png';
-import { useNavigate, Link } from "react-router-dom"; // Link 추가
+import { useNavigate } from "react-router-dom";
 import BottomNavBar from "./BottomNavBar";
 import CircularScore from "./CircularScore";
 
@@ -37,15 +37,10 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
 
 
     // 로그아웃 처리 함수
-    const handleLogoutClick = () => {
-        if (window.confirm('로그아웃 하시겠습니까?')) {
-            onLogout();
-            navigate('/login');
-        }
-    };
+    // 로그아웃은 상위에서 제어되므로 별도 핸들러 제거
 
     // 자녀 목록 조회
-    const fetchChildrenAndDiaries = async () => {
+    const fetchChildrenAndDiaries = useCallback(async () => {
         try {
             console.log('=== 자녀 정보 조회 시작 ===');
             console.log('currentUser:', currentUser);
@@ -105,7 +100,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
             setLoading(false);
             console.log('=== 자녀 정보 조회 완료 ===');
         }
-    };
+    }, [currentUser && currentUser.id]);
 
     // 나이 계산 함수
     const calculateAge = (birthDate) => {
@@ -139,25 +134,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     };
 
     // 이전/다음 자녀로 이동
-    const handlePrevChild = async () => { // async로 변경
-        if (children.length > 0) {
-            const newIndex = currentChildIndex > 0 ? currentChildIndex - 1 : children.length - 1;
-            setCurrentChildIndex(newIndex);
-            const newChildId = children[newIndex].id;
-            localStorage.setItem('currentChildId', newChildId); // localStorage에 저장
-            await fetchDiaries(newChildId); // 새 자녀의 일지 불러오기
-        }
-    };
-
-    const handleNextChild = async () => { // async로 변경
-        if (children.length > 0) {
-            const newIndex = currentChildIndex < children.length - 1 ? currentChildIndex + 1 : 0;
-            setCurrentChildIndex(newIndex);
-            const newChildId = children[newIndex].id;
-            localStorage.setItem('currentChildId', newChildId); // localStorage에 저장
-            await fetchDiaries(newChildId); // 새 자녀의 일지 불러오기
-        }
-    };
+    // 자녀 이전/다음 전환 UI 미사용으로 핸들러 제거
 
     const handleSelectChildIndex = async (index) => {
         if (index < 0 || index >= children.length) return;
@@ -198,25 +175,17 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     };
 
     // 채팅 시작 핸들러
-    const handleStartChat = () => {
-        if (children.length > 0 && currentChildIndex >= 0) {
-            const childId = children[currentChildIndex].id;
-            navigate(`/chat/${childId}`); // 수정: childId를 URL에 포함
-        } else {
-            alert("먼저 아이를 등록해주세요.");
-            navigate('/child-info');
-        }
-    };
+    // 채팅 시작 버튼 미사용으로 핸들러 제거
 
     // 현재 선택된 자녀 정보
-    const currentChild = children[currentChildIndex];
+    // currentChild 변수 미사용으로 제거
 
     // 컴포넌트 마운트 시 자녀 목록 및 첫 자녀의 일지 조회
     useEffect(() => {
         if (currentUser) {
             fetchChildrenAndDiaries();
         }
-    }, [currentUser]);
+    }, [fetchChildrenAndDiaries, currentUser]);
 
     // 외부 클릭으로는 닫히지 않도록 변경 (토글 버튼/항목 선택 시에만 닫힘)
 
@@ -241,7 +210,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     if (diaries.length > 0) {
         const seenDates = new Set();
         for (const diary of diaries) {
-            const diaryDate = new Date(diary.diary_date).toLocaleDateString('ko-KR');
+            const diaryDate = new Date(diary.date).toLocaleDateString('ko-KR');
             if (!seenDates.has(diaryDate)) {
                 uniqueDiaries.push(diary);
                 seenDates.add(diaryDate);
@@ -368,7 +337,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                                         <div className="card__title">발달 영역 현황</div>
                                     </div>
                                     <div className="card__center">
-                                        <CircularScore score={90} label="종합발달점수" subLabel="상위 10%" />
+                                        <CircularScore score={90} size={110} strokeWidth={8} label="종합발달점수" subLabel="상위 10%" showRing={false} contentOffsetY={10} labelPosition="top" />
                                         <button className="main-screen__report-button" onClick={() => navigate('/ai-analysis')}>리포트 보기</button>
                                     </div>
                                 </div>
@@ -379,7 +348,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                                         <div className="card__title">최근 일지</div>
                                         <button className="card__action" onClick={() => {
                                             const cc = children[currentChildIndex];
-                                            if (cc && cc.id) navigate(`/diary/${cc.id}`, { state: { childName: cc.name } });
+                                            if (cc && cc.id) navigate(`/diary/list/${cc.id}`, { state: { childName: cc.name } });
                                         }}>전체보기</button>
                                     </div>
                                     <div className="list">
@@ -395,8 +364,8 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                                                     }
                                                 >
                                                     <div className="list-item__text">
-                                                        <div className="list-item__title">{new Date(diary.diary_date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} 두 발로 점프 성공!</div>
-                                                        <div className="list-item__subtitle">{new Date(diary.diary_date).getFullYear()}년 {new Date(diary.diary_date).toLocaleDateString('ko-KR')}</div>
+                                                        <div className="list-item__title">{new Date(diary.date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} 두 발로 점프 성공!</div>
+                                                        <div className="list-item__subtitle">{new Date(diary.date).getFullYear()}년 {new Date(diary.date).toLocaleDateString('ko-KR')}</div>
                                                     </div>
                                                     <FiChevronRight className="list-item__chevron" />
                                                 </div>
