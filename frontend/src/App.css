@@ -644,9 +644,7 @@ html { overflow-y: auto; }
   left: auto;
 }
 
-.page-content {
-  /* ?�이지 ?�용???�어�?공간 */
-}
+/* removed empty ruleset */
 
 
 /* --- MainScreen.js ?�용 ?��???(?�로 추�?) --- */
@@ -1886,15 +1884,14 @@ html { overflow-y: auto; }
   line-height: 1.5;
 }
 
-.form-group input[type="number"] {
-  -moz-appearance: textfield;
-}
+.form-group input[type="number"] { appearance: textfield; -moz-appearance: textfield; -webkit-appearance: none; }
 
 .form-group input[type="number"]::-webkit-outer-spin-button,
 .form-group input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+/* duplicate consolidated above */
 
 /* 반응???�자??*/
 @media (max-width: 768px) {
@@ -1948,6 +1945,7 @@ html { overflow-y: auto; }
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2; /* 최�? 2줄까지 ?�시 */
+  line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
@@ -2071,6 +2069,7 @@ html { overflow-y: auto; }
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2; /* 2줄까지�??�시 */
+  line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
@@ -2113,6 +2112,22 @@ html { overflow-y: auto; }
   line-height: 1.8;
   color: #333;
   white-space: pre-wrap; /* \n??줄바꿈으�??�식?�도�??�정 */
+}
+
+/* DiaryDetail action buttons */
+.diary-action-button {
+  flex: 1;
+  padding: 10px 12px;
+  background-color: #056125;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.diary-action-button.delete {
+  background-color: #c62828;
 }
 
 /* ChatWindow.js 메시지 컨테?�너 ?��???추�? */

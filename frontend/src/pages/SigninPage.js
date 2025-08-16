@@ -63,9 +63,7 @@ function SigninPage({ onLogin }) {
     // <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}> // GoogleOAuthProvider 제거
       <div className="email-login-container">
         <header className="page-header">
-          <button onClick={() => navigate(-1)} className="design-back-button">
-            &lt; 뒤로가기
-          </button>
+          <BackButton />
         </header>
 
         <div className="login-content-wrapper">
