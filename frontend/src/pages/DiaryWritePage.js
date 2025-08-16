@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import { FiCalendar, FiChevronDown, FiPlus, FiX } from 'react-icons/fi';
@@ -9,6 +9,7 @@ function DiaryWritePage() {
   const { childId } = useParams();
   const location = useLocation();
   const mode = location.state?.mode || 'auto'; // 'create' | 'auto'
+  const didInitDateRef = useRef(false);
 
   const today = useMemo(() => {
     const d = new Date();
@@ -42,11 +43,14 @@ function DiaryWritePage() {
     setIsSaving(true);
     try {
       // 새 스키마: content + date만 전송 (파일 업로드는 별도 기능 도입 시 확장)
-      const payload = { child_id: childId, content: content.trim(), date: dateValue };
+      const form = new FormData();
+      form.append('child_id', childId);
+      form.append('content', content.trim());
+      form.append('date', dateValue);
+      files.forEach((f) => form.append('files', f));
       const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: form,
       });
       const data = await resp.json();
       if (!data.success) throw new Error(data.message || '일지 저장 실패');
@@ -62,12 +66,16 @@ function DiaryWritePage() {
 
   const titleStyle = { fontSize: '16px', color: '#000000', fontWeight: 'bold' };
 
+  // 최초 1회: 라우터 state에 날짜가 오면 초기화
+  useEffect(() => {
+    if (!didInitDateRef.current && location.state?.date) {
+      setDateValue(location.state.date);
+      didInitDateRef.current = true;
+    }
+  }, [location.state]);
+
   // 모드가 'create'가 아닐 때만 기존 일지 자동 불러오기
   useEffect(() => {
-    // 라우터 state로 특정 날짜가 넘어오면 그 날짜로 초기화
-    if (location.state?.date) {
-      setDateValue(location.state.date);
-    }
     if (mode === 'create') {
       setHasExisting(false);
       setContent('');
