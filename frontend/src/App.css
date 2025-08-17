@@ -733,21 +733,21 @@ html { overflow-y: auto; }
 
 /* 로그아웃 버튼 스타일 */
 .logout-button {
-  background: none;
+  background: #056125;
+  color: #fff;
   border: none;
-  color: #666;
-  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 6px;
-  transition: background-color 0.2s;
+  padding: 6px 12px;
+  border-radius: 9999px; /* pill 형태 (chip과 동일) */
+  transition: background-color 0.15s ease;
   margin-left: 8px;
 }
 
-.logout-button:hover {
-  background-color: #f5f5f5;
-  color: #333;
-}
+.logout-button:hover { background-color: #04551f; }
 .chip { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 9999px; font-size: 12px; font-weight: 700; }
 .chip--muted { background: #FBFDF7; color: #6B7280; border: 1px solid #e5e7eb; }
 .chip--primary { background: #2f6b19; color: #fff; border: none; cursor: pointer; }
@@ -2415,7 +2415,8 @@ html { overflow-y: auto; }
 .analysis-page .image5{border-radius:16px;width:16px;height:16px;margin-right:4px;object-fit:fill}
 .analysis-page .input{color:#111827;font-size:18px;font-weight:bold;flex:1;align-self:stretch;background:none;border:none}
 .analysis-page .row-view{align-self:stretch;display:flex;justify-content:space-between;align-items:center;background:#FFFFFF;border-top-left-radius:20px;border-top-right-radius:20px;padding:16px;margin-bottom:12px;box-shadow:0px 1px 2px #0000000D}
-.analysis-page .row-view2{align-self:stretch;display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;margin-left:16px;margin-right:16px}
+.analysis-page .row-view2{align-self:stretch;display:flex;justify-content:center;align-items:center;margin-bottom:24px;margin-left:16px;margin-right:16px;position:relative}
+.analysis-page .row-view2 .image2:last-child{position:absolute;right:16px}
 .analysis-page .row-view3{display:flex;align-items:flex-start;margin-left:56px}
 .analysis-page .row-view4{align-self:stretch;display:grid;grid-template-columns: 36px minmax(24px,auto) 16px 40px;align-items:center;column-gap:8px;margin-left:16px;margin-right:16px}
 .analysis-page .row-view5{display:grid;grid-template-columns:64px minmax(0,1fr) 32px;align-items:center;column-gap:8px;margin-bottom:6px;margin-left:16px;margin-right:16px}

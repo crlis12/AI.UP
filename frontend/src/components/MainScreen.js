@@ -84,7 +84,8 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                 localStorage.setItem('currentChildId', firstChildId);
 
                 console.log('첫 번째 자녀 ID:', firstChildId);
-                console.log('첫 번째 자녀 이름:', firstChildName);
+                const firstChildObj = childrenData.children.find(c => String(c.id) === String(firstChildId));
+                console.log('첫 번째 자녀 이름:', firstChildObj?.name || '(알 수 없음)');
                 
                 const diaryResponse = await fetch(`${API_BASE}/diaries/child/${firstChildId}`);
                 console.log('일지 조회 응답 상태:', diaryResponse.status);

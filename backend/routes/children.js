@@ -1,6 +1,53 @@
 const express = require('express');
 const db = require('../db');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// 프로필 이미지 업로드 설정 (uploads/children)
+const profileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, '..', 'uploads', 'children');
+    try { fs.mkdirSync(dir, { recursive: true }); } catch (_) {}
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const base = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9_-]/g, '');
+    cb(null, `${Date.now()}_${base}${ext}`);
+  }
+});
+
+const imageOnlyFilter = (req, file, cb) => {
+  if ((file.mimetype || '').startsWith('image/')) return cb(null, true);
+  return cb(new Error('이미지 파일만 업로드할 수 있습니다.'));
+};
+
+const uploadProfileImage = multer({
+  storage: profileStorage,
+  fileFilter: imageOnlyFilter,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+});
+
+// 프로필 이미지 업로드 엔드포인트
+router.post('/upload-profile', (req, res) => {
+  uploadProfileImage.single('file')(req, res, (err) => {
+    if (err) {
+      console.error('프로필 이미지 업로드 오류:', err);
+      return res.status(400).json({ success: false, message: err.message || '업로드 실패' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: '업로드할 파일이 없습니다.' });
+    }
+
+    const relativePath = `/uploads/children/${req.file.filename}`;
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const absoluteUrl = `${baseUrl}${relativePath}`;
+    return res.status(201).json({ success: true, url: absoluteUrl, path: relativePath });
+  });
+});
 
 // 입력 데이터 유효성 검사 함수
 const validateChildData = (data) => {

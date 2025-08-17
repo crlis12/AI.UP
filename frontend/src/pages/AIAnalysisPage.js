@@ -13,26 +13,12 @@ function AIAnalysisPage() {
         <div className="contain">
           <div className="scroll-view">
             <div className="row-view">
-              <img
-                src={"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/totbmzyt_expires_30_days.png"}
-                className="image"
-                alt="icon"
-              />
-              <input
-                placeholder={"주간 리포트"}
-                value={input1}
-                onChange={(event) => setInput1(event.target.value)}
-                className="input"
-              />
-              <div className="box" />
+              
+              
             </div>
 
             <div className="row-view2">
-              <img
-                src={"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/6hkrueh2_expires_30_days.png"}
-                className="image2"
-                alt="calendar"
-              />
+              
               <span className="text">{"8월 2주차"}</span>
               <img
                 src={"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/6przmqoe_expires_30_days.png"}
