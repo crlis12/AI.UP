@@ -354,6 +354,26 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
         }
     }
 
+    // 최근 일지 미리보기용 포맷터들
+    const formatMonthDay = (dateString) => {
+        const d = new Date(dateString);
+        if (isNaN(d)) return String(dateString);
+        return d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
+    };
+
+    const formatFullDateKorean = (dateString) => {
+        const d = new Date(dateString);
+        if (isNaN(d)) return String(dateString);
+        return d.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+    };
+
+    const buildPreviewTitle = (diary) => {
+        const dateLabel = formatMonthDay(diary.date);
+        const firstLine = (diary.content || '').split('\n')[0].trim();
+        const preview = firstLine.length > 20 ? `${firstLine.slice(0, 20)}…` : (firstLine || '일지');
+        return `${dateLabel} ${preview}`;
+    };
+
 	return (
 		<div className="main-screen-container"> 
 			<div className="main-screen">
@@ -503,8 +523,8 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                                                     }
                                                 >
                                                     <div className="list-item__text">
-                                                        <div className="list-item__title">{new Date(diary.date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} 두 발로 점프 성공!</div>
-                                                        <div className="list-item__subtitle">{new Date(diary.date).getFullYear()}년 {new Date(diary.date).toLocaleDateString('ko-KR')}</div>
+                                                        <div className="list-item__title">{buildPreviewTitle(diary)}</div>
+                                                        <div className="list-item__subtitle">{formatFullDateKorean(diary.date)}</div>
                                                     </div>
                                                     <FiChevronRight className="list-item__chevron" />
                                                 </div>
