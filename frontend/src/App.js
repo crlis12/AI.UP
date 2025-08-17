@@ -85,6 +85,8 @@ function App() {
     setCurrentUser(user);
     localStorage.setItem('isLoggedIn', 'true'); // 로그인 상태 유지 로직 유지
     localStorage.setItem('currentUser', JSON.stringify(user)); // 사용자 정보 저장
+    // 다른 계정의 자녀 ID가 남아있는 문제 방지: 로그인 시 초기화
+    localStorage.removeItem('currentChildId');
   };
 
   const handleSeenWelcome = () => {
@@ -98,6 +100,8 @@ function App() {
     setCurrentUser(null);
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('currentUser');
+    // 자녀 선택 상태도 초기화
+    localStorage.removeItem('currentChildId');
     // 메시지도 초기화
     setMessages([]);
   };

@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
@@ -33,6 +34,11 @@ const ensureDiaryFilesTableSql = `
 `;
 try {
   db.query(ensureDiaryFilesTableSql, () => {});
+} catch (_) {}
+
+// URL 길이 대비: file_path 컬럼 확장 시도 (이미 크면 무시)
+try {
+  db.query('ALTER TABLE diary_files MODIFY file_path VARCHAR(2048)', () => {});
 } catch (_) {}
 
 // 특정 아동의 모든 일지 조회 (새 스키마: date, content)
@@ -153,21 +159,44 @@ router.post('/', upload.array('files', 10), (req, res) => {
           diary: { id: diaryId || null, child_id, date: dateOnly, content },
         });
       }
-      const values = files.map((f) => [
-        diaryId,
-        `/uploads/diaries/${path.basename(f.path)}`,
-        f.mimetype && f.mimetype.startsWith('video/') ? 'video' : 'image',
-      ]);
-      const insertFilesSql = 'INSERT INTO diary_files (diary_id, file_path, file_type) VALUES ?';
-      db.query(insertFilesSql, [values], (fErr) => {
-        if (fErr) {
-          console.error('첨부 저장 DB 오류:', fErr);
-          // 파일 저장 오류가 있어도 일지 저장 자체는 성공으로 처리
-        }
-        return res.status(201).json({
-          success: true,
-          message: '일지가 저장되었습니다.',
-          diary: { id: diaryId || null, child_id, date: dateOnly, content },
+      // child_id로 부모 사용자 ID 조회 후 사용자/아동별 폴더로 이동
+      db.query('SELECT parent_id FROM children WHERE id = ? LIMIT 1', [child_id], (pErr, rows) => {
+        const parentId = !pErr && rows && rows[0] ? rows[0].parent_id : 'unknown';
+        const baseDir = path.join(__dirname, '..', 'uploads', 'diaries', 'users', String(parentId), 'children', String(child_id));
+        try { fs.mkdirSync(baseDir, { recursive: true }); } catch (_) {}
+
+        const uploadsBase = (process.env.FILE_BASE_URL && process.env.FILE_BASE_URL.replace(/\/$/, '')) || `${req.protocol}://${req.get('host')}/uploads`;
+        const values = files.map((f) => {
+          let finalBasename = path.basename(f.path);
+          try {
+            const newPath = path.join(baseDir, finalBasename);
+            // 동일 파일명이 있을 수 있으므로 충돌 시 접미사 추가
+            if (fs.existsSync(newPath)) {
+              const ext = path.extname(finalBasename);
+              const name = path.basename(finalBasename, ext);
+              finalBasename = `${name}_${Date.now()}${ext}`;
+            }
+            fs.renameSync(f.path, path.join(baseDir, finalBasename));
+          } catch (moveErr) {
+            console.error('파일 이동 오류:', moveErr);
+            // 이동 실패 시 원래 위치 파일명을 사용
+          }
+          const url = `${uploadsBase}/diaries/users/${parentId}/children/${child_id}/${finalBasename}`;
+          const type = f.mimetype && f.mimetype.startsWith('video/') ? 'video' : 'image';
+          return [diaryId, url, type];
+        });
+
+        const insertFilesSql = 'INSERT INTO diary_files (diary_id, file_path, file_type) VALUES ?';
+        db.query(insertFilesSql, [values], (fErr) => {
+          if (fErr) {
+            console.error('첨부 저장 DB 오류:', fErr);
+            // 파일 저장 오류가 있어도 일지 저장 자체는 성공으로 처리
+          }
+          return res.status(201).json({
+            success: true,
+            message: '일지가 저장되었습니다.',
+            diary: { id: diaryId || null, child_id, date: dateOnly, content },
+          });
         });
       });
     };

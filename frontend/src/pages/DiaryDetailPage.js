@@ -9,6 +9,13 @@ function DiaryDetailPage() {
   const [diary, setDiary] = useState(null);
   const [loading, setLoading] = useState(true);
   const childIdFromState = location.state?.childId;
+  const backendBase = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+
+  const buildFileUrl = (path) => {
+    if (!path) return '';
+    const isAbsolute = /^https?:\/\//i.test(path);
+    return isAbsolute ? path : `${backendBase}${path}`;
+  };
 
   useEffect(() => {
     const fetchDiaryDetail = async () => {
@@ -81,9 +88,9 @@ function DiaryDetailPage() {
                 {diary.files.map((f) => (
                   <div key={f.id} style={{ width: 120, height: 120, borderRadius: 8, overflow: 'hidden', background: '#f5f5f5' }}>
                     {f.file_type === 'video' ? (
-                      <video src={`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}${f.file_path}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} controls />
+                      <video src={buildFileUrl(f.file_path)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} controls />
                     ) : (
-                      <img src={`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}${f.file_path}`} alt="첨부" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={buildFileUrl(f.file_path)} alt="첨부" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     )}
                   </div>
                 ))}
