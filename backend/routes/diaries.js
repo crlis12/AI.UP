@@ -20,6 +20,21 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+// 메인 테이블: 일기 저장용 (없으면 생성)
+const ensureParentDiariesTableSql = `
+  CREATE TABLE IF NOT EXISTS parent_diaries (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    mood VARCHAR(50) DEFAULT 'happy',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX(user_id),
+    INDEX(created_at)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+`;
+
 // 보조 테이블: 일지 첨부 파일 저장용 (없으면 생성)
 const ensureDiaryFilesTableSql = `
   CREATE TABLE IF NOT EXISTS diary_files (
@@ -31,24 +46,27 @@ const ensureDiaryFilesTableSql = `
     INDEX(diary_id)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 `;
+
 try {
+  db.query(ensureParentDiariesTableSql, () => {});
   db.query(ensureDiaryFilesTableSql, () => {});
 } catch (_) {}
 
 // 특정 아동의 모든 일지 조회 (새 스키마: date, content)
-router.get('/child/:childId', (req, res) => {
-  const { childId } = req.params;
+router.get('/child/:userId', (req, res) => {
+  const { userId } = req.params;
   const { date } = req.query;
 
-  let query = 'SELECT * FROM diaries WHERE child_id = ?';
-  const params = [childId];
+  let query = 'SELECT * FROM parent_diaries WHERE user_id = ?';
+  const params = [userId];
   if (date) {
     // Normalize incoming date to YYYY-MM-DD
     const dateOnly = normalizeToDateOnly(date) || null;
     query += ' AND date = ? ORDER BY created_at DESC LIMIT 1';
     params.push(dateOnly);
   } else {
-    query += ' ORDER BY date DESC, created_at DESC';
+    // parent_diaries 테이블에는 date 컬럼이 없으므로 created_at만 사용
+    query += ' ORDER BY created_at DESC';
   }
 
   db.query(query, params, (err, results) => {
@@ -63,7 +81,7 @@ router.get('/child/:childId', (req, res) => {
 // 특정 일지 상세 조회 (새 스키마)
 router.get('/:diaryId', (req, res) => {
   const { diaryId } = req.params;
-  const query = 'SELECT * FROM diaries WHERE id = ?';
+  const query = 'SELECT * FROM parent_diaries WHERE id = ?';
 
   db.query(query, [diaryId], (err, results) => {
     if (err) {
@@ -88,7 +106,7 @@ router.get('/:diaryId', (req, res) => {
 // 일지 삭제
 router.delete('/:diaryId', (req, res) => {
   const { diaryId } = req.params;
-  const query = 'DELETE FROM diaries WHERE id = ?';
+  const query = 'DELETE FROM parent_diaries WHERE id = ?';
 
   db.query(query, [diaryId], (err, result) => {
     if (err) {
@@ -123,21 +141,21 @@ function normalizeToDateOnly(input) {
 
 // 새로운 일지 생성 또는 같은 날짜의 기존 일지 업데이트(업서트)
 router.post('/', upload.array('files', 10), (req, res) => {
-  const { child_id, content, date } = req.body;
+  const { user_id, title, content, mood } = req.body;
 
-  if (!child_id || !content) {
-    return res.status(400).json({ success: false, message: '필수 정보(child_id, content)가 누락되었습니다.' });
+  if (!user_id || !content) {
+    return res.status(400).json({ success: false, message: '필수 정보(user_id, content)가 누락되었습니다.' });
   }
 
-  const dateOnly = normalizeToDateOnly(date) || formatDateOnly(new Date());
+  const dateOnly = formatDateOnly(new Date());
 
   const upsert = `
-    INSERT INTO diaries (child_id, date, content)
-    VALUES (?, ?, ?)
+    INSERT INTO parent_diaries (user_id, title, content, mood, created_at)
+    VALUES (?, ?, ?, ?, NOW())
     ON DUPLICATE KEY UPDATE content = VALUES(content), updated_at = CURRENT_TIMESTAMP
   `;
 
-  db.query(upsert, [child_id, dateOnly, content], (err, result) => {
+      db.query(upsert, [user_id, title || dateOnly, content, mood || 'happy'], (err, result) => {
     if (err) {
       console.error('일지 생성/업데이트 DB 오류:', err);
       return res.status(500).json({ success: false, message: '일지 저장 중 서버 오류가 발생했습니다.' });
@@ -175,7 +193,7 @@ router.post('/', upload.array('files', 10), (req, res) => {
     if (maybeId && maybeId > 0) {
       fetchIdAndHandleFiles(maybeId);
     } else {
-      db.query('SELECT id FROM diaries WHERE child_id = ? AND date = ? LIMIT 1', [child_id, dateOnly], (qErr, rows) => {
+      db.query('SELECT id FROM parent_diaries WHERE user_id = ? AND date = ? LIMIT 1', [user_id, dateOnly], (qErr, rows) => {
         if (qErr || rows.length === 0) {
           return res.status(201).json({ success: true, message: '일지가 저장되었습니다.' });
         }
@@ -238,7 +256,6 @@ router.delete('/:diaryId', (req, res) => {
 
 const config = require('../config');
 const { spawn } = require('child_process');
-const path = require('path');
 
 // Python 스크립트 호출 함수
 function runPythonScript(diaryData) {
@@ -340,7 +357,8 @@ router.post('/', async (req, res) => {
             // 벡터 DB에도 저장
             const diaryData = {
               id: diaryId,
-              text: `${title} ${content}`, // 제목과 내용을 합쳐서 텍스트로
+              title: title,
+              content: content,
               date: new Date().toISOString().split('T')[0] // 오늘 날짜
             };
             
@@ -356,6 +374,7 @@ router.post('/', async (req, res) => {
           } catch (vectorError) {
             console.error(`[${new Date().toISOString()}] VectorDB 저장 실패:`, vectorError.message);
             // 벡터 DB 저장 실패해도 MySQL 저장은 성공했으므로 성공 응답
+            // TODO: 나중에 벡터 DB 문제 해결 후 활성화
             res.json({ 
               success: true, 
               id: diaryId,
@@ -375,18 +394,23 @@ router.post('/', async (req, res) => {
 router.get('/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
+    console.log(`[${new Date().toISOString()}] 일기 조회 요청: user_id=${userId}`);
+    
     db.query(
       'SELECT * FROM parent_diaries WHERE user_id = ? ORDER BY created_at DESC',
       [userId],
       (error, rows) => {
         if (error) {
+          console.error(`[${new Date().toISOString()}] 일기 조회 DB 오류:`, error.message);
           res.status(500).json({ success: false, error: error.message });
         } else {
-          res.json({ success: true, diaries: rows });
+          console.log(`[${new Date().toISOString()}] 일기 조회 성공: ${rows.length}개`);
+          res.json({ success: true, diaries: rows || [] });
         }
       }
     );
   } catch (error) {
+    console.error(`[${new Date().toISOString()}] 일기 조회 중 오류:`, error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 });

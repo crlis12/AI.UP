@@ -9,6 +9,21 @@ const DiaryPage = () => {
     mood: 'happy'
   });
   const [isWriting, setIsWriting] = useState(false);
+  
+  // 로그인된 사용자 ID 가져오기
+  const getCurrentUserId = () => {
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser) {
+      try {
+        const user = JSON.parse(currentUser);
+        return user.id || 1; // 기본값 1 (fallback)
+      } catch (e) {
+        console.error('사용자 정보 파싱 실패:', e);
+        return 1; // 기본값 1 (fallback)
+      }
+    }
+    return 1; // 기본값 1 (fallback)
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,7 +34,7 @@ const DiaryPage = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          user_id: 1,
+          user_id: getCurrentUserId(), // 동적으로 사용자 ID 가져오기
           ...newDiary
         }),
       });
@@ -36,13 +51,19 @@ const DiaryPage = () => {
 
   const fetchDiaries = async () => {
     try {
-      const response = await fetch('http://localhost:3001/diaries/1');
+      // 로그인된 사용자 ID로 일기 조회
+      const userId = getCurrentUserId();
+      const response = await fetch(`http://localhost:3001/diaries/${userId}`);
       if (response.ok) {
         const data = await response.json();
-        setDiaries(data.diaries);
+        setDiaries(data.diaries || []);
+      } else {
+        console.log('일기 조회 실패:', response.status);
+        setDiaries([]); // 빈 배열로 설정
       }
     } catch (error) {
       console.error('일기 조회 실패:', error);
+      setDiaries([]); // 에러 시 빈 배열로 설정
     }
   };
 

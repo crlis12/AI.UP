@@ -28,7 +28,7 @@ function formatObjectAsBullets(obj, indent = 0) {
   return lines.join('\n');
 }
 
-function buildSystemPrompt({ systemPrompt, spec, k_dst }) {
+function buildSystemPrompt({ systemPrompt, spec, k_dst, kdstRagContext }) {
   const base = systemPrompt || 'You are a professional report writing assistant. Produce accurate, well-structured, and concise reports.';
   const lines = [base];
   
@@ -63,6 +63,40 @@ function buildSystemPrompt({ systemPrompt, spec, k_dst }) {
     lines.push('Apply the above K-DST criteria consistently when analyzing and concluding.');
   }
   
+  // KDST RAG 컨텍스트 섹션 주입
+  if (kdstRagContext && typeof kdstRagContext === 'object') {
+    lines.push('\nKDST RAG Analysis Context:');
+    lines.push('Use the following RAG search results as evidence for your report:');
+    
+    if (kdstRagContext.kdst_questions) {
+      lines.push('KDST Questions to analyze:');
+      kdstRagContext.kdst_questions.forEach((q, i) => {
+        lines.push(`- Question ${i + 1}: ${q}`);
+      });
+    }
+    
+    if (kdstRagContext.rag_results) {
+      lines.push('\nRAG Search Results (Related Diary Entries):');
+      kdstRagContext.rag_results.forEach((result, i) => {
+        lines.push(`\nQuestion ${i + 1}: ${result.문제}`);
+        if (result.일기 && result.일기.length > 0) {
+          lines.push('  Related diary entries:');
+          result.일기.forEach((diary, j) => {
+            lines.push(`    ${j + 1}. ${diary.date}: ${diary.text.substring(0, 100)}... (Similarity: ${diary.similarity.toFixed(4)})`);
+          });
+        } else {
+          lines.push('  No related diary entries found.');
+        }
+      });
+    }
+    
+    lines.push('\nInstructions for using RAG context:');
+    lines.push('- Reference specific diary entries when analyzing each KDST question');
+    lines.push('- Use the similarity scores to assess relevance of evidence');
+    lines.push('- Consider the chronological progression of behaviors across dates');
+    lines.push('- Base your conclusions on the actual observed behaviors in the diaries');
+  }
+  
   return lines.join('\n');
 }
 
@@ -79,7 +113,7 @@ async function reconstructLangChainHistory(history) {
     : [];
 }
 
-async function runReportAgent({ input, history, context, config, spec, childrenContext, k_dst }) {
+async function runReportAgent({ input, history, context, config, spec, childrenContext, k_dst, kdstRagContext }) {
   const { vendor = 'gemini', model = 'gemini-2.5-flash', temperature, systemPrompt } = config || {};
   if (String(vendor).toLowerCase() !== 'gemini') {
     throw new Error('현재 보고서 에이전트는 vendor=gemini만 지원합니다.');
@@ -98,7 +132,7 @@ async function runReportAgent({ input, history, context, config, spec, childrenC
 
   const lcHistory = await reconstructLangChainHistory(history);
 
-  const sys = buildSystemPrompt({ systemPrompt, spec, k_dst });
+  const sys = buildSystemPrompt({ systemPrompt, spec, k_dst, kdstRagContext });
   const prompt = ChatPromptTemplate.fromMessages([
     ['system', sys],
     new MessagesPlaceholder('history'),

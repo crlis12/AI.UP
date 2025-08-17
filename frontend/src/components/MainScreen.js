@@ -297,7 +297,8 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
         }
     }, [currentUser, fetchChildrenAndDiaries]);
 
-    // 자녀가 변경될 때마다 질문 데이터 로드
+    // 자녀가 변경될 때마다 질문 데이터 로드 (일시적으로 비활성화)
+    /*
     useEffect(() => {
         console.log('🔄 useEffect 실행됨 - 자녀 질문 데이터 로드 시도');
         console.log('   - children.length:', children.length);
@@ -317,6 +318,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
             console.log('❌ 조건 불만족 - children 없거나 currentChildIndex 잘못됨');
         }
     }, [children, currentChildIndex, fetchChildQuestions]);
+    */
 
     // 외부 클릭으로는 닫히지 않도록 변경 (토글 버튼/항목 선택 시에만 닫힘)
 
