@@ -730,6 +730,24 @@ html { overflow-y: auto; }
 .fig-header__right { color: #414942; font-size: 18px; min-width: 24px; display: flex; align-items: center; }
 .icon-button { background: none; border: none; padding: 0; cursor: pointer; color: #6B7280; font-size: 20px; display: inline-flex; align-items: center; }
 .icon-button:active { transform: scale(0.98); }
+
+/* 로그아웃 버튼 스타일 */
+.logout-button {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  margin-left: 8px;
+}
+
+.logout-button:hover {
+  background-color: #f5f5f5;
+  color: #333;
+}
 .chip { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 9999px; font-size: 12px; font-weight: 700; }
 .chip--muted { background: #FBFDF7; color: #6B7280; border: 1px solid #e5e7eb; }
 .chip--primary { background: #2f6b19; color: #fff; border: none; cursor: pointer; }

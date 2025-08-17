@@ -25,7 +25,7 @@ import ChatWindow from './components/ChatWindow';
 
 // LLM 호출을 백엔드 API로 위임합니다.
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
-import API_BASE from './utils/api';
+import API_BASE, { questionsAPI } from './utils/api';
 
 
 // BASE URL은 공통 config 사용
