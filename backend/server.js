@@ -9,6 +9,7 @@ const diaryRoutes = require('./routes/diaries');
 const reportRoutes = require('./routes/report');
 const multimodalRoutes = require('./routes/multimodal');
 const questionRoutes = require('./routes/question');
+const questionsRoutes = require('./routes/questions');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -50,6 +51,8 @@ app.use('/diaries', diaryRoutes);
 app.use('/report', reportRoutes);
 app.use('/multimodal', multimodalRoutes);
 app.use('/question', questionRoutes);
+app.use('/questions', questionsRoutes);
+console.log('✓ /questions 라우터 등록됨');
 
 
 // 기본 라우트 (선택 사항)

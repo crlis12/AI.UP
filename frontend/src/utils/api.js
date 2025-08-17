@@ -34,6 +34,60 @@ const API_BASE = (process.env.NODE_ENV === 'development')
   : (process.env.REACT_APP_API_BASE_URL || getDefaultApiBase());
 console.log('최종 API_BASE:', API_BASE);
 
+// Questions API 호출 함수들
+export const questionsAPI = {
+  // 자녀의 나이에 맞는 모든 질문 가져오기
+  getQuestionsForChild: async (childId) => {
+    try {
+      const response = await fetch(`${API_BASE}/questions/child/${childId}`);
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || '질문 조회에 실패했습니다.');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('질문 조회 오류:', error);
+      throw error;
+    }
+  },
+
+  // 특정 발달 영역의 질문만 가져오기
+  getQuestionsByDomain: async (childId, domainId) => {
+    try {
+      const response = await fetch(`${API_BASE}/questions/child/${childId}/domain/${domainId}`);
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || '발달 영역 질문 조회에 실패했습니다.');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('발달 영역 질문 조회 오류:', error);
+      throw error;
+    }
+  },
+
+  // 모든 발달 영역 목록 가져오기
+  getDomains: async () => {
+    try {
+      const response = await fetch(`${API_BASE}/questions/domains`);
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || '발달 영역 조회에 실패했습니다.');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('발달 영역 조회 오류:', error);
+      throw error;
+    }
+  }
+};
+
 export default API_BASE;
 
 

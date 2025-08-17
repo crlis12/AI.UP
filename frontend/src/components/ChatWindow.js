@@ -10,7 +10,7 @@ import { FiChevronLeft, FiFileText } from 'react-icons/fi'; // 아이콘 변경
 import BottomNavBar from './BottomNavBar';
 
 // App.js에서 내려주는 messages와 onSendMessage를 props로 받습니다.
-function ChatWindow({ messages, onSendMessage }) {
+function ChatWindow({ messages, onSendMessage: originalOnSendMessage }) {
   const navigate = useNavigate();
   const { childId } = useParams();
   const location = useLocation(); // location 훅 사용
@@ -22,12 +22,17 @@ function ChatWindow({ messages, onSendMessage }) {
     if (!initialMessageSent.current && (location.state?.initialMessage || location.state?.initialFile)) {
       const initialMessage = location.state?.initialMessage || '';
       const initialFile = location.state?.initialFile || null;
-      onSendMessage(initialMessage, initialFile);
+      originalOnSendMessage(initialMessage, initialFile);
       initialMessageSent.current = true;
       // 뒤로가기/새로고침 시 중복 방지
       navigate('.', { replace: true, state: {} });
     }
-  }, [location, navigate, onSendMessage]);
+  }, [location, navigate, originalOnSendMessage]);
+
+
+
+  // 임시로 AI 연동 없이 원래 메시지 전송 함수 사용 (디버깅용)
+  const onSendMessage = originalOnSendMessage;
 
 
   // 대화 요약 및 저장 핸들러
