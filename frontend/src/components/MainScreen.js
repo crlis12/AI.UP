@@ -110,7 +110,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
             setLoading(false);
             console.log('=== 자녀 정보 조회 완료 ===');
         }
-    }, [currentUser]);
+    }, [currentUser && currentUser.id]);
 
     // 나이 계산 함수
     const calculateAge = (birthDate) => {
@@ -143,30 +143,8 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
         navigate('/child-info');
     };
 
-    // 이전/다음 자녀로 이동 (현재 UI에서 사용하지 않으므로 주석 처리)
-    // const handlePrevChild = async () => { 
-    //     if (children.length > 0) {
-    //         const newIndex = currentChildIndex > 0 ? currentChildIndex - 1 : children.length - 1;
-    //         setCurrentChildIndex(newIndex);
-    //         const newChildId = children[newIndex].id;
-    //         const newChildName = children[newIndex].name;
-    //         localStorage.setItem('currentChildId', newChildId);
-    //         await fetchDiaries(newChildId);
-    //         await fetchChildQuestions(newChildId, newChildName);
-    //     }
-    // };
-
-    // const handleNextChild = async () => {
-    //     if (children.length > 0) {
-    //         const newIndex = currentChildIndex < children.length - 1 ? currentChildIndex + 1 : 0;
-    //         setCurrentChildIndex(newIndex);
-    //         const newChildId = children[newIndex].id;
-    //         const newChildName = children[newIndex].name;
-    //         localStorage.setItem('currentChildId', newChildId);
-    //         await fetchDiaries(newChildId);
-    //         await fetchChildQuestions(newChildId, newChildName);
-    //     }
-    // };
+    // 이전/다음 자녀로 이동
+    // 자녀 이전/다음 전환 UI 미사용으로 핸들러 제거
 
     const handleSelectChildIndex = async (index) => {
         if (index < 0 || index >= children.length) return;
@@ -363,7 +341,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     if (diaries.length > 0) {
         const seenDates = new Set();
         for (const diary of diaries) {
-            const diaryDate = new Date(diary.diary_date).toLocaleDateString('ko-KR');
+            const diaryDate = new Date(diary.date).toLocaleDateString('ko-KR');
             if (!seenDates.has(diaryDate)) {
                 uniqueDiaries.push(diary);
                 seenDates.add(diaryDate);
@@ -493,7 +471,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                                         <div className="card__title">발달 영역 현황</div>
                                     </div>
                                     <div className="card__center">
-                                        <CircularScore score={90} label="종합발달점수" subLabel="상위 10%" />
+                                        <CircularScore score={90} size={110} strokeWidth={8} label="종합발달점수" subLabel="상위 10%" showRing={false} contentOffsetY={10} labelPosition="top" />
                                         <button className="main-screen__report-button" onClick={() => navigate('/ai-analysis')}>리포트 보기</button>
                                     </div>
                                 </div>
@@ -504,7 +482,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                                         <div className="card__title">최근 일지</div>
                                         <button className="card__action" onClick={() => {
                                             const cc = children[currentChildIndex];
-                                            if (cc && cc.id) navigate(`/diary/${cc.id}`, { state: { childName: cc.name } });
+                                            if (cc && cc.id) navigate(`/diary/list/${cc.id}`, { state: { childName: cc.name } });
                                         }}>전체보기</button>
                                     </div>
                                     <div className="list">
@@ -520,8 +498,8 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                                                     }
                                                 >
                                                     <div className="list-item__text">
-                                                        <div className="list-item__title">{new Date(diary.diary_date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} 두 발로 점프 성공!</div>
-                                                        <div className="list-item__subtitle">{new Date(diary.diary_date).getFullYear()}년 {new Date(diary.diary_date).toLocaleDateString('ko-KR')}</div>
+                                                        <div className="list-item__title">{new Date(diary.date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} 두 발로 점프 성공!</div>
+                                                        <div className="list-item__subtitle">{new Date(diary.date).getFullYear()}년 {new Date(diary.date).toLocaleDateString('ko-KR')}</div>
                                                     </div>
                                                     <FiChevronRight className="list-item__chevron" />
                                                 </div>

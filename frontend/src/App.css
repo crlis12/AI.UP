@@ -644,9 +644,7 @@ html { overflow-y: auto; }
   left: auto;
 }
 
-.page-content {
-  /* ?�이지 ?�용???�어�?공간 */
-}
+/* removed empty ruleset */
 
 
 /* --- MainScreen.js ?�용 ?��???(?�로 추�?) --- */
@@ -1904,15 +1902,14 @@ html { overflow-y: auto; }
   line-height: 1.5;
 }
 
-.form-group input[type="number"] {
-  -moz-appearance: textfield;
-}
+.form-group input[type="number"] { appearance: textfield; -moz-appearance: textfield; -webkit-appearance: none; }
 
 .form-group input[type="number"]::-webkit-outer-spin-button,
 .form-group input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+/* duplicate consolidated above */
 
 /* 반응???�자??*/
 @media (max-width: 768px) {
@@ -1966,6 +1963,7 @@ html { overflow-y: auto; }
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2; /* 최�? 2줄까지 ?�시 */
+  line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
@@ -2089,6 +2087,7 @@ html { overflow-y: auto; }
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2; /* 2줄까지�??�시 */
+  line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
@@ -2131,6 +2130,22 @@ html { overflow-y: auto; }
   line-height: 1.8;
   color: #333;
   white-space: pre-wrap; /* \n??줄바꿈으�??�식?�도�??�정 */
+}
+
+/* DiaryDetail action buttons */
+.diary-action-button {
+  flex: 1;
+  padding: 10px 12px;
+  background-color: #056125;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.diary-action-button.delete {
+  background-color: #c62828;
 }
 
 /* ChatWindow.js 메시지 컨테?�너 ?��???추�? */
@@ -2369,68 +2384,136 @@ html { overflow-y: auto; }
 
 /* --- AIAnalysisPage scoped styles (from Figma) --- */
 .analysis-page .box{width:24px;height:24px}
-.analysis-page .box2{width:184px;height:16px;background:#056125;border-radius:9999px}
-.analysis-page .box3{width:172px;height:16px;background:#C4C4C4;border-radius:9999px}
-.analysis-page .box4{width:149px;height:16px;background:#056125;border-radius:9999px}
-.analysis-page .box5{width:165px;height:16px;background:#C4C4C4;border-radius:9999px}
-.analysis-page .box6{width:202px;height:16px;background:#056125;border-radius:9999px}
-.analysis-page .box7{width:184px;height:16px;background:#C4C4C4;border-radius:9999px}
-.analysis-page .box8{width:207px;height:16px;background:#056125;border-radius:9999px}
-.analysis-page .box9{width:188px;height:16px;background:#C4C4C4;border-radius:9999px}
-.analysis-page .box10{width:84px;height:16px;background:#056125;border-radius:9999px}
-.analysis-page .box11{width:179px;height:16px;background:#C4C4C4;border-radius:9999px}
-.analysis-page .box12{width:138px;height:16px;background:#056125;border-radius:9999px}
-.analysis-page .box13{width:161px;height:16px;background:#C4C4C4;border-radius:9999px}
+.analysis-page .box2,.analysis-page .box3,.analysis-page .box4,.analysis-page .box5,.analysis-page .box6,.analysis-page .box7,.analysis-page .box8,.analysis-page .box9,.analysis-page .box10,.analysis-page .box11,.analysis-page .box12,.analysis-page .box13{height:100%;border-radius:9999px}
+.analysis-page .box2{width:80%;background:#056125}
+.analysis-page .box3{width:75%;background:#C4C4C4}
+.analysis-page .box4{width:65%;background:#056125}
+.analysis-page .box5{width:72%;background:#C4C4C4}
+.analysis-page .box6{width:88%;background:#056125}
+.analysis-page .box7{width:80%;background:#C4C4C4}
+.analysis-page .box8{width:90%;background:#056125}
+.analysis-page .box9{width:82%;background:#C4C4C4}
+.analysis-page .box10{width:40%;background:#056125}
+.analysis-page .box11{width:78%;background:#C4C4C4}
+.analysis-page .box12{width:60%;background:#056125}
+.analysis-page .box13{width:70%;background:#C4C4C4}
 .analysis-page .column{align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;background:#FFFFFF;border-radius:16px;padding-top:19px;padding-bottom:19px;margin-bottom:27px;margin-left:16px;margin-right:16px;gap:1px;box-shadow:0px 1px 2px #0000000D}
 .analysis-page .column2{align-self:stretch;display:flex;flex-direction:column;background:#FFFFFF;border-radius:16px;padding-top:16px;padding-bottom:16px;margin-bottom:28px;margin-left:16px;margin-right:16px;gap:12px;box-shadow:0px 1px 2px #0000000D}
 .analysis-page .column3{align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;margin-bottom:14px;margin-left:16px;margin-right:16px;gap:12px}
-.analysis-page .column4{align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;background:#FFFFFF;border-radius:16px;padding-top:16px;padding-bottom:16px;box-shadow:0px 1px 2px #0000000D}
+.analysis-page .column4{align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;background:transparent;border-radius:0;padding-top:0;padding-bottom:0;box-shadow:none}
+/* 영역별 비교 항목 묶음과 간격 */
+.analysis-page .metric-group{width:100%; padding:12px 0; box-sizing:border-box; display:grid; grid-template-columns:72px minmax(0,1fr); column-gap:12px; align-items:center}
+.analysis-page .metric-group .text15{padding-left:0; grid-column:1/2; grid-row:1 / span 2; align-self:center; text-align:left}
+.analysis-page .metric-group .row-view5{grid-column:2/3; margin-left:0; margin-right:0}
+.analysis-page .metric-group .row-view6{grid-column:2/3; margin-left:0; margin-right:0}
+.analysis-page .metric-group + .metric-group{border-top:1px solid #e9e9e9}
 .analysis-page .contain{display:flex;flex-direction:column;background:#FFFFFF}
 .analysis-page .image{width:24px;height:24px;object-fit:fill}
 .analysis-page .image2{width:36px;height:36px;object-fit:fill}
-.analysis-page .image3{border-radius:16px;height:150px;margin-left:19px;margin-right:19px;align-self:stretch;object-fit:fill}
+.analysis-page .image3{border-radius:16px;width:100%;height:auto;margin-left:19px;margin-right:19px;align-self:stretch;object-fit:contain}
 .analysis-page .image4{border-radius:16px;width:36px;height:36px;margin-right:8px;object-fit:fill}
 .analysis-page .image5{border-radius:16px;width:16px;height:16px;margin-right:4px;object-fit:fill}
 .analysis-page .input{color:#111827;font-size:18px;font-weight:bold;flex:1;align-self:stretch;background:none;border:none}
 .analysis-page .row-view{align-self:stretch;display:flex;justify-content:space-between;align-items:center;background:#FFFFFF;border-top-left-radius:20px;border-top-right-radius:20px;padding:16px;margin-bottom:12px;box-shadow:0px 1px 2px #0000000D}
 .analysis-page .row-view2{align-self:stretch;display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;margin-left:16px;margin-right:16px}
 .analysis-page .row-view3{display:flex;align-items:flex-start;margin-left:56px}
-.analysis-page .row-view4{align-self:stretch;display:flex;align-items:center;margin-left:16px;margin-right:16px}
-.analysis-page .row-view5{display:flex;align-items:flex-start;margin-bottom:8px;margin-left:35px}
-.analysis-page .row-view6{align-self:stretch;display:flex;align-items:flex-start;margin-bottom:16px;margin-left:24px;margin-right:24px}
+.analysis-page .row-view4{align-self:stretch;display:grid;grid-template-columns: 36px minmax(24px,auto) 16px 40px;align-items:center;column-gap:8px;margin-left:16px;margin-right:16px}
+.analysis-page .row-view5{display:grid;grid-template-columns:64px minmax(0,1fr) 32px;align-items:center;column-gap:8px;margin-bottom:6px;margin-left:16px;margin-right:16px}
+.analysis-page .row-view6{display:grid;grid-template-columns:64px minmax(0,1fr) 32px;align-items:center;column-gap:8px;margin-bottom:12px;margin-left:16px;margin-right:16px}
 .analysis-page .row-view7{align-self:stretch;display:flex;align-items:flex-start;margin-left:24px;margin-right:24px}
-.analysis-page .scroll-view{height:1593px;align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;background:#FFFFFF;border-radius:20px}
+.analysis-page .scroll-view{height:auto;align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;background:#FFFFFF;border-radius:20px}
 .analysis-page .text{color:#111812;font-size:16px;font-weight:bold}
 .analysis-page .text2{color:#111812;font-size:16px;font-weight:bold;margin-bottom:13px;margin-left:17px}
 .analysis-page .text3{color:#6B7280;font-size:12px;margin-right:36px}
 .analysis-page .text4{color:#6B7280;font-size:12px;margin-right:29px}
 .analysis-page .text5{color:#6B7280;font-size:12px}
 .analysis-page .text6{color:#111812;font-size:18px}
-.analysis-page .text7{color:#111812;font-size:14px;font-weight:bold;margin-right:24px}
-.analysis-page .text8{color:#111812;font-size:14px;font-weight:bold;margin-right:18px}
-.analysis-page .text9{color:#111812;font-size:14px;font-weight:bold;flex:1}
+.analysis-page .text7{color:#111812;font-size:14px;font-weight:bold}
+.analysis-page .text8{color:#111812;font-size:14px;font-weight:bold}
+.analysis-page .text9{color:#111812;font-size:14px;font-weight:bold}
 .analysis-page .text10{color:#111812;font-size:14px;font-weight:bold}
-.analysis-page .text11{color:#111812;font-size:14px;font-weight:bold;margin-right:17px}
-.analysis-page .text12{color:#111812;font-size:14px;font-weight:bold;margin-right:38px}
-.analysis-page .text13{color:#111812;font-size:14px;font-weight:bold;margin-right:28px}
+.analysis-page .text11{color:#111812;font-size:14px;font-weight:bold}
+.analysis-page .text12{color:#111812;font-size:14px;font-weight:bold}
+.analysis-page .text13{color:#111812;font-size:14px;font-weight:bold}
+
+/* 정렬을 위한 공통 클래스 */
+.analysis-page .metric-label{justify-self:start}
+.analysis-page .metric-score{justify-self:end}
+
+/* 그리드 내 각 요소 고정 폭/정렬 */
+.analysis-page .row-view4 .image4{grid-column:1/2; justify-self:start}
+.analysis-page .row-view4 .metric-label{grid-column:2/3}
+.analysis-page .row-view4 .image5{grid-column:3/4; justify-self:center}
+.analysis-page .row-view4 .metric-score{grid-column:4/5}
 .analysis-page .text14{color:#111812;font-size:16px;font-weight:bold;margin-left:4px}
-.analysis-page .text15{color:#111812;font-size:14px;font-weight:bold;margin-bottom:8px;margin-left:16px}
-.analysis-page .text16{color:#111812;font-size:12px;font-weight:bold;margin-right:11px}
+.analysis-page .text15{color:#111812;font-size:14px;font-weight:bold;margin-bottom:8px;margin-left:0;display:block;text-align:left}
+.analysis-page .text16{color:#111812;font-size:12px;font-weight:bold;margin-right:0;justify-self:start;text-align:left}
 .analysis-page .text17{color:#111812;font-size:12px;font-weight:bold}
-.analysis-page .text18{color:#111812;font-size:12px;font-weight:bold;margin-right:10px}
+.analysis-page .text18{color:#111812;font-size:12px;font-weight:bold;margin-right:0;justify-self:start;text-align:left}
 .analysis-page .text19{color:#111812;font-size:16px;font-weight:bold;margin-bottom:140px;margin-left:20px}
 .analysis-page .text20{color:#056125;font-size:14px;font-weight:bold;text-align:center;margin-left:17px;margin-right:17px}
-.analysis-page .text21{color:#FFFFFF;font-size:16px;font-weight:bold;margin-left:120px}
+.analysis-page .text21{color:#FFFFFF;font-size:16px;font-weight:bold;margin-left:0;text-align:center;width:100%;display:block}
+.analysis-page .vertical-kor{writing-mode:vertical-rl;text-orientation:upright;line-height:1}
 .analysis-page .view{align-self:stretch;display:flex;flex-direction:column;align-items:center;margin-bottom:12px}
-.analysis-page .view2{flex-shrink:0;align-items:flex-start;background:#E5E7EB;border-radius:9999px;padding-right:46px;margin-right:17px}
-.analysis-page .view3{flex:1;align-items:flex-start;background:#E5E7EB;border-radius:9999px;margin-right:17px}
-.analysis-page .view4{flex-shrink:0;align-items:flex-start;background:#E5E7EB;border-radius:9999px;padding-right:81px;margin-right:17px}
-.analysis-page .view5{flex-shrink:0;align-items:flex-start;background:#E5E7EB;border-radius:9999px;padding-right:28px;margin-right:17px}
-.analysis-page .view6{flex-shrink:0;align-items:flex-start;background:#E5E7EB;border-radius:9999px;padding-right:23px;margin-right:17px}
-.analysis-page .view7{flex-shrink:0;align-items:flex-start;background:#E5E7EB;border-radius:9999px;padding-right:146px;margin-right:17px}
-.analysis-page .view8{flex-shrink:0;align-items:flex-start;background:#E5E7EB;border-radius:9999px;padding-right:92px;margin-right:17px}
+.analysis-page .view2,
+.analysis-page .view3,
+.analysis-page .view4,
+.analysis-page .view5,
+.analysis-page .view6,
+.analysis-page .view7,
+.analysis-page .view8{flex:1;display:flex;align-items:center;background:#E5E7EB;border-radius:9999px;height:14px;margin-right:0;position:relative;padding-right:0;width:100%}
+
+/* 진행 바 오른쪽 끝 숫자 붙이기 위해 여백 제거 */
+.analysis-page .row-view5 .text17,
+.analysis-page .row-view6 .text17{justify-self:end; text-align:right}
 .analysis-page .view9{align-self:stretch;display:flex;flex-direction:column;background:#FFFFFF;border-radius:16px;border:1px solid #A7F3D0;padding-top:17px;padding-bottom:17px;margin-bottom:16px;margin-left:16px;margin-right:16px;box-shadow:0px 1px 2px #0000000D}
-.analysis-page .view10{align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;background:#056125;border-radius:12px;padding-top:12px;padding-bottom:12px;margin-bottom:90px;margin-left:16px;margin-right:16px}
+.analysis-page .view10{align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#056125;border-radius:12px;padding-top:12px;padding-bottom:12px;margin-bottom:90px;margin-left:16px;margin-right:16px}
+
+/* --- ReportDetailPage styles --- */
+.report-detail__content { padding: 0 16px 24px 16px; }
+.report-detail__header { padding: 12px 0; margin: 0 0 8px 0; border-bottom: 1px solid #e9e9e9; }
+.report-header-info { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.report-detail__title { margin: 0; font-size: 20px; font-weight: 800; color: #1C1B1F; }
+.report-child-info { display: flex; gap: 8px; flex-wrap: wrap; }
+.child-info-item { display: flex; align-items: center; gap: 6px; color: #6B7280; font-size: 12px; background: #FBFDF7; border: 1px solid #e9e9e9; border-radius: 9999px; padding: 6px 10px; }
+.info-icon { color: #466D1D; }
+
+.report-summary-card { background: #FBFDF7; border: 1px solid #e9e9e9; border-radius: 16px; padding: 16px; box-shadow: 0px 1px 2px #0000000D; margin-top: 8px; }
+.summary-score-container { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.total-score { display: flex; align-items: baseline; gap: 4px; }
+.total-score .score-number { font-size: 36px; font-weight: 800; color: #056125; line-height: 1; }
+.total-score .score-label { font-size: 12px; color: #6B7280; }
+.overall-status { display: flex; justify-content: flex-end; flex: 1; }
+.status-badge { display: inline-flex; align-items: center; gap: 6px; color: #fff; border-radius: 9999px; padding: 6px 10px; font-weight: 700; font-size: 12px; }
+.summary-description { margin-top: 8px; color: #414942; font-size: 14px; }
+
+.report-scores-section { margin-top: 16px; }
+.section-title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800; color: #1C1B1F; margin: 0 0 8px 0; }
+.section-icon { color: #466D1D; }
+.scores-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+@media (max-width: 360px) { .scores-grid { grid-template-columns: 1fr; } }
+.score-card { background: #FBFDF7; border: 1px solid #e9e9e9; border-radius: 12px; padding: 12px; box-shadow: 0px 1px 2px #0000000D; }
+.score-card-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.score-domain { margin: 0; font-size: 14px; font-weight: 700; color: #111827; }
+.score-status { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 12px; }
+.score-value { display: flex; align-items: baseline; gap: 4px; margin-bottom: 8px; }
+.score-value .score-number { font-size: 20px; font-weight: 800; color: #056125; }
+.score-value .score-max { font-size: 12px; color: #6B7280; }
+.score-progress { height: 8px; background: #f0f2f5; border-radius: 9999px; overflow: hidden; }
+.progress-bar { height: 100%; border-radius: 9999px; }
+
+.report-recommendations-section { margin-top: 16px; }
+.recommendations-list { display: flex; flex-direction: column; gap: 8px; }
+.recommendation-item { display: flex; align-items: flex-start; gap: 10px; background: #FBFDF7; border: 1px solid #e9e9e9; border-radius: 12px; padding: 12px; }
+.recommendation-number { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; background: #056125; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; }
+.recommendation-text { margin: 0; color: #333; font-size: 14px; line-height: 1.5; }
+
+.report-next-assessment { margin-top: 16px; }
+.next-assessment-card { display: flex; align-items: center; gap: 12px; background: #FBFDF7; border: 1px solid #e9e9e9; border-radius: 12px; padding: 12px; }
+.next-assessment-icon { width: 36px; height: 36px; border-radius: 50%; background: #f0f7f2; color: #056125; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.next-assessment-info h3 { margin: 0 0 4px 0; font-size: 14px; color: #111827; }
+.next-assessment-info .next-date { margin: 0; font-size: 14px; font-weight: 700; color: #056125; }
+.next-assessment-info .next-description { margin: 4px 0 0 0; color: #6B7280; font-size: 12px; }
 
 /* --- DiaryWritePage.js 스타일 --- */
 .diary-write__container { padding: 16px; }
@@ -2444,4 +2527,14 @@ html { overflow-y: auto; }
 .diary-write__preview img, .diary-write__preview video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .diary-write__remove { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; border: none; background: rgba(0,0,0,0.6); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .diary-write__save-button { width: 100%; padding: 15px; background-color: #056125; color: #FFFFFF; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; margin-top: 16px; cursor: pointer; }
+
+/* 리포트 페이지 반응형 보완 */
+@media (max-width: 768px) {
+  .analysis-page .row-view{padding:12px}
+  .analysis-page .row-view2{margin-left:12px;margin-right:12px}
+  .analysis-page .column{margin-left:0;margin-right:0}
+}
+
+/* --- Debug: 레이아웃 박스 경계 표시 (사용시 컨테이너에 debug-borders 클래스 추가) --- */
+.debug-borders * { outline: 0; }
 

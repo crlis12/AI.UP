@@ -138,7 +138,7 @@ function App() {
     }
     setIsLoading(true);
     try {
-      const endpoint = `${API_BASE}/agent`;
+      const endpoint = `${API_BASE}/question`;
       let resp;
       if (file) {
         const formData = new FormData();
