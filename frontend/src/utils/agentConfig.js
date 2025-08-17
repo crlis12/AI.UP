@@ -1,6 +1,13 @@
 export const BACKEND_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 
 //기본 에이전트 설정 (Specific한 설정이 없으면 이 설정을 사용)
+// API 엔드포인트
+export const API_ENDPOINTS = {
+  RAG_SEARCH: `${BACKEND_BASE_URL}/report/rag-search`,
+  RAG_REPORT: `${BACKEND_BASE_URL}/report/rag-report`,  // 새로운 통합 엔드포인트
+  REPORT: `${BACKEND_BASE_URL}/report`,
+  AGENT: `${BACKEND_BASE_URL}/agent`,
+};
 export const DEFAULT_AGENT_CONFIG = {
   vendor: 'gemini',
   model: 'gemini-2.5-flash',
@@ -110,3 +117,10 @@ export function listAgents() {
     spec: getAgentSpec(name),
   }));
 }
+
+// RAG + Report 통합 설정
+export const DEFAULT_RAG_REPORT_CONFIG = {
+  limit: 5,                    // 검색 결과 개수
+  score_threshold: 0.5,        // 검색 점수 임계값
+  ...DEFAULT_REPORT_SPEC,      // 기본 Report 스펙 포함
+};
