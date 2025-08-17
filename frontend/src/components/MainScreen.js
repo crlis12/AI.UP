@@ -69,8 +69,12 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                 console.log('자녀 데이터 설정:', childrenData.children);
                 setChildren(childrenData.children);
                 
-                // 첫 번째 자녀의 최신 일지 가져오기
-                const firstChildId = childrenData.children[0].id;
+                // 현재 계정에서 선택된 자녀가 없다면 첫 번째 자녀로 초기화
+                const storedChildId = localStorage.getItem('currentChildId');
+                const firstChildId = storedChildId && childrenData.children.some(c => String(c.id) === String(storedChildId))
+                  ? storedChildId
+                  : childrenData.children[0].id;
+                localStorage.setItem('currentChildId', firstChildId);
                 console.log('첫 번째 자녀 ID:', firstChildId);
                 
                 const diaryResponse = await fetch(`${API_BASE}/diaries/child/${firstChildId}`);
