@@ -1,4 +1,6 @@
-export const BACKEND_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+import API_BASE from './api'; // API_BASE import 추가
+
+export const BACKEND_BASE_URL = API_BASE;
 
 //기본 에이전트 설정 (Specific한 설정이 없으면 이 설정을 사용)
 export const DEFAULT_AGENT_CONFIG = {

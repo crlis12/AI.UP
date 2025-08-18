@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import { FiCalendar, FiChevronDown, FiPlus, FiX } from 'react-icons/fi';
+import API_BASE from '../utils/api'; // API_BASE import 추가
 import '../App.css';
 
 function DiaryWritePage() {
@@ -47,7 +48,7 @@ function DiaryWritePage() {
       form.append('content', content.trim());
       form.append('date', dateValue);
       files.forEach((f) => form.append('files', f));
-      const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries`, {
+      const resp = await fetch(`${API_BASE}/diaries`, {
         method: 'POST',
         body: form,
       });
@@ -79,7 +80,7 @@ function DiaryWritePage() {
     }
     const fetchExisting = async () => {
       try {
-        const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/child/${childId}?date=${dateValue}`);
+        const resp = await fetch(`${API_BASE}/diaries/child/${childId}?date=${dateValue}`);
         const data = await resp.json();
         if (data.success && Array.isArray(data.diaries) && data.diaries.length > 0) {
           setContent(data.diaries[0].content || '');

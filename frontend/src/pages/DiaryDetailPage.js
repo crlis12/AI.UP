@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { FiChevronLeft } from 'react-icons/fi';
+import API_BASE from '../utils/api'; // API_BASE import 추가
 
 function DiaryDetailPage() {
   const { diaryId } = useParams();
@@ -14,7 +15,7 @@ function DiaryDetailPage() {
     const fetchDiaryDetail = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/${diaryId}`);
+        const response = await fetch(`${API_BASE}/diaries/${diaryId}`);
         const data = await response.json();
 
         if (data.success) {
@@ -81,9 +82,9 @@ function DiaryDetailPage() {
                 {diary.files.map((f) => (
                   <div key={f.id} style={{ width: 120, height: 120, borderRadius: 8, overflow: 'hidden', background: '#f5f5f5' }}>
                     {f.file_type === 'video' ? (
-                      <video src={`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}${f.file_path}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} controls />
+                      <video src={`${API_BASE}${f.file_path}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} controls />
                     ) : (
-                      <img src={`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}${f.file_path}`} alt="첨부" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={`${API_BASE}${f.file_path}`} alt="첨부" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     )}
                   </div>
                 ))}
@@ -107,7 +108,7 @@ function DiaryDetailPage() {
               onClick={async () => {
                 if (!window.confirm('이 일지를 삭제하시겠습니까?')) return;
                 try {
-                  const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/${diary.id}`, { method: 'DELETE' });
+                  const resp = await fetch(`${API_BASE}/diaries/${diary.id}`, { method: 'DELETE' });
                   const data = await resp.json();
                   if (!data.success) throw new Error(data.message || '삭제 실패');
                   const backChildId = childIdFromState || diary.child_id;
