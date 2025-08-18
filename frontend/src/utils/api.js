@@ -194,6 +194,57 @@ export const questionsAPI = {
   }
 };
 
+// Report Agent 관련 API
+export const reportAPI = {
+  // RAG + Report 통합 엔드포인트 호출
+  ragReport: async ({ query, input, diaryString, useRagAsInput, config, spec, limit, score_threshold, history }) => {
+    try {
+      const response = await fetch(`${API_BASE}/report/rag-report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query,
+          input,
+          history: history || [],
+          config,
+          spec,
+          limit,
+          score_threshold,
+          diaryString,
+          useRagAsInput
+        })
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || '보고서 생성 요청에 실패했습니다.');
+      }
+      return data;
+    } catch (error) {
+      console.error('reportAPI.ragReport 오류:', error);
+      throw error;
+    }
+  },
+
+  // RAG 검색만 수행
+  ragSearch: async ({ query, limit = 5, score_threshold = 0.5 }) => {
+    try {
+      const response = await fetch(`${API_BASE}/report/rag-search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, limit, score_threshold })
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'RAG 검색에 실패했습니다.');
+      }
+      return data;
+    } catch (error) {
+      console.error('reportAPI.ragSearch 오류:', error);
+      throw error;
+    }
+  }
+};
+
 export default API_BASE;
 
 
