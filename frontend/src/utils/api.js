@@ -85,6 +85,112 @@ export const questionsAPI = {
       console.error('발달 영역 조회 오류:', error);
       throw error;
     }
+  },
+
+  // KDST 질문들에 대한 RAG 검색 (여러 질문)
+  getKdstRagResults: async (childId, questions) => {
+    try {
+      console.log('🔍 KDST RAG 검색 API 호출');
+      console.log('   - childId:', childId);
+      console.log('   - questions 수:', questions?.length || 0);
+      
+      const response = await fetch(`${API_BASE}/questions/kdst-rag`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          childId: childId,
+          questions: questions
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || 'KDST RAG 검색에 실패했습니다.');
+      }
+      
+      console.log('✅ KDST RAG 검색 완료');
+      console.log('   - 성공:', data.success);
+      console.log('   - RAG 결과:', data.ragResult);
+      
+      return data;
+    } catch (error) {
+      console.error('KDST RAG 검색 오류:', error);
+      throw error;
+    }
+  },
+
+  // 단일 KDST 질문에 대한 RAG 검색
+  getSingleKdstRagResult: async (childId, question) => {
+    try {
+      console.log('🔍 단일 KDST RAG 검색 API 호출');
+      console.log('   - childId:', childId);
+      console.log('   - question:', question);
+      
+      const response = await fetch(`${API_BASE}/questions/kdst-rag/single`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          childId: childId,
+          question: question
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || '단일 KDST RAG 검색에 실패했습니다.');
+      }
+      
+      console.log('✅ 단일 KDST RAG 검색 완료');
+      console.log('   - 결과:', data.result);
+      
+      return data;
+    } catch (error) {
+      console.error('단일 KDST RAG 검색 오류:', error);
+      throw error;
+    }
+  },
+
+  // KDST RAG 검색 결과를 JSON 파일로 저장
+  saveKdstRagResultsToJson: async (childId, questions, outputFilename = null) => {
+    try {
+      console.log('💾 KDST RAG JSON 저장 API 호출');
+      console.log('   - childId:', childId);
+      console.log('   - questions 수:', questions?.length || 0);
+      console.log('   - 출력 파일명:', outputFilename || 'auto-generated');
+      
+      const response = await fetch(`${API_BASE}/questions/kdst-rag/save-json`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          childId: childId,
+          questions: questions,
+          outputFilename: outputFilename
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || 'KDST RAG JSON 저장에 실패했습니다.');
+      }
+      
+      console.log('✅ KDST RAG JSON 저장 완료');
+      console.log('   - 파일명:', data.saveResult?.output_filename);
+      console.log('   - 저장 결과:', data.saveResult);
+      
+      return data;
+    } catch (error) {
+      console.error('KDST RAG JSON 저장 오류:', error);
+      throw error;
+    }
   }
 };
 

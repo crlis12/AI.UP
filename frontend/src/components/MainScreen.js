@@ -267,6 +267,16 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
             
             setChildQuestions(questionsData.questions || []);
             
+            // KDST RAG 검색 수행
+            if (questionsData.questions && questionsData.questions.length > 0) {
+                console.log('🚀 KDST RAG 검색 시작!');
+                await performKdstRagSearch(childId, questionsData.questions);
+                
+                // JSON 파일 저장도 함께 수행
+                console.log('💾 KDST RAG 결과 JSON 파일 저장 시작!');
+                await saveKdstRagResultsToJson(childId, questionsData.questions);
+            }
+            
         } catch (error) {
             console.error('❌ [메인페이지] 자녀 질문 데이터 조회 실패:');
             console.error('   - 오류 메시지:', error.message);
@@ -275,6 +285,129 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
             setChildQuestions([]);
         }
     }, []);
+
+    // KDST RAG 검색 수행 함수
+    const performKdstRagSearch = useCallback(async (childId, questions) => {
+        if (!childId || !questions || questions.length === 0) {
+            console.log('❌ KDST RAG 검색 조건 불충족');
+            return;
+        }
+        
+        try {
+            console.log('🔍 [메인페이지] KDST RAG 검색 시작');
+            console.log('   - childId:', childId);
+            console.log('   - 질문 수:', questions.length);
+            
+            // 질문 텍스트만 추출
+            const questionTexts = questions.map(q => q.question_text).filter(text => text && text.trim());
+            
+            if (questionTexts.length === 0) {
+                console.log('❌ 검색할 질문 텍스트가 없습니다');
+                return;
+            }
+            
+            console.log('📝 검색할 질문들:', questionTexts);
+            
+            // RAG 검색 API 호출
+            const ragResults = await questionsAPI.getKdstRagResults(childId, questionTexts);
+            
+            console.log('✅ [메인페이지] KDST RAG 검색 완료!');
+            console.log('🎯 RAG 검색 결과 상세:');
+            console.log('   - 성공:', ragResults.success);
+            console.log('   - 메시지:', ragResults.message);
+            console.log('   - RAG 결과:', ragResults.ragResult);
+            
+            if (ragResults.ragResult && ragResults.ragResult.results) {
+                console.log('📊 질문별 RAG 검색 결과:');
+                console.log('   - 총 질문 수:', ragResults.ragResult.results.length);
+                
+                ragResults.ragResult.results.forEach((result, index) => {
+                    const question = result['문제'] || result.question || 'N/A';
+                    const diaries = result['일기'] || result.diaries || [];
+                    
+                    console.log(`\n🎯 질문 ${index + 1}: "${question}"`);
+                    console.log(`   - 관련 일기 수: ${diaries.length}개`);
+                    
+                    if (diaries.length > 0) {
+                        console.log('   📖 관련 일기들:');
+                        diaries.forEach((diary, diaryIndex) => {
+                            const similarity = diary.similarity || 0;
+                            const date = diary.date || 'N/A';
+                            const text = diary.text || diary.content || 'N/A';
+                            const diaryId = diary.diary_id || diary.id || 'N/A';
+                            
+                            console.log(`      ${diaryIndex + 1}. [ID: ${diaryId}] 유사도: ${(similarity * 100).toFixed(1)}%`);
+                            console.log(`         날짜: ${date}`);
+                            console.log(`         내용: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`);
+                        });
+                    } else {
+                        console.log('   ⚠️ 관련 일기가 없습니다');
+                    }
+                });
+            } else {
+                console.log('⚠️ RAG 결과 데이터가 없습니다');
+            }
+            
+        } catch (error) {
+            console.error('❌ [메인페이지] KDST RAG 검색 실패:');
+            console.error('   - 오류 메시지:', error.message);
+            console.error('   - 전체 오류:', error);
+        }
+    }, []);
+
+    // KDST RAG 결과를 JSON 파일로 저장하는 함수
+    const saveKdstRagResultsToJson = useCallback(async (childId, questions) => {
+        if (!childId || !questions || questions.length === 0) {
+            console.log('❌ JSON 저장 조건 불충족');
+            return;
+        }
+        
+        try {
+            console.log('💾 [메인페이지] KDST RAG JSON 저장 시작');
+            console.log('   - childId:', childId);
+            console.log('   - 질문 수:', questions.length);
+            
+            // 질문 텍스트만 추출
+            const questionTexts = questions.map(q => q.question_text).filter(text => text && text.trim());
+            
+            if (questionTexts.length === 0) {
+                console.log('❌ 저장할 질문 텍스트가 없습니다');
+                return;
+            }
+            
+            // 자녀 이름으로 파일명 생성
+            const childName = children[currentChildIndex]?.name || 'child';
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+            const outputFilename = `kdst_rag_${childName}_${timestamp}.json`;
+            
+            console.log('📁 생성될 파일명:', outputFilename);
+            
+            // JSON 저장 API 호출
+            const saveResults = await questionsAPI.saveKdstRagResultsToJson(childId, questionTexts, outputFilename);
+            
+            console.log('✅ [메인페이지] KDST RAG JSON 저장 완료!');
+            console.log('🎯 JSON 저장 결과 상세:');
+            console.log('   - 성공:', saveResults.success);
+            console.log('   - 메시지:', saveResults.message);
+            console.log('   - 저장된 파일:', saveResults.saveResult?.output_filename);
+            
+            // 사용자에게 알림
+            if (saveResults.success) {
+                console.log('🎉 KDST RAG 검색 결과가 JSON 파일로 저장되었습니다!');
+                console.log(`📄 파일 위치: backend/search-engine-py/${saveResults.saveResult?.output_filename}`);
+                
+                // 브라우저 알림 (선택적)
+                if (window.confirm(`KDST RAG 검색 결과가 JSON 파일로 저장되었습니다!\n파일명: ${saveResults.saveResult?.output_filename}\n\n파일을 열어보시겠습니까?`)) {
+                    console.log('💡 JSON 파일은 backend/search-engine-py/ 폴더에서 확인할 수 있습니다.');
+                }
+            }
+            
+        } catch (error) {
+            console.error('❌ [메인페이지] KDST RAG JSON 저장 실패:');
+            console.error('   - 오류 메시지:', error.message);
+            console.error('   - 전체 오류:', error);
+        }
+    }, [children, currentChildIndex]);
 
     // 채팅 시작 핸들러 (현재 사용하지 않으므로 주석 처리)
     // const handleStartChat = () => {
