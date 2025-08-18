@@ -49,7 +49,6 @@ function BottomNavBar() {
     }
   };
 
-
   // 현재 경로를 기반으로 활성화된 탭을 결정
   const getActiveClass = (path) => {
     return location.pathname.startsWith(path) ? 'active' : '';
@@ -91,19 +90,31 @@ function BottomNavBar() {
         <FiHome className="nav-icon" />
         <span className="nav-text">홈</span>
       </button>
-      <button className={`nav-item ${getActiveClass('/ai-analysis')}`} onClick={() => navigate('/ai-analysis')}>
+      <button
+        className={`nav-item ${getActiveClass('/ai-analysis')}`}
+        onClick={() => navigate('/ai-analysis')}
+      >
         <FiBarChart2 className="nav-icon" />
         <span className="nav-text">리포트</span>
       </button>
-      <button className={`nav-item ${getActiveClass('/diary')}`} onClick={() => handleNavigate('diary')}>
+      <button
+        className={`nav-item ${getActiveClass('/diary')}`}
+        onClick={() => handleNavigate('diary')}
+      >
         <FiBookOpen className="nav-icon" />
         <span className="nav-text">일지</span>
       </button>
-      <button className={`nav-item ${getActiveClass('/chat')}`} onClick={() => handleNavigate('chat')}>
+      <button
+        className={`nav-item ${getActiveClass('/chat')}`}
+        onClick={() => handleNavigate('chat')}
+      >
         <FiMessageSquare className="nav-icon" />
         <span className="nav-text">AI챗</span>
       </button>
-      <button className={`nav-item ${getActiveClass('/settings')}`} onClick={() => navigate('/settings')}>
+      <button
+        className={`nav-item ${getActiveClass('/settings')}`}
+        onClick={() => navigate('/settings')}
+      >
         <FiSettings className="nav-icon" />
         <span className="nav-text">설정</span>
       </button>
@@ -112,4 +123,3 @@ function BottomNavBar() {
 }
 
 export default BottomNavBar;
-

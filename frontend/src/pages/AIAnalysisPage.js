@@ -8,249 +8,343 @@ function AIAnalysisPage() {
   const titleStyle = { fontSize: '16px', color: '#000000', fontWeight: 'bold' };
 
   return (
-    <PageLayout title="리포트" titleStyle={titleStyle} showNavBar={true}>
+    <PageLayout title="리포트" titleStyle={titleStyle} showNavBar={true} backTo="/main">
       <div className="analysis-page">
         <div className="contain">
           <div className="scroll-view">
-            <div className="row-view">
-              
-              
-            </div>
+            <div className="row-view"></div>
 
-            <div className="row-view2">
-              
-              <span className="text">{"8월 2주차"}</span>
-              <img
-                src={"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/6przmqoe_expires_30_days.png"}
-                className="image2"
-                alt="dots"
-              />
-            </div>
+            {/* 상단 중복 블록 제거 */}
 
-            <span className="text2">{"종합 발달 점수 추이"}</span>
+            <span className="text2">{'종합 발달 점수 추이'}</span>
 
-            <div className="column">
-              <img
-                src={"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/d3wxqip5_expires_30_days.png"}
-                className="image3"
-                alt="chart"
-              />
-              <div className="row-view3">
-                <span className="text3">{"9/3"}</span>
-                <span className="text4">{"10/1"}</span>
-                <span className="text4">{"10/2"}</span>
-                <span className="text4">{"10/3"}</span>
-                <span className="text4">{"11/1"}</span>
-                <span className="text5">{"11/2"}</span>
+            {/* Figma 기반 그래프 박스 */}
+            <div className="graph-container">
+              <div className="graph-row-top">
+                <img
+                  src={
+                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/vmfvb9y2_expires_30_days.png'
+                  }
+                  className="graph-icon"
+                  alt="calendar-left"
+                />
+                <span className="graph-title">{'8월 2주차'}</span>
+                <img
+                  src={
+                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/98rfqepv_expires_30_days.png'
+                  }
+                  className="graph-icon"
+                  alt="more-right"
+                />
+              </div>
+
+              <div className="graph-box">
+                <img
+                  src={
+                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/s63g6i4u_expires_30_days.png'
+                  }
+                  className="graph-line"
+                  alt="top-line"
+                />
+                <div className="graph-inner">
+                  <div className="graph-right-dots">
+                    <img
+                      src={
+                        'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/a0dtx8ey_expires_30_days.png'
+                      }
+                      className="graph-dot"
+                      alt="right-dot"
+                    />
+                  </div>
+                  <div className="graph-overlay">
+                    <div className="graph-overlay-inner">
+                      <img
+                        src={
+                          'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/bdyvv5xv_expires_30_days.png'
+                        }
+                        className="graph-area"
+                        alt="area"
+                      />
+                      <img
+                        src={
+                          'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/5n8ipwit_expires_30_days.png'
+                        }
+                        className="graph-abs-line"
+                        alt="abs-line"
+                      />
+                    </div>
+                    <img
+                      src={
+                        'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/1due7ie3_expires_30_days.png'
+                      }
+                      className="graph-abs-point"
+                      alt="abs-point"
+                    />
+                  </div>
+                  <img
+                    src={
+                      'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/n8m5wgo8_expires_30_days.png'
+                    }
+                    className="graph-dot"
+                    alt="left-dot"
+                  />
+                </div>
+                <img
+                  src={
+                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/78cvtpm5_expires_30_days.png'
+                  }
+                  className="graph-line2"
+                  alt="mid-line"
+                />
+                <img
+                  src={
+                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/7arag9m2_expires_30_days.png'
+                  }
+                  className="graph-line3"
+                  alt="bottom-line"
+                />
+                <div className="graph-x-labels">
+                  <span className="graph-label">{'7월 2주'}</span>
+                  <span className="graph-label">{'7월 3주'}</span>
+                  <span className="graph-label">{'7월 4주'}</span>
+                  <span className="graph-label">{'8월 1주'}</span>
+                  <span className="graph-label last">{'8월 2주'}</span>
+                </div>
               </div>
             </div>
 
             <div className="view">
-              <span className="text6">{"이번 주 언어 영역이 상승했어요."}</span>
+              <span className="text6">{'이번 주 언어 영역이 상승했어요.'}</span>
             </div>
 
             <div className="column2">
               <div className="row-view4">
                 <img
-                  src={"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/q31szwcd_expires_30_days.png"}
+                  src={
+                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/q31szwcd_expires_30_days.png'
+                  }
                   className="image4"
                   alt="muscle"
                 />
-                <span className="text7 metric-label">{"대근육"}</span>
+                <span className="text7 metric-label">{'대근육'}</span>
                 <img
-                  src={"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/pvc0iwf6_expires_30_days.png"}
+                  src={
+                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/pvc0iwf6_expires_30_days.png'
+                  }
                   className="image5"
                   alt="up"
                 />
-                <span className="text8 metric-score">{"+2.1"}</span>
+                <span className="text8 metric-score">{'+2.1'}</span>
                 <img
-                  src={"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/q96vh959_expires_30_days.png"}
+                  src={
+                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/q96vh959_expires_30_days.png'
+                  }
                   className="image4"
                   alt="fine"
                 />
-                <span className="text9 metric-label">{"소근육"}</span>
+                <span className="text9 metric-label">{'소근육'}</span>
                 <img
-                  src={"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/enuvfi0x_expires_30_days.png"}
+                  src={
+                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/enuvfi0x_expires_30_days.png'
+                  }
                   className="image5"
                   alt="down"
                 />
-                <span className="text10 metric-score">{"-0.8"}</span>
+                <span className="text10 metric-score">{'-0.8'}</span>
               </div>
 
               <div className="row-view4">
                 <img
-                  src={"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/ivkhvlvy_expires_30_days.png"}
+                  src={
+                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/ivkhvlvy_expires_30_days.png'
+                  }
                   className="image4"
                   alt="cognitive"
                 />
-                <span className="text9 metric-label">{"인지"}</span>
+                <span className="text9 metric-label">{'인지'}</span>
                 <img
-                  src={"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/hy1mf4sa_expires_30_days.png"}
+                  src={
+                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/hy1mf4sa_expires_30_days.png'
+                  }
                   className="image5"
                   alt="up"
                 />
-                <span className="text11 metric-score">{"+1.5"}</span>
+                <span className="text11 metric-score">{'+1.5'}</span>
                 <img
-                  src={"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/ywabn5j0_expires_30_days.png"}
+                  src={
+                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/ywabn5j0_expires_30_days.png'
+                  }
                   className="image4"
                   alt="language"
                 />
-                <span className="text12 metric-label">{"언어"}</span>
+                <span className="text12 metric-label">{'언어'}</span>
                 <img
-                  src={"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/i7n0o1z3_expires_30_days.png"}
+                  src={
+                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/i7n0o1z3_expires_30_days.png'
+                  }
                   className="image5"
                   alt="up"
                 />
-                <span className="text10 metric-score">{"+3.5"}</span>
+                <span className="text10 metric-score">{'+3.5'}</span>
               </div>
 
               <div className="row-view4">
                 <img
-                  src={"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/3hvvj451_expires_30_days.png"}
+                  src={
+                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/3hvvj451_expires_30_days.png'
+                  }
                   className="image4"
                   alt="social"
                 />
-                <span className="text13 metric-label">{"사회성"}</span>
+                <span className="text13 metric-label">{'사회성'}</span>
                 <img
-                  src={"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/vur6ovz5_expires_30_days.png"}
+                  src={
+                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/vur6ovz5_expires_30_days.png'
+                  }
                   className="image5"
                   alt="down"
                 />
-                <span className="text8 metric-score">{"-1.2"}</span>
+                <span className="text8 metric-score">{'-1.2'}</span>
                 <img
-                  src={"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/h2zr3eqi_expires_30_days.png"}
+                  src={
+                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/h2zr3eqi_expires_30_days.png'
+                  }
                   className="image4"
                   alt="selfcare"
                 />
-                <span className="text9 metric-label">{"자조"}</span>
+                <span className="text9 metric-label">{'자조'}</span>
                 <img
-                  src={"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/cbo00il9_expires_30_days.png"}
+                  src={
+                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/cbo00il9_expires_30_days.png'
+                  }
                   className="image5"
                   alt="down"
                 />
-                <span className="text10 metric-score">{"-0.5"}</span>
+                <span className="text10 metric-score">{'-0.5'}</span>
               </div>
             </div>
 
             <div className="column3">
-              <span className="text14">{"영역별 발달 비교"}</span>
+              <span className="text14">{'영역별 발달 비교'}</span>
               <div className="column4">
                 <div className="metric-group">
-                  <span className="text15">{"대근육"}</span>
+                  <span className="text15">{'대근육'}</span>
                   <div className="row-view5">
-                    <span className="text16">{"내 아이"}</span>
+                    <span className="text16">{'내 아이'}</span>
                     <div className="view2">
                       <div className="box2" />
                     </div>
-                    <span className="text17">{"80"}</span>
+                    <span className="text17">{'80'}</span>
                   </div>
                   <div className="row-view6">
-                    <span className="text18">{"또래 평균"}</span>
+                    <span className="text18">{'또래 평균'}</span>
                     <div className="view3">
                       <div className="box3" />
                     </div>
-                    <span className="text17">{"75"}</span>
+                    <span className="text17">{'75'}</span>
                   </div>
                 </div>
 
                 <div className="metric-group">
-                  <span className="text15">{"소근육"}</span>
+                  <span className="text15">{'소근육'}</span>
                   <div className="row-view5">
-                    <span className="text16">{"내 아이"}</span>
+                    <span className="text16">{'내 아이'}</span>
                     <div className="view4">
                       <div className="box4" />
                     </div>
-                    <span className="text17">{"65"}</span>
+                    <span className="text17">{'65'}</span>
                   </div>
                   <div className="row-view6">
-                    <span className="text18">{"또래 평균"}</span>
+                    <span className="text18">{'또래 평균'}</span>
                     <div className="view3">
                       <div className="box5" />
                     </div>
-                    <span className="text17">{"72"}</span>
+                    <span className="text17">{'72'}</span>
                   </div>
                 </div>
 
                 <div className="metric-group">
-                  <span className="text15">{"인지"}</span>
+                  <span className="text15">{'인지'}</span>
                   <div className="row-view5">
-                    <span className="text16">{"내 아이"}</span>
+                    <span className="text16">{'내 아이'}</span>
                     <div className="view5">
                       <div className="box6" />
                     </div>
-                    <span className="text17">{"88"}</span>
+                    <span className="text17">{'88'}</span>
                   </div>
                   <div className="row-view6">
-                    <span className="text18">{"또래 평균"}</span>
+                    <span className="text18">{'또래 평균'}</span>
                     <div className="view3">
                       <div className="box7" />
                     </div>
-                    <span className="text17">{"80"}</span>
+                    <span className="text17">{'80'}</span>
                   </div>
                 </div>
 
                 <div className="metric-group">
-                  <span className="text15">{"언어"}</span>
+                  <span className="text15">{'언어'}</span>
                   <div className="row-view5">
-                    <span className="text16">{"내 아이"}</span>
+                    <span className="text16">{'내 아이'}</span>
                     <div className="view6">
                       <div className="box8" />
                     </div>
-                    <span className="text17">{"90"}</span>
+                    <span className="text17">{'90'}</span>
                   </div>
                   <div className="row-view6">
-                    <span className="text18">{"또래 평균"}</span>
+                    <span className="text18">{'또래 평균'}</span>
                     <div className="view3">
                       <div className="box9" />
                     </div>
-                    <span className="text17">{"82"}</span>
+                    <span className="text17">{'82'}</span>
                   </div>
                 </div>
 
                 <div className="metric-group">
-                  <span className="text15">{"사회성"}</span>
+                  <span className="text15">{'사회성'}</span>
                   <div className="row-view5">
-                    <span className="text16">{"내 아이"}</span>
+                    <span className="text16">{'내 아이'}</span>
                     <div className="view7">
                       <div className="box10" />
                     </div>
-                    <span className="text17">{"40"}</span>
+                    <span className="text17">{'40'}</span>
                   </div>
                   <div className="row-view6">
-                    <span className="text18">{"또래 평균"}</span>
+                    <span className="text18">{'또래 평균'}</span>
                     <div className="view3">
                       <div className="box11" />
                     </div>
-                    <span className="text17">{"78"}</span>
+                    <span className="text17">{'78'}</span>
                   </div>
                 </div>
 
                 <div className="metric-group">
-                  <span className="text15">{"자조"}</span>
+                  <span className="text15">{'자조'}</span>
                   <div className="row-view5">
-                    <span className="text16">{"내 아이"}</span>
+                    <span className="text16">{'내 아이'}</span>
                     <div className="view8">
                       <div className="box12" />
                     </div>
-                    <span className="text17">{"60"}</span>
+                    <span className="text17">{'60'}</span>
                   </div>
                   <div className="row-view6">
-                    <span className="text18">{"또래 평균"}</span>
+                    <span className="text18">{'또래 평균'}</span>
                     <div className="view3">
                       <div className="box13" />
                     </div>
-                    <span className="text17">{"70"}</span>
+                    <span className="text17">{'70'}</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <span className="text19">{"이 부분은 특별히 봐주세요!"}</span>
+            <span className="text19">{'이 부분은 특별히 봐주세요!'}</span>
             <div className="view9">
-              <span className="text20">{"사회성 영역에서 또래보다 발달이 느려요. \n전문가와 상담을 받아보는 건 어떨까요?"}</span>
+              <span className="text20">
+                {'사회성 영역에서 또래보다 발달이 느려요. \n전문가와 상담을 받아보는 건 어떨까요?'}
+              </span>
             </div>
             <div className="view10">
-              <span className="text21">{"상담사 연결하기"}</span>
+              <span className="text21">{'상담사 연결하기'}</span>
             </div>
           </div>
         </div>

@@ -16,7 +16,10 @@ function DiaryWritePage() {
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
-    return { display: d.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }), value: `${year}-${month}-${day}` };
+    return {
+      display: d.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }),
+      value: `${year}-${month}-${day}`,
+    };
   }, []);
 
   const [dateValue, setDateValue] = useState(today.value);
@@ -47,10 +50,13 @@ function DiaryWritePage() {
       form.append('content', content.trim());
       form.append('date', dateValue);
       files.forEach((f) => form.append('files', f));
-      const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries`, {
-        method: 'POST',
-        body: form,
-      });
+      const resp = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries`,
+        {
+          method: 'POST',
+          body: form,
+        }
+      );
       const data = await resp.json();
       if (!data.success) throw new Error(data.message || '일지 저장 실패');
       navigate(`/diary/list/${childId}`, { replace: true });
@@ -79,7 +85,9 @@ function DiaryWritePage() {
     }
     const fetchExisting = async () => {
       try {
-        const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/child/${childId}?date=${dateValue}`);
+        const resp = await fetch(
+          `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/child/${childId}?date=${dateValue}`
+        );
         const data = await resp.json();
         if (data.success && Array.isArray(data.diaries) && data.diaries.length > 0) {
           setContent(data.diaries[0].content || '');
@@ -136,12 +144,13 @@ function DiaryWritePage() {
               const url = URL.createObjectURL(file);
               return (
                 <div className="diary-write__preview" key={`${file.name}-${idx}`}>
-                  {isImage ? (
-                    <img src={url} alt={file.name} />
-                  ) : (
-                    <video src={url} />
-                  )}
-                  <button type="button" className="diary-write__remove" onClick={() => handleRemoveFile(idx)} aria-label="첨부 삭제">
+                  {isImage ? <img src={url} alt={file.name} /> : <video src={url} />}
+                  <button
+                    type="button"
+                    className="diary-write__remove"
+                    onClick={() => handleRemoveFile(idx)}
+                    aria-label="첨부 삭제"
+                  >
                     <FiX />
                   </button>
                 </div>
@@ -152,7 +161,13 @@ function DiaryWritePage() {
 
         {/* 저장 버튼 */}
         <button className="diary-write__save-button" onClick={handleSave} disabled={isSaving}>
-          {isSaving ? '저장 중...' : (mode === 'create' ? '저장하기' : hasExisting ? '수정하기' : '저장하기')}
+          {isSaving
+            ? '저장 중...'
+            : mode === 'create'
+              ? '저장하기'
+              : hasExisting
+                ? '수정하기'
+                : '저장하기'}
         </button>
       </div>
     </PageLayout>

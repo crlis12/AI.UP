@@ -16,18 +16,18 @@ function DiaryPage() {
       try {
         setLoading(true);
         // 목업 데이터 대신 실제 API 호출
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/child/${childId}`);
+        const response = await fetch(
+          `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/child/${childId}`
+        );
         const data = await response.json();
         if (data.success) {
           // 새 스키마: date, content 기반. 최신 날짜 순
-          setDiaries(
-            (data.diaries || []).sort((a, b) => new Date(b.date) - new Date(a.date))
-          );
+          setDiaries((data.diaries || []).sort((a, b) => new Date(b.date) - new Date(a.date)));
         } else {
-          console.error("일지 목록 조회 실패:", data.message);
+          console.error('일지 목록 조회 실패:', data.message);
         }
       } catch (error) {
-        console.error("일지 목록 조회 중 오류 발생:", error);
+        console.error('일지 목록 조회 중 오류 발생:', error);
       } finally {
         setLoading(false);
       }
@@ -54,9 +54,14 @@ function DiaryPage() {
     if (targetKey === yKey) return '어제';
     return new Date(dateValue).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
   };
-  
+
   const getKoreanDate = (dateValue) => {
-    return new Date(dateValue).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+    return new Date(dateValue).toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'short',
+    });
   };
 
   const timelineItems = useMemo(() => {
@@ -87,26 +92,44 @@ function DiaryPage() {
     </button>
   );
 
-  if (loading) return <PageLayout title="일지 목록" titleStyle={titleStyle} showNavBar={true} rightNode={rightNode} backTo="/main"><div>로딩 중...</div></PageLayout>;
+  if (loading)
+    return (
+      <PageLayout
+        title="일지 목록"
+        titleStyle={titleStyle}
+        showNavBar={true}
+        rightNode={rightNode}
+        backTo="/main"
+      >
+        <div>로딩 중...</div>
+      </PageLayout>
+    );
 
   return (
-    <PageLayout title="일지 목록" titleStyle={titleStyle} showNavBar={true} rightNode={rightNode} backTo="/main">
+    <PageLayout
+      title="일지 목록"
+      titleStyle={titleStyle}
+      showNavBar={true}
+      rightNode={rightNode}
+      backTo="/main"
+    >
       <div className="timeline-container">
         {timelineItems.map((item, index) => {
           const label = getRelativeLabel(item.date);
           const sub = getKoreanDate(item.date);
           const isFirst = index === 0;
-          const calendarIcon = 'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/d67u1cc4_expires_30_days.png'; // 연한 녹색 아이콘으로 통일
+          const calendarIcon =
+            'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/d67u1cc4_expires_30_days.png'; // 연한 녹색 아이콘으로 통일
 
           return (
             <div
               key={item.id}
               onClick={() =>
                 navigate(`/diary/detail/${item.id}`, {
-                  state: { childId }
+                  state: { childId },
                 })
               }
-              style={{width: '100%'}}
+              style={{ width: '100%' }}
             >
               {isFirst ? (
                 <div className="row-view2">

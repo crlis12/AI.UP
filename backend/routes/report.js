@@ -7,7 +7,10 @@ let multerInstance = null;
 function getMulter() {
   if (!multerInstance) {
     const multer = require('multer');
-    multerInstance = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } });
+    multerInstance = multer({
+      storage: multer.memoryStorage(),
+      limits: { fileSize: 25 * 1024 * 1024 },
+    });
   }
   return multerInstance;
 }
@@ -37,16 +40,26 @@ router.post('/', async (req, res) => {
 
     let config = req.body?.config || {};
     if (typeof config === 'string') {
-      try { config = JSON.parse(config); } catch (_) { config = {}; }
+      try {
+        config = JSON.parse(config);
+      } catch (_) {
+        config = {};
+      }
     }
 
     let spec = req.body?.spec || {};
     if (typeof spec === 'string') {
-      try { spec = JSON.parse(spec); } catch (_) { spec = {}; }
+      try {
+        spec = JSON.parse(spec);
+      } catch (_) {
+        spec = {};
+      }
     }
 
     if (!input || typeof input !== 'string') {
-      return res.status(400).json({ success: false, message: 'input이 누락되었거나 형식이 올바르지 않습니다.' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'input이 누락되었거나 형식이 올바르지 않습니다.' });
     }
 
     // 파일이 있으면 컨텍스트에 메타만 주입 (본문 분석은 현재 미지원)
@@ -59,12 +72,12 @@ router.post('/', async (req, res) => {
     return res.json(result);
   } catch (error) {
     console.error('Report agent error:', error?.response?.data || error);
-    const message = error?.response?.data?.error?.message || error.message || '보고서 에이전트 호출 중 오류가 발생했습니다.';
+    const message =
+      error?.response?.data?.error?.message ||
+      error.message ||
+      '보고서 에이전트 호출 중 오류가 발생했습니다.';
     return res.status(500).json({ success: false, message });
   }
 });
 
 module.exports = router;
-
-
-

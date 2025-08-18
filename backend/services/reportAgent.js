@@ -1,7 +1,10 @@
 const { createGeminiChat, normalizeGeminiModel } = require('./modelFactory');
 
 function buildSystemPrompt({ systemPrompt, spec }) {
-  const base = systemPrompt || (spec && typeof spec === 'object' && spec.default) || 'You are a professional report writing assistant. Produce accurate, well-structured, and concise reports.';
+  const base =
+    systemPrompt ||
+    (spec && typeof spec === 'object' && spec.default) ||
+    'You are a professional report writing assistant. Produce accurate, well-structured, and concise reports.';
   const lines = [base];
   if (!spec || typeof spec !== 'object') return lines.join('\n');
 
@@ -70,20 +73,22 @@ async function runReportAgent({ input, history, context, config, spec }) {
 
   const chain = RunnableSequence.from([prompt, chat]);
   const response = await chain.invoke({ input, history: lcHistory, context: context || '' });
-  const content = typeof response?.content === 'string'
-    ? response.content
-    : Array.isArray(response?.content)
-      ? response.content.map((p) => p?.text || '').join('\n')
-      : String(response?.content ?? '');
+  const content =
+    typeof response?.content === 'string'
+      ? response.content
+      : Array.isArray(response?.content)
+        ? response.content.map((p) => p?.text || '').join('\n')
+        : String(response?.content ?? '');
 
   return {
     success: true,
     content,
-    meta: { vendor: 'gemini', model: normalizedModel, temperature: typeof temperature === 'number' ? temperature : undefined },
+    meta: {
+      vendor: 'gemini',
+      model: normalizedModel,
+      temperature: typeof temperature === 'number' ? temperature : undefined,
+    },
   };
 }
 
 module.exports = { runReportAgent };
-
-
-
