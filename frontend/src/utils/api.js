@@ -191,42 +191,6 @@ export const questionsAPI = {
       console.error('KDST RAG JSON 저장 오류:', error);
       throw error;
     }
-  },
-
-  // KDST RAG 검색 결과를 문자열로 변환 (ReportAgent용)
-  convertKdstRagToString: async (childId, questions) => {
-    try {
-      console.log('📝 KDST RAG → 문자열 변환 API 호출');
-      console.log('   - childId:', childId);
-      console.log('   - questions 수:', questions?.length || 0);
-      
-      const response = await fetch(`${API_BASE}/questions/kdst-rag/to-string`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          childId: childId,
-          questions: questions
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (!data.success) {
-        throw new Error(data.message || 'KDST RAG 문자열 변환에 실패했습니다.');
-      }
-      
-      console.log('✅ KDST RAG → 문자열 변환 완료');
-      console.log('   - 총 일기 수:', data.stringResult?.total_diaries || 0);
-      console.log('   - 문자열 길이:', data.stringResult?.string_length || 0);
-      console.log('   - 미리보기:', data.stringResult?.preview || '없음');
-      
-      return data;
-    } catch (error) {
-      console.error('KDST RAG 문자열 변환 오류:', error);
-      throw error;
-    }
   }
 };
 
