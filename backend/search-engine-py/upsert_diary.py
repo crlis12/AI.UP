@@ -8,6 +8,14 @@ from sentence_transformers import SentenceTransformer
 import sqlite3
 import os
 
+# UTF-8 인코딩 설정 (Windows 환경 대응)
+if sys.platform.startswith('win'):
+    import codecs
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout.detach())
+    sys.stderr = codecs.getwriter('utf-8')(sys.stderr.detach())
+    # stdin도 UTF-8로 설정
+    sys.stdin = codecs.getreader('utf-8')(sys.stdin.detach())
+
 # 모델 로드
 model = SentenceTransformer('jhgan/ko-sroberta-multitask')
 
