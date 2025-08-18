@@ -272,9 +272,9 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                 console.log('🚀 KDST RAG 검색 시작!');
                 await performKdstRagSearch(childId, questionsData.questions);
                 
-                // JSON 파일 저장도 함께 수행
-                console.log('💾 KDST RAG 결과 JSON 파일 저장 시작!');
-                await saveKdstRagResultsToJson(childId, questionsData.questions);
+                // 문자열 변환도 함께 수행 (ReportAgent용)
+                console.log('📝 KDST RAG 결과 → 문자열 변환 시작!');
+                await convertKdstRagToString(childId, questionsData.questions);
             }
             
         } catch (error) {
@@ -408,6 +408,64 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
             console.error('   - 전체 오류:', error);
         }
     }, [children, currentChildIndex]);
+
+    // KDST RAG 결과를 문자열로 변환하는 함수 (ReportAgent용)
+    const convertKdstRagToString = useCallback(async (childId, questions) => {
+        if (!childId || !questions || questions.length === 0) {
+            console.log('❌ 문자열 변환 조건 불충족');
+            return;
+        }
+        
+        try {
+            console.log('📝 [메인페이지] KDST RAG → 문자열 변환 시작');
+            console.log('   - childId:', childId);
+            console.log('   - 질문 수:', questions.length);
+            
+            // 질문 텍스트만 추출
+            const questionTexts = questions.map(q => q.question_text).filter(text => text && text.trim());
+            
+            if (questionTexts.length === 0) {
+                console.log('❌ 변환할 질문 텍스트가 없습니다');
+                return;
+            }
+            
+            console.log('📝 변환할 질문들:', questionTexts);
+            
+            // 문자열 변환 API 호출
+            const stringResults = await questionsAPI.convertKdstRagToString(childId, questionTexts);
+            
+            console.log('✅ [메인페이지] KDST RAG → 문자열 변환 완료!');
+            console.log('🎯 문자열 변환 결과 상세:');
+            console.log('   - 성공:', stringResults.success);
+            console.log('   - 메시지:', stringResults.message);
+            console.log('   - 총 일기 수:', stringResults.stringResult?.total_diaries || 0);
+            console.log('   - 문자열 길이:', stringResults.stringResult?.string_length || 0);
+            console.log('   - 미리보기:', stringResults.stringResult?.preview || '없음');
+            
+            if (stringResults.success && stringResults.stringResult?.diary_string) {
+                console.log('🎉 ReportAgent용 일기 문자열이 생성되었습니다!');
+                console.log('📄 생성된 문자열 (전체):');
+                console.log('─'.repeat(50));
+                console.log(stringResults.stringResult.diary_string);
+                console.log('─'.repeat(50));
+                
+                // 전역 변수로 저장 (ReportAgent에서 사용할 수 있도록)
+                window.childDiaryData = stringResults.stringResult.diary_string;
+                console.log('💾 window.childDiaryData에 저장 완료!');
+                console.log('💡 ReportAgent에서 window.childDiaryData로 접근 가능합니다.');
+                
+                // 사용자에게 알림
+                console.log(`\n🔥 ReportAgent용 데이터 준비 완료!`);
+                console.log(`📊 총 ${stringResults.stringResult.total_diaries}개 일기, ${stringResults.stringResult.string_length}자`);
+                console.log(`📋 형식: "YYYY-MM-DD, 일기내용\\nYYYY-MM-DD, 일기내용..."`);
+            }
+            
+        } catch (error) {
+            console.error('❌ [메인페이지] KDST RAG → 문자열 변환 실패:');
+            console.error('   - 오류 메시지:', error.message);
+            console.error('   - 전체 오류:', error);
+        }
+    }, []);
 
     // 채팅 시작 핸들러 (현재 사용하지 않으므로 주석 처리)
     // const handleStartChat = () => {

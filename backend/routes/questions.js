@@ -632,4 +632,123 @@ router.post('/kdst-rag/save-json', async (req, res) => {
   }
 });
 
+// KDST RAG 검색 결과를 문자열로 변환하는 API (ReportAgent용)
+router.post('/kdst-rag/to-string', async (req, res) => {
+  try {
+    const { childId, questions } = req.body;
+    
+    console.log('📝 KDST RAG → 문자열 변환 API 호출됨');
+    console.log('   - childId:', childId);
+    console.log('   - questions 수:', questions?.length || 0);
+    
+    if (!childId || !questions || !Array.isArray(questions) || questions.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'childId와 questions 배열이 필요합니다.'
+      });
+    }
+    
+    // Python 문자열 변환 스크립트 실행
+    const pythonScriptPath = path.join(__dirname, '..', 'search-engine-py', 'process_kdst_to_string.py');
+    console.log('   - Python 스크립트 경로:', pythonScriptPath);
+    
+    // Python 프로세스 실행 (UTF-8 인코딩 설정)
+    const pythonProcess = spawn('python', [pythonScriptPath], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      cwd: path.join(__dirname, '..', 'search-engine-py'),
+      env: {
+        ...process.env,
+        'PYTHONIOENCODING': 'utf-8',
+        'PYTHONPATH': path.join(__dirname, '..', 'search-engine-py')
+      }
+    });
+    
+    let outputData = '';
+    let errorData = '';
+    let isStringResponseSent = false;
+    
+    // 표준 출력 데이터 수집 (UTF-8 인코딩)
+    pythonProcess.stdout.on('data', (data) => {
+      outputData += data.toString('utf8');
+    });
+    
+    // 표준 에러 데이터 수집 (UTF-8 인코딩)
+    pythonProcess.stderr.on('data', (data) => {
+      errorData += data.toString('utf8');
+      console.error('Python stderr:', data.toString('utf8'));
+    });
+    
+    // 프로세스 종료 처리
+    pythonProcess.on('close', (code) => {
+      console.log('   - Python 프로세스 종료 코드:', code);
+      
+      if (isStringResponseSent) return;
+      
+      if (code !== 0) {
+        console.error('Python 프로세스 실행 실패:', errorData);
+        isStringResponseSent = true;
+        return res.status(500).json({
+          success: false,
+          message: `Python 문자열 변환 스크립트 실행 실패 (코드: ${code})`,
+          error: errorData
+        });
+      }
+      
+      try {
+        // Python 출력 결과 파싱
+        const stringResult = JSON.parse(outputData);
+        console.log('✅ KDST RAG → 문자열 변환 완료');
+        console.log('   - 성공:', stringResult.success);
+        console.log('   - 총 일기 수:', stringResult.total_diaries || 0);
+        console.log('   - 문자열 길이:', stringResult.string_length || 0);
+        console.log('   - 미리보기:', stringResult.preview || '없음');
+        
+        isStringResponseSent = true;
+        return res.status(200).json({
+          success: true,
+          childId: childId,
+          message: 'KDST RAG 결과 문자열 변환 완료',
+          stringResult: stringResult
+        });
+        
+      } catch (parseError) {
+        console.error('Python 출력 파싱 실패:', parseError);
+        console.error('Raw output:', outputData);
+        isStringResponseSent = true;
+        return res.status(500).json({
+          success: false,
+          message: '문자열 변환 결과 파싱 실패',
+          error: parseError.message,
+          rawOutput: outputData
+        });
+      }
+    });
+    
+    // Python 프로세스에 데이터 전송 (UTF-8 인코딩)
+    const inputData = JSON.stringify({ questions: questions });
+    pythonProcess.stdin.write(inputData, 'utf8');
+    pythonProcess.stdin.end();
+    
+    // 타임아웃 설정 (30초)
+    const stringTimeoutId = setTimeout(() => {
+      if (!pythonProcess.killed && !isStringResponseSent) {
+        pythonProcess.kill();
+        isStringResponseSent = true;
+        return res.status(408).json({
+          success: false,
+          message: '문자열 변환 시간 초과'
+        });
+      }
+    }, 30000);
+    
+  } catch (error) {
+    console.error('KDST 문자열 변환 API 오류:', error);
+    return res.status(500).json({
+      success: false,
+      message: '서버 오류가 발생했습니다.',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;
