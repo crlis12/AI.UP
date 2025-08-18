@@ -537,9 +537,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                     <div className="card__title">아이 정보</div>
                     <button
                       className="card__action"
-                      onClick={() =>
-                        navigate(`/child-detail/${children[currentChildIndex]?.id || ''}`)
-                      }
+                      onClick={handleEditChildClick}
                     >
                       전체보기
                     </button>

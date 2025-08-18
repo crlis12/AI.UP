@@ -10,7 +10,6 @@ import WelcomePage from './pages/WelcomePage';
 import SigninPage from './pages/SigninPage';
 import SignupPage from './pages/SignupPage';
 import ChildInfoPage from './pages/ChildInfoPage';
-import ChildDetailPage from './pages/ChildDetailPage';
 import AIAnalysisPage from './pages/AIAnalysisPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage'; // 이름 복구
 import VerifyCodePage from './pages/VerifyCodePage';
@@ -218,10 +217,6 @@ function App() {
         <Route
           path="/child-info"
           element={isLoggedIn ? <ChildInfoPage /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/child-detail/:childId"
-          element={isLoggedIn ? <ChildDetailPage /> : <Navigate to="/login" />}
         />
         {/* 일지 작성 기본 경로 */}
         <Route
