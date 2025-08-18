@@ -8,7 +8,9 @@ import { BrowserRouter } from 'react-router-dom'; // 이 부분이 있는지 확
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <BrowserRouter>  {/* <App />을 감싸고 있는지 확인 */}
+    <BrowserRouter>
+      {' '}
+      {/* <App />을 감싸고 있는지 확인 */}
       <App />
     </BrowserRouter>
   </React.StrictMode>

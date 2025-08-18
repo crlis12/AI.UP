@@ -7,13 +7,13 @@ import './DiaryWritePage.css'; // 같은 스타일 사용
 const DiaryEditPage = () => {
   const { diaryId } = useParams();
   const navigate = useNavigate();
-  
+
   // 일기 상태 관리
   const [diary, setDiary] = useState({
     date: '',
-    content: ''
+    content: '',
   });
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [child, setChild] = useState(null);
@@ -23,16 +23,16 @@ const DiaryEditPage = () => {
     const fetchDiary = async () => {
       try {
         setIsLoading(true);
-        
+
         // 일기 정보 불러오기
         const response = await fetch(`${API_BASE}/diaries/${diaryId}`);
         const data = await response.json();
-        
+
         if (data.success) {
           const diaryData = data.diary;
           setDiary({
             date: diaryData.date.split('T')[0], // ISO 날짜를 YYYY-MM-DD 형식으로 변환
-            content: diaryData.content
+            content: diaryData.content,
           });
 
           // 아이 정보도 불러오기
@@ -61,9 +61,9 @@ const DiaryEditPage = () => {
 
   // 입력 값 변경 처리
   const handleInputChange = (field, value) => {
-    setDiary(prev => ({
+    setDiary((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -83,8 +83,8 @@ const DiaryEditPage = () => {
         },
         body: JSON.stringify({
           date: diary.date,
-          content: diary.content
-        })
+          content: diary.content,
+        }),
       });
 
       const data = await response.json();
@@ -110,7 +110,7 @@ const DiaryEditPage = () => {
 
     try {
       const response = await fetch(`${API_BASE}/diaries/${diaryId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       });
 
       const data = await response.json();
@@ -172,9 +172,7 @@ const DiaryEditPage = () => {
                 className="content-textarea"
                 rows={15}
               />
-              <div className="character-count">
-                {diary.content.length} / 2000자
-              </div>
+              <div className="character-count">{diary.content.length} / 2000자</div>
             </div>
 
             {/* 버튼 그룹 */}

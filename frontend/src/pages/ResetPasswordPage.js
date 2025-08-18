@@ -32,7 +32,7 @@ function ResetPasswordPage() {
       alert('비밀번호는 6자 이상이어야 합니다.');
       return;
     }
-    
+
     setIsLoading(true);
     try {
       await axios.post(`${API_BASE}/auth/reset-password`, { email, password });
@@ -42,14 +42,21 @@ function ResetPasswordPage() {
       const message = error.response?.data?.message || '비밀번호 변경에 실패했습니다.';
       alert(message);
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
     <PageLayout title="비밀번호 재설정">
-      <div className="login-content-wrapper" style={{gap: '30px', alignItems: 'flex-start', textAlign: 'left'}}>
-        <form onSubmit={handleSubmit} className="login-form-container" style={{width: '100%', maxWidth: '350px'}}>
+      <div
+        className="login-content-wrapper"
+        style={{ gap: '30px', alignItems: 'flex-start', textAlign: 'left' }}
+      >
+        <form
+          onSubmit={handleSubmit}
+          className="login-form-container"
+          style={{ width: '100%', maxWidth: '350px' }}
+        >
           <label htmlFor="password">새 비밀번호</label>
           <input
             id="password"
@@ -61,7 +68,9 @@ function ResetPasswordPage() {
             required
           />
 
-          <label htmlFor="confirmPassword" style={{marginTop: '10px'}}>비밀번호 확인</label>
+          <label htmlFor="confirmPassword" style={{ marginTop: '10px' }}>
+            비밀번호 확인
+          </label>
           <input
             id="confirmPassword"
             type="password"
@@ -71,7 +80,12 @@ function ResetPasswordPage() {
             className="login-input"
             required
           />
-          <button type="submit" className="form-login-button" disabled={isLoading} style={{backgroundColor: '#056125', borderRadius: '12px', marginTop: '20px'}}>
+          <button
+            type="submit"
+            className="form-login-button"
+            disabled={isLoading}
+            style={{ backgroundColor: '#056125', borderRadius: '12px', marginTop: '20px' }}
+          >
             {isLoading ? '변경 중...' : '비밀번호 변경'}
           </button>
         </form>
