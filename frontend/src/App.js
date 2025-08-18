@@ -172,7 +172,7 @@ function App() {
   };
 
   // Report 에이전트로 메시지를 보내는 함수 (RAG + Report)
-  const handleSendReportMessage = async (messageText, file) => {
+  const handleSendReportMessage = async (messageText, file, childId) => {
     if (isLoading) return;
 
     const history = [...messages];
@@ -204,8 +204,52 @@ function App() {
 
     setIsLoading(true);
     try {
-      const endpoint = `${API_BASE}/report/rag-report`;
-      const resp = await fetch(endpoint, {
+      // 안전게이트: childId 없거나 질문 조회 실패 시 일반 report로 폴백
+      const tryKdst = !!childId;
+      if (tryKdst) {
+        try {
+          // 1) childId로 KDST 질문 조회
+          let questions = [];
+          const qRes = await fetch(`${API_BASE}/questions/child/${childId}`);
+          const qData = await qRes.json();
+          if (qData?.success && Array.isArray(qData.questions)) {
+            questions = qData.questions.map(q => q.question_text).filter(Boolean);
+          }
+          console.log('[KDST] 질문 로드 완료 - childId:', childId, '질문 수:', questions.length);
+
+          if (questions.length > 0) {
+            // 2) KDST 기반 보고서 생성 호출
+            console.log('[KDST] kdst-generate-report 호출 시작');
+            const resp = await fetch(`${API_BASE}/report/kdst-generate-report`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                questions,
+                reportInput: messageText || 'KDST 문제들로 아기 발달 보고서 작성',
+                reportConfig: { vendor: 'gemini', model: 'gemini-2.5-flash' },
+                reportSpec: { language: 'Korean', reportType: '대화 보고서' }
+              })
+            });
+            const data = await resp.json();
+            if (data?.success) {
+              console.log('[KDST] kdst-generate-report 성공');
+              const content = data.report?.content || data.report || '보고서 응답 본문이 없습니다.';
+              const aiMessage = new AIMessage(content);
+              setMessages(prev => [...prev, aiMessage]);
+              return;
+            }
+            console.warn('[KDST] kdst-generate-report 실패, 일반 report로 폴백합니다.', { status: resp.status, data });
+          } else {
+            console.info('[KDST] 해당 childId에 매칭되는 KDST 질문이 없어 일반 report로 폴백합니다.', { childId });
+          }
+        } catch (e) {
+          console.warn('KDST 흐름 실패, 일반 report로 폴백합니다.', e);
+        }
+      }
+
+      // 폴백: 일반 RAG Report 엔드포인트 사용 (기존 정상 동작 경로)
+      console.info('[FALLBACK] 일반 RAG Report 호출 시작', { query: messageText || '', childId: childId || null });
+      const resp = await fetch(`${API_BASE}/report/rag-report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -220,6 +264,7 @@ function App() {
       });
       const data = await resp.json();
       if (!data.success) throw new Error(data.message || '리포트 에이전트 호출 실패');
+      console.info('[FALLBACK] 일반 RAG Report 성공');
       const aiMessage = new AIMessage(data.report?.content || '보고서 응답 본문이 없습니다.');
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {

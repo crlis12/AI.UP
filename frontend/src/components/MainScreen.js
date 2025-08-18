@@ -267,15 +267,10 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
             
             setChildQuestions(questionsData.questions || []);
             
-            // KDST RAG 검색 수행
-            if (questionsData.questions && questionsData.questions.length > 0) {
-                console.log('🚀 KDST RAG 검색 시작!');
-                await performKdstRagSearch(childId, questionsData.questions);
-                
-                // JSON 파일 저장도 함께 수행
-                console.log('💾 KDST RAG 결과 JSON 파일 저장 시작!');
-                await saveKdstRagResultsToJson(childId, questionsData.questions);
-            }
+            // KDST RAG 사전 검색/JSON 저장은 무거워서 기본 비활성화
+            // 필요 시 아래 두 줄의 주석을 해제하세요
+            // await performKdstRagSearch(childId, questionsData.questions);
+            // await saveKdstRagResultsToJson(childId, questionsData.questions);
             
         } catch (error) {
             console.error('❌ [메인페이지] 자녀 질문 데이터 조회 실패:');
