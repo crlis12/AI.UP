@@ -33,6 +33,47 @@ function buildSystemPrompt({ systemPrompt }) {
   return systemPrompt || '시스템 프롬프트 오류가 났다는 것을 알려주세요';
 }
 
+// KDST 보고서 전용 JSON 스키마 (필요 시 명시적으로 전달하여 사용)
+const REPORT_OUTPUT_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    child_name: { type: 'string' },
+    child_age_month: { type: 'string' },
+    domains: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          domain_id: { type: 'integer' },
+          domain_name: { type: 'string' },
+          questions: {
+            type: 'array',
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                score: {
+                  oneOf: [
+                    { type: 'integer', minimum: 0, maximum: 3 },
+                    { type: 'null' }
+                  ]
+                },
+                question: { type: 'string' }
+              },
+              required: ['question']
+            }
+          }
+        },
+        required: ['domain_id', 'domain_name', 'questions']
+      }
+    },
+    requirements: { type: 'array', items: { type: 'string' } }
+  },
+  required: ['child_name', 'child_age_month', 'domains', 'requirements']
+};
+
 async function reconstructLangChainHistory(history) {
   const { HumanMessage, AIMessage } = await import('@langchain/core/messages');
   function isHumanLangChainMessage(msg) {
@@ -81,14 +122,32 @@ async function runReportAgent({ input, history, context, config, spec, childrenC
     }
   }
 
-  const chain = RunnableSequence.from([prompt, chat]);
-  const response = await chain.invoke({ input, history: lcHistory, context: mergedContext });
-  const content = typeof response?.content === 'string'
-    ? response.content
-    : Array.isArray(response?.content)
-      ? response.content.map((p) => p?.text || '').join('\n')
-      : String(response?.content ?? '');
+  // 출력 스키마 적용: 우선순위 spec.outputSchema > config.outputSchema (기본 스키마 자동 적용 없음)
+  const outputSchema = (spec && spec.outputSchema) || (config && config.outputSchema) || null;
 
+  // 스키마가 있으면 구조화 출력 모드로 전환
+  const llm = outputSchema && typeof chat.withStructuredOutput === 'function'
+    ? chat.withStructuredOutput(outputSchema)
+    : chat;
+
+  const chain = RunnableSequence.from([prompt, llm]);
+  const response = await chain.invoke({ input, history: lcHistory, context: mergedContext });
+
+  // 구조화 모드에서는 객체가 반환될 수 있음 → JSON 문자열로 직렬화
+  let content;
+  if (outputSchema && response && typeof response === 'object' && !('content' in response)) {
+    try {
+      content = JSON.stringify(response);
+    } catch (_) {
+      content = String(response);
+    }
+  } else {
+    content = typeof response?.content === 'string'
+      ? response.content
+      : Array.isArray(response?.content)
+        ? response.content.map((p) => p?.text || '').join('\n')
+        : String(response?.content ?? '');
+  }
   return {
     success: true,
     content,
@@ -96,7 +155,7 @@ async function runReportAgent({ input, history, context, config, spec, childrenC
   };
 }
 
-module.exports = { runReportAgent };
+module.exports = { runReportAgent, REPORT_OUTPUT_SCHEMA };
 
 
 

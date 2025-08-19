@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { runReportAgent } = require('../services/reportAgent');
+const { runReportAgent, REPORT_OUTPUT_SCHEMA } = require('../services/reportAgent');
 const path = require('path');
 const { spawn } = require('child_process');
 const config = require('../config');
@@ -206,7 +206,7 @@ router.post('/rag-report', async (req, res) => {
       history, 
       context: ragContext,
       config, 
-      spec 
+      spec: { ...(spec || {}), outputSchema: REPORT_OUTPUT_SCHEMA } 
     });
 
     if (!reportResult.success) {
@@ -505,7 +505,7 @@ router.post('/kdst-generate-report', async (req, res) => {
       history: [],
       context: humanContext,
       config: defaultReportConfig,
-      spec: defaultReportSpec
+      spec: { ...defaultReportSpec, outputSchema: REPORT_OUTPUT_SCHEMA }
     });
     
     console.log(`[${new Date().toISOString()}] KDST 보고서 생성 완료`);
