@@ -122,6 +122,39 @@ router.get('/:diaryId', (req, res) => {
   });
 });
 
+// 기존 첨부(이미지/영상) 삭제: children_img를 NULL로 설정하고 파일이 있다면 디스크에서도 제거
+router.delete('/:diaryId/image', (req, res) => {
+  const { diaryId } = req.params;
+  db.query('SELECT children_img FROM diaries WHERE id = ? LIMIT 1', [diaryId], (selErr, rows) => {
+    if (selErr) {
+      console.error('기존 첨부 조회 오류:', selErr);
+      return res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+    }
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({ success: false, message: '일기를 찾을 수 없습니다.' });
+    }
+    const filename = rows[0].children_img;
+    db.query(
+      'UPDATE diaries SET children_img = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [diaryId],
+      (updErr) => {
+        if (updErr) {
+          console.error('첨부 제거 DB 오류:', updErr);
+          return res.status(500).json({ success: false, message: '첨부 제거 중 오류가 발생했습니다.' });
+        }
+        // 파일이 존재하면 디스크에서도 best-effort로 삭제
+        if (filename) {
+          try {
+            const filePath = path.join(__dirname, '..', 'uploads', 'diaries', filename);
+            fs.unlink(filePath, () => {});
+          } catch (_) {}
+        }
+        return res.json({ success: true, message: '기존 첨부가 삭제되었습니다.' });
+      }
+    );
+  });
+});
+
 // 일지 삭제
 router.delete('/:diaryId', (req, res) => {
   const { diaryId } = req.params;

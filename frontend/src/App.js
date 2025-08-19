@@ -18,8 +18,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import DiaryPage from './pages/DiaryPage'; // DiaryPage 임포트 추가
 import DiaryWritePage from './pages/DiaryWritePage';
 import DiaryDetailPage from './pages/DiaryDetailPage'; // DiaryDetailPage 임포트 추가
-import ReportAgentTestPage from './pages/ReportAgentTestPage';
-import ReportDetailPage from './pages/ReportDetailPage';
+// Report 관련 테스트/상세 페이지는 현재 모듈에 없음
 
 // 컴포넌트 임포트 (src/components 폴더에 있다고 가정)
 import MainScreen from './components/MainScreen';
@@ -296,13 +295,12 @@ function App() {
         {/* 메인 화면 라우트 (이제 '/main' 경로로 접근) */}
         <Route
           path="/main"
-          element={isLoggedIn ? <MainScreen onSendMessage={handleSendReportMessage} currentUser={currentUser} onLogout={handleLogout} /> : <Navigate to="/login" />}
+          element={isLoggedIn ? <MainScreen onSendMessage={handleSendMessage} currentUser={currentUser} onLogout={handleLogout} /> : <Navigate to="/login" />}
         />
         
-        {/* 기본 채팅을 리포트 에이전트로 연결 */}
         <Route 
           path="/chat/:childId" 
-          element={isLoggedIn ? <ChatWindow messages={messages} onSendMessage={handleSendReportMessage} isLoading={isLoading} /> : <Navigate to="/login" />} 
+          element={isLoggedIn ? <ChatWindow messages={messages} onSendMessage={handleSendMessage} isLoading={isLoading} /> : <Navigate to="/login" />} 
         />
         {/* 기타 보호된 라우트 */}
         <Route
@@ -320,12 +318,7 @@ function App() {
         <Route path="/diary/detail/:diaryId" element={isLoggedIn ? <DiaryDetailPage /> : <Navigate to="/login" />} /> {/* DiaryDetailPage 라우트 추가 */}
 
         <Route path="/ai-analysis" element={isLoggedIn ? <AIAnalysisPage /> : <Navigate to="/login" />} />
-
-        {/* 리포트 에이전트 테스트 라우트 */}
-        <Route path="/report/test" element={isLoggedIn ? <ReportAgentTestPage /> : <Navigate to="/login" />} />
-
-        {/* 리포트 상세 보기 라우트 */}
-        <Route path="/report/:childId" element={isLoggedIn ? <ReportDetailPage /> : <Navigate to="/login" />} />
+        <Route path="/kdst-checklist" element={isLoggedIn ? <KdstChecklistPage /> : <Navigate to="/login" />} />
       </Routes>
     </div>
   );
