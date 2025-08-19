@@ -10,8 +10,8 @@ import WelcomePage from './pages/WelcomePage';
 import SigninPage from './pages/SigninPage';
 import SignupPage from './pages/SignupPage';
 import ChildInfoPage from './pages/ChildInfoPage';
+import ChildDetailPage from './pages/ChildDetailPage';
 import AIAnalysisPage from './pages/AIAnalysisPage';
-import KdstChecklistPage from './pages/KdstChecklistPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage'; // 이름 복구
 import VerifyCodePage from './pages/VerifyCodePage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
@@ -219,6 +219,10 @@ function App() {
           path="/child-info"
           element={isLoggedIn ? <ChildInfoPage /> : <Navigate to="/login" />}
         />
+        <Route
+          path="/child-detail/:childId"
+          element={isLoggedIn ? <ChildDetailPage /> : <Navigate to="/login" />}
+        />
         {/* 일지 작성 기본 경로 */}
         <Route
           path="/diary/:childId"
@@ -237,10 +241,6 @@ function App() {
         <Route
           path="/ai-analysis"
           element={isLoggedIn ? <AIAnalysisPage /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/kdst-checklist"
-          element={isLoggedIn ? <KdstChecklistPage /> : <Navigate to="/login" />}
         />
       </Routes>
     </div>
