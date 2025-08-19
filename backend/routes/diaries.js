@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
@@ -10,14 +11,16 @@ const { spawn } = require('child_process');
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const dir = path.join(__dirname, '..', 'uploads', 'diaries');
-    try { fs.mkdirSync(dir, { recursive: true }); } catch (_) {}
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+    } catch (_) {}
     cb(null, dir);
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
     const base = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9_-]/g, '');
     cb(null, `${Date.now()}_${base}${ext}`);
-  }
+  },
 });
 const upload = multer({ storage });
 
@@ -124,14 +127,18 @@ router.get('/:diaryId', (req, res) => {
       return res.status(404).json({ success: false, message: '일기를 찾을 수 없습니다.' });
     }
     const diary = results[0];
-    db.query('SELECT id, file_path, file_type FROM diary_files WHERE diary_id = ? ORDER BY id ASC', [diaryId], (fErr, files) => {
-      if (fErr) {
-        console.error('일지 파일 조회 DB 오류:', fErr);
-        return res.json({ success: true, diary });
+    db.query(
+      'SELECT id, file_path, file_type FROM diary_files WHERE diary_id = ? ORDER BY id ASC',
+      [diaryId],
+      (fErr, files) => {
+        if (fErr) {
+          console.error('일지 파일 조회 DB 오류:', fErr);
+          return res.json({ success: true, diary });
+        }
+        diary.files = files || [];
+        res.json({ success: true, diary });
       }
-      diary.files = files || [];
-      res.json({ success: true, diary });
-    });
+    );
   });
 });
 
@@ -176,7 +183,9 @@ router.post('/', upload.array('files', 10), (req, res) => {
   const { child_id, content, date } = req.body;
 
   if (!child_id || !content) {
-    return res.status(400).json({ success: false, message: '필수 정보(child_id, content)가 누락되었습니다.' });
+    return res
+      .status(400)
+      .json({ success: false, message: '필수 정보(child_id, content)가 누락되었습니다.' });
   }
 
   const dateOnly = normalizeToDateOnly(date) || formatDateOnly(new Date());
@@ -190,7 +199,9 @@ router.post('/', upload.array('files', 10), (req, res) => {
   db.query(upsert, [child_id, dateOnly, content], async (err, result) => {
     if (err) {
       console.error('일지 생성/업데이트 DB 오류:', err);
-      return res.status(500).json({ success: false, message: '일지 저장 중 서버 오류가 발생했습니다.' });
+      return res
+        .status(500)
+        .json({ success: false, message: '일지 저장 중 서버 오류가 발생했습니다.' });
     }
     
     // 업서트 후 diary id 확보
@@ -227,21 +238,57 @@ router.post('/', upload.array('files', 10), (req, res) => {
           diary: { id: diaryId || null, child_id, date: dateOnly, content },
         });
       }
-      const values = files.map((f) => [
-        diaryId,
-        `/uploads/diaries/${path.basename(f.path)}`,
-        f.mimetype && f.mimetype.startsWith('video/') ? 'video' : 'image',
-      ]);
-      const insertFilesSql = 'INSERT INTO diary_files (diary_id, file_path, file_type) VALUES ?';
-      db.query(insertFilesSql, [values], (fErr) => {
-        if (fErr) {
-          console.error('첨부 저장 DB 오류:', fErr);
-          // 파일 저장 오류가 있어도 일지 저장 자체는 성공으로 처리
-        }
-        return res.status(201).json({
-          success: true,
-          message: '일지가 저장되었습니다.',
-          diary: { id: diaryId || null, child_id, date: dateOnly, content },
+      // child_id로 부모 사용자 ID 조회 후 사용자/아동별 폴더로 이동
+      db.query('SELECT parent_id FROM children WHERE id = ? LIMIT 1', [child_id], (pErr, rows) => {
+        const parentId = !pErr && rows && rows[0] ? rows[0].parent_id : 'unknown';
+        const baseDir = path.join(
+          __dirname,
+          '..',
+          'uploads',
+          'diaries',
+          'users',
+          String(parentId),
+          'children',
+          String(child_id)
+        );
+        try {
+          fs.mkdirSync(baseDir, { recursive: true });
+        } catch (_) {}
+
+        const uploadsBase =
+          (process.env.FILE_BASE_URL && process.env.FILE_BASE_URL.replace(/\/$/, '')) ||
+          `${req.protocol}://${req.get('host')}/uploads`;
+        const values = files.map((f) => {
+          let finalBasename = path.basename(f.path);
+          try {
+            const newPath = path.join(baseDir, finalBasename);
+            // 동일 파일명이 있을 수 있으므로 충돌 시 접미사 추가
+            if (fs.existsSync(newPath)) {
+              const ext = path.extname(finalBasename);
+              const name = path.basename(finalBasename, ext);
+              finalBasename = `${name}_${Date.now()}${ext}`;
+            }
+            fs.renameSync(f.path, path.join(baseDir, finalBasename));
+          } catch (moveErr) {
+            console.error('파일 이동 오류:', moveErr);
+            // 이동 실패 시 원래 위치 파일명을 사용
+          }
+          const url = `${uploadsBase}/diaries/users/${parentId}/children/${child_id}/${finalBasename}`;
+          const type = f.mimetype && f.mimetype.startsWith('video/') ? 'video' : 'image';
+          return [diaryId, url, type];
+        });
+
+        const insertFilesSql = 'INSERT INTO diary_files (diary_id, file_path, file_type) VALUES ?';
+        db.query(insertFilesSql, [values], (fErr) => {
+          if (fErr) {
+            console.error('첨부 저장 DB 오류:', fErr);
+            // 파일 저장 오류가 있어도 일지 저장 자체는 성공으로 처리
+          }
+          return res.status(201).json({
+            success: true,
+            message: '일지가 저장되었습니다.',
+            diary: { id: diaryId || null, child_id, date: dateOnly, content },
+          });
         });
       });
     };
@@ -273,9 +320,11 @@ router.put('/:diaryId', async (req, res) => {
   db.query(query, [date, content, diaryId], async (err, result) => {
     if (err) {
       console.error('일기 수정 DB 오류:', err);
-      return res.status(500).json({ success: false, message: '일기 수정 중 서버 오류가 발생했습니다.' });
+      return res
+        .status(500)
+        .json({ success: false, message: '일기 수정 중 서버 오류가 발생했습니다.' });
     }
-    
+
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: '일기를 찾을 수 없습니다.' });
     }
@@ -368,9 +417,11 @@ router.delete('/:diaryId', async (req, res) => {
   db.query(query, [diaryId], async (err, result) => {
     if (err) {
       console.error('일기 삭제 DB 오류:', err);
-      return res.status(500).json({ success: false, message: '일기 삭제 중 서버 오류가 발생했습니다.' });
+      return res
+        .status(500)
+        .json({ success: false, message: '일기 삭제 중 서버 오류가 발생했습니다.' });
     }
-    
+
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: '일기를 찾을 수 없습니다.' });
     }

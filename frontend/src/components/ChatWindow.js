@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'; // useEffect, useRef
 import { useNavigate, useParams, useLocation } from 'react-router-dom'; // useLocation 추가
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
-import '../App.css'; 
+import '../App.css';
 import API_BASE from '../utils/api';
 import { FiChevronLeft, FiFileText } from 'react-icons/fi'; // 아이콘 변경
 import BottomNavBar from './BottomNavBar';
@@ -19,7 +19,10 @@ function ChatWindow({ messages, onSendMessage: originalOnSendMessage }) {
 
   // 채팅 화면으로 진입 즉시, 메인에서 전달된 초기 메시지를 전송합니다.
   useEffect(() => {
-    if (!initialMessageSent.current && (location.state?.initialMessage || location.state?.initialFile)) {
+    if (
+      !initialMessageSent.current &&
+      (location.state?.initialMessage || location.state?.initialFile)
+    ) {
       const initialMessage = location.state?.initialMessage || '';
       const initialFile = location.state?.initialFile || null;
       originalOnSendMessage(initialMessage, initialFile, childId);
@@ -35,7 +38,6 @@ function ChatWindow({ messages, onSendMessage: originalOnSendMessage }) {
   const onSendMessage = (text, file) => {
     return originalOnSendMessage(text, file, childId);
   };
-
 
   // 대화 요약 및 저장 핸들러
   const handleSummarizeAndSave = async () => {
@@ -54,10 +56,12 @@ function ChatWindow({ messages, onSendMessage: originalOnSendMessage }) {
       if (!summarizeData.success) {
         throw new Error(summarizeData.message || '요약 생성에 실패했습니다.');
       }
-      
+
       const summaryText = summarizeData.summary;
-      const fullText = messages.map(msg => `${msg._getType() === 'human' ? '나' : 'AI'}: ${msg.content}`).join('\n');
-        
+      const fullText = messages
+        .map((msg) => `${msg._getType() === 'human' ? '나' : 'AI'}: ${msg.content}`)
+        .join('\n');
+
       // 2. 요약된 내용으로 바로 일지 저장 요청
       const diaryResponse = await fetch(`${API_BASE}/diaries`, {
         method: 'POST',
@@ -68,7 +72,7 @@ function ChatWindow({ messages, onSendMessage: originalOnSendMessage }) {
           full_text: fullText,
         }),
       });
-      
+
       const diaryData = await diaryResponse.json();
 
       if (diaryData.success) {
@@ -77,7 +81,6 @@ function ChatWindow({ messages, onSendMessage: originalOnSendMessage }) {
       } else {
         throw new Error(diaryData.message || '일지 저장에 실패했습니다.');
       }
-      
     } catch (error) {
       console.error('일지 저장 과정 중 오류 발생:', error);
       alert(error.message || '일지를 저장하는 중 오류가 발생했습니다.');
@@ -88,24 +91,24 @@ function ChatWindow({ messages, onSendMessage: originalOnSendMessage }) {
 
   return (
     <div className="main-screen-container">
-		<div className="main-screen">
-			{/* 고정되는 헤더 영역을 스크롤 뷰 바깥으로 이동 */}
-			<div className="main-screen__header">
-				<button onClick={() => navigate(-1)} className="chat-window-back-button">
-				<FiChevronLeft size={25} /> 
-				<span>뒤로가기</span>
-				</button>
-			</div>
+      <div className="main-screen">
+        {/* 고정되는 헤더 영역을 스크롤 뷰 바깥으로 이동 */}
+        <div className="main-screen__header">
+          <button onClick={() => navigate(-1)} className="chat-window-back-button">
+            <FiChevronLeft size={25} />
+            <span>뒤로가기</span>
+          </button>
+        </div>
 
-			{/* 스크롤 가능한 메시지 영역 */}
-			<div className="main-screen__scroll-view chat-window__messages-container">
-				<MessageList messages={messages} isLoading={isLoading} />
-			</div>
-		</div>
-		<div className="main-screen__chat-bar">
-			<MessageInput onSendMessage={onSendMessage} isLoading={false} />
-		</div>
-		<BottomNavBar />
+        {/* 스크롤 가능한 메시지 영역 */}
+        <div className="main-screen__scroll-view chat-window__messages-container">
+          <MessageList messages={messages} isLoading={isLoading} />
+        </div>
+      </div>
+      <div className="main-screen__chat-bar">
+        <MessageInput onSendMessage={onSendMessage} isLoading={false} />
+      </div>
+      <BottomNavBar />
     </div>
   );
 }

@@ -6,15 +6,16 @@ let multerInstance = null;
 function getMulter() {
   if (!multerInstance) {
     const multer = require('multer');
-    multerInstance = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
+    multerInstance = multer({
+      storage: multer.memoryStorage(),
+      limits: { fileSize: 50 * 1024 * 1024 },
+    });
   }
   return multerInstance;
 }
 
 async function loadLangChain() {
-  const [googleGenAI] = await Promise.all([
-    import('@langchain/google-genai'),
-  ]);
+  const [googleGenAI] = await Promise.all([import('@langchain/google-genai')]);
   const { ChatGoogleGenerativeAI } = googleGenAI;
   return { ChatGoogleGenerativeAI };
 }
@@ -22,9 +23,10 @@ async function loadLangChain() {
 const { normalizeGeminiModel, getGeminiRestEndpoint } = require('../services/modelFactory');
 
 function buildSystemPromptFromSpec({ systemPrompt, spec }) {
-  const base = systemPrompt
-    || (spec && typeof spec === 'object' && spec.default)
-    || '당신은 아이의 육아일기와 최근 관찰 정보를 바탕으로 부모의 질문에 전문적이고 공감 있게 답변하는 상담 에이전트입니다. 안전, 발달, 정서, 양육 전략을 균형 있게 고려하세요. 불확실한 정보는 추측하지 말고 명확히 밝히세요.';
+  const base =
+    systemPrompt ||
+    (spec && typeof spec === 'object' && spec.default) ||
+    '당신은 아이의 육아일기와 최근 관찰 정보를 바탕으로 부모의 질문에 전문적이고 공감 있게 답변하는 상담 에이전트입니다. 안전, 발달, 정서, 양육 전략을 균형 있게 고려하세요. 불확실한 정보는 추측하지 말고 명확히 밝히세요.';
   const lines = [base];
   if (!spec || typeof spec !== 'object') return lines.join('\n');
 
@@ -64,10 +66,7 @@ async function uploadToGeminiFiles({ fileBuffer, mimeType, displayName }) {
       '\r\n'
   );
 
-  const mediaHeader = Buffer.from(
-    `${delimiter}\r\n` +
-      `Content-Type: ${mimeType}\r\n\r\n`
-  );
+  const mediaHeader = Buffer.from(`${delimiter}\r\n` + `Content-Type: ${mimeType}\r\n\r\n`);
 
   const closing = Buffer.from(`\r\n${closeDelimiter}\r\n`);
 
@@ -126,13 +125,25 @@ router.post('/', async (req, res) => {
       mode = req.body?.mode || 'auto';
       if (req.body?.config) {
         let cfg = req.body.config;
-        if (typeof cfg === 'string') { try { cfg = JSON.parse(cfg); } catch (_) { cfg = {}; } }
+        if (typeof cfg === 'string') {
+          try {
+            cfg = JSON.parse(cfg);
+          } catch (_) {
+            cfg = {};
+          }
+        }
         if (cfg.model) model = cfg.model;
         if (typeof cfg.temperature === 'number') temperature = cfg.temperature;
       }
       if (req.body?.spec) {
         let sp = req.body.spec;
-        if (typeof sp === 'string') { try { sp = JSON.parse(sp); } catch (_) { sp = {}; } }
+        if (typeof sp === 'string') {
+          try {
+            sp = JSON.parse(sp);
+          } catch (_) {
+            sp = {};
+          }
+        }
         spec = sp || {};
       }
     } else if (req.is('application/json')) {
@@ -162,18 +173,25 @@ router.post('/', async (req, res) => {
       const sys = buildSystemPromptFromSpec({ systemPrompt: undefined, spec });
       const response = await chat.invoke([
         { role: 'system', content: sys },
-        { role: 'user', content: (input || '부모의 질문에 간결하고 실용적으로 답변해 주세요.') },
+        { role: 'user', content: input || '부모의 질문에 간결하고 실용적으로 답변해 주세요.' },
       ]);
-      const content = typeof response?.content === 'string'
-        ? response.content
-        : Array.isArray(response?.content)
-          ? response.content.map((p) => p?.text || '').join('\n')
-          : String(response?.content ?? '');
+      const content =
+        typeof response?.content === 'string'
+          ? response.content
+          : Array.isArray(response?.content)
+            ? response.content.map((p) => p?.text || '').join('\n')
+            : String(response?.content ?? '');
       return res.json({ success: true, content });
     }
 
-    if (mode === 'image' && !isImage) return res.status(400).json({ success: false, message: '이미지 모드에서 이미지 파일이 필요합니다.' });
-    if (mode === 'video' && !isVideo) return res.status(400).json({ success: false, message: '비디오 모드에서 비디오 파일이 필요합니다.' });
+    if (mode === 'image' && !isImage)
+      return res
+        .status(400)
+        .json({ success: false, message: '이미지 모드에서 이미지 파일이 필요합니다.' });
+    if (mode === 'video' && !isVideo)
+      return res
+        .status(400)
+        .json({ success: false, message: '비디오 모드에서 비디오 파일이 필요합니다.' });
 
     // 이미지 + 텍스트/이미지 단독
     if (isImage || mode === 'image') {
@@ -188,37 +206,57 @@ router.post('/', async (req, res) => {
       const sys = buildSystemPromptFromSpec({ systemPrompt: undefined, spec });
       const response = await chat.invoke([
         { role: 'system', content: sys },
-        { role: 'user', content: [
-          { type: 'text', text: (input || '부모의 질문에 답변하기 위한 필요한 정보를 추출해 답변해 주세요.') },
-          { type: 'image_url', image_url: dataUrl },
-        ]},
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: input || '부모의 질문에 답변하기 위한 필요한 정보를 추출해 답변해 주세요.',
+            },
+            { type: 'image_url', image_url: dataUrl },
+          ],
+        },
       ]);
-      const content = typeof response?.content === 'string'
-        ? response.content
-        : Array.isArray(response?.content)
-          ? response.content.map((p) => p?.text || '').join('\n')
-          : String(response?.content ?? '');
+      const content =
+        typeof response?.content === 'string'
+          ? response.content
+          : Array.isArray(response?.content)
+            ? response.content.map((p) => p?.text || '').join('\n')
+            : String(response?.content ?? '');
       return res.json({ success: true, content });
     }
 
     // 비디오 + 텍스트/비디오 단독
     if (isVideo || mode === 'video') {
-      const fileUri = await uploadToGeminiFiles({ fileBuffer, mimeType, displayName: 'uploaded-video' });
+      const fileUri = await uploadToGeminiFiles({
+        fileBuffer,
+        mimeType,
+        displayName: 'uploaded-video',
+      });
       await waitForGeminiFileActive(fileUri);
       const sys = buildSystemPromptFromSpec({ systemPrompt: undefined, spec });
       const contents = [
-        { role: 'user', parts: [
-          { text: (input ? `요청:${input}` : '영상 기반으로 부모의 질문에 답변해 주세요.') },
-          { fileData: { fileUri, mimeType } },
-        ]},
+        {
+          role: 'user',
+          parts: [
+            { text: input ? `요청:${input}` : '영상 기반으로 부모의 질문에 답변해 주세요.' },
+            { fileData: { fileUri, mimeType } },
+          ],
+        },
       ];
-      const endpoint = getGeminiRestEndpoint(normalizeGeminiModel(model), process.env.GEMINI_API_KEY);
+      const endpoint = getGeminiRestEndpoint(
+        normalizeGeminiModel(model),
+        process.env.GEMINI_API_KEY
+      );
       const resp = await axios.post(endpoint, {
         contents,
         systemInstruction: { role: 'system', parts: [{ text: sys }] },
       });
       const candidateParts = resp?.data?.candidates?.[0]?.content?.parts || [];
-      const analysis = candidateParts.map((p) => p?.text || '').filter(Boolean).join('\n');
+      const analysis = candidateParts
+        .map((p) => p?.text || '')
+        .filter(Boolean)
+        .join('\n');
       const content = analysis || '분석 결과가 비어 있습니다.';
       return res.json({ success: true, content });
     }
@@ -226,11 +264,12 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ success: false, message: '지원하지 않는 파일 형식입니다.' });
   } catch (error) {
     console.error('Question agent route error:', error?.response?.data || error);
-    const message = error?.response?.data?.error?.message || error.message || '질문 에이전트 처리 중 오류가 발생했습니다.';
+    const message =
+      error?.response?.data?.error?.message ||
+      error.message ||
+      '질문 에이전트 처리 중 오류가 발생했습니다.';
     return res.status(500).json({ success: false, message });
   }
 });
 
 module.exports = router;
-
-

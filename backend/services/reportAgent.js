@@ -121,11 +121,12 @@ async function runReportAgent({ input, history, context, config, spec, childrenC
   return {
     success: true,
     content,
-    meta: { vendor: 'gemini', model: normalizedModel, temperature: typeof temperature === 'number' ? temperature : undefined },
+    meta: {
+      vendor: 'gemini',
+      model: normalizedModel,
+      temperature: typeof temperature === 'number' ? temperature : undefined,
+    },
   };
 }
 
 module.exports = { runReportAgent };
-
-
-

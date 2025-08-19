@@ -16,25 +16,27 @@ const ChildProfileCard = ({ child, onUpdate }) => {
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    
+
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
       age--;
     }
-    
+
     return age;
   };
 
   // 성별 표시 함수
   const getGenderText = (gender) => {
-    switch(gender) {
-      case 'M': return '남자';
-      case 'F': return '여자';
-      case 'OTHER': return '기타';
-      default: return '미설정';
+    switch (gender) {
+      case 'M':
+        return '남자';
+      case 'F':
+        return '여자';
+      case 'OTHER':
+        return '기타';
+      default:
+        return '미설정';
     }
   };
-
-
 
   // 아동 정보 삭제
   const handleDelete = async () => {
@@ -61,23 +63,23 @@ const ChildProfileCard = ({ child, onUpdate }) => {
     }
   };
 
-
-
   return (
     <div className="child-profile-card">
       <div className="profile-header">
         <div className="profile-image-container">
-          <img 
-            src={child.profile_image || babyImage} 
-            alt={`${child.name} 프로필`} 
-            className="profile-image" 
+          <img
+            src={
+              child.profile_image
+                ? `${API_BASE}/uploads/children/${child.profile_image}`
+                : babyImage
+            }
+            alt={`${child.name} 프로필`}
+            className="profile-image"
           />
         </div>
         <div className="profile-basic-info">
           <h3 className="child-name">{child.name}</h3>
-          <span className="child-nickname">
-            {child.nickname && `"${child.nickname}"`}
-          </span>
+          <span className="child-nickname">{child.nickname && `"${child.nickname}"`}</span>
           <div className="child-age">
             <FaBirthdayCake className="icon" />
             {calculateAge(child.birth_date)}세 ({getGenderText(child.gender)})
@@ -87,24 +89,18 @@ const ChildProfileCard = ({ child, onUpdate }) => {
           )}
         </div>
         <div className="profile-actions">
-          <button 
+          <button
             className="edit-btn"
             onClick={() => navigate(`/child-detail/${child.id}`)}
             title="상세 수정"
           >
             <FaEdit />
           </button>
-          <button 
-            className="delete-btn"
-            onClick={handleDelete}
-            title="삭제"
-          >
+          <button className="delete-btn" onClick={handleDelete} title="삭제">
             <FaTrash />
           </button>
         </div>
       </div>
-
-
 
       <div className="profile-details">
         <div className="detail-row">
@@ -128,10 +124,7 @@ const ChildProfileCard = ({ child, onUpdate }) => {
           )}
         </div>
 
-        <button 
-          className="toggle-details-btn"
-          onClick={() => setShowDetails(!showDetails)}
-        >
+        <button className="toggle-details-btn" onClick={() => setShowDetails(!showDetails)}>
           {showDetails ? '간단히 보기' : '자세히 보기'}
         </button>
 

@@ -10,6 +10,13 @@ function DiaryDetailPage() {
   const [diary, setDiary] = useState(null);
   const [loading, setLoading] = useState(true);
   const childIdFromState = location.state?.childId;
+  const backendBase = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+
+  const buildFileUrl = (path) => {
+    if (!path) return '';
+    const isAbsolute = /^https?:\/\//i.test(path);
+    return isAbsolute ? path : `${backendBase}${path}`;
+  };
 
   useEffect(() => {
     const fetchDiaryDetail = async () => {
@@ -21,12 +28,12 @@ function DiaryDetailPage() {
         if (data.success) {
           setDiary(data.diary);
         } else {
-          console.error("일지 상세 정보 조회 실패:", data.message);
+          console.error('일지 상세 정보 조회 실패:', data.message);
           alert(data.message);
         }
       } catch (error) {
-        console.error("일지 상세 정보 조회 중 오류 발생:", error);
-        alert("일지 정보를 불러오는데 실패했습니다.");
+        console.error('일지 상세 정보 조회 중 오류 발생:', error);
+        alert('일지 정보를 불러오는데 실패했습니다.');
       } finally {
         setLoading(false);
       }
@@ -80,11 +87,28 @@ function DiaryDetailPage() {
             {Array.isArray(diary.files) && diary.files.length > 0 && (
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
                 {diary.files.map((f) => (
-                  <div key={f.id} style={{ width: 120, height: 120, borderRadius: 8, overflow: 'hidden', background: '#f5f5f5' }}>
+                  <div
+                    key={f.id}
+                    style={{
+                      width: 120,
+                      height: 120,
+                      borderRadius: 8,
+                      overflow: 'hidden',
+                      background: '#f5f5f5',
+                    }}
+                  >
                     {f.file_type === 'video' ? (
-                      <video src={`${API_BASE}${f.file_path}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} controls />
+                      <video
+                        src={buildFileUrl(f.file_path)}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        controls
+                      />
                     ) : (
-                      <img src={`${API_BASE}${f.file_path}`} alt="첨부" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img
+                        src={buildFileUrl(f.file_path)}
+                        alt="첨부"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
                     )}
                   </div>
                 ))}
@@ -108,7 +132,10 @@ function DiaryDetailPage() {
               onClick={async () => {
                 if (!window.confirm('이 일지를 삭제하시겠습니까?')) return;
                 try {
-                  const resp = await fetch(`${API_BASE}/diaries/${diary.id}`, { method: 'DELETE' });
+                  const resp = await fetch(
+                    `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/${diary.id}`,
+                    { method: 'DELETE' }
+                  );
                   const data = await resp.json();
                   if (!data.success) throw new Error(data.message || '삭제 실패');
                   const backChildId = childIdFromState || diary.child_id;
