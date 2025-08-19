@@ -20,6 +20,7 @@ import DiaryWritePage from './pages/DiaryWritePage';
 import DiaryDetailPage from './pages/DiaryDetailPage'; // DiaryDetailPage 임포트 추가
 import ReportAgentTestPage from './pages/ReportAgentTestPage';
 import ReportDetailPage from './pages/ReportDetailPage';
+import CounselorMatchingPage from './pages/CounselorMatchingPage';
 
 // 컴포넌트 임포트 (src/components 폴더에 있다고 가정)
 import MainScreen from './components/MainScreen';
@@ -329,6 +330,9 @@ function App() {
 
         {/* 리포트 상세 보기 라우트 */}
         <Route path="/report/:childId" element={isLoggedIn ? <ReportDetailPage /> : <Navigate to="/login" />} />
+        
+        {/* 상담사 매칭 라우트 */}
+        <Route path="/counselor-matching" element={isLoggedIn ? <CounselorMatchingPage /> : <Navigate to="/login" />} />
       </Routes>
     </div>
   );

@@ -720,7 +720,18 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                     />
                     <button
                       className="main-screen__report-button"
-                      onClick={() => navigate('/ai-analysis')}
+                      onClick={() => {
+                        if (children[currentChildIndex]) {
+                          navigate('/ai-analysis', {
+                            state: {
+                              childId: children[currentChildIndex].id,
+                              childName: children[currentChildIndex].name
+                            }
+                          });
+                        } else {
+                          alert('자녀 정보를 찾을 수 없습니다.');
+                        }
+                      }}
                     >
                       리포트 보기
                     </button>

@@ -10,6 +10,7 @@ const reportRoutes = require('./routes/report');
 const multimodalRoutes = require('./routes/multimodal');
 const questionRoutes = require('./routes/question');
 const questionsRoutes = require('./routes/questions');
+const counselorsRoutes = require('./routes/counselors');
 
 
 const app = express();
@@ -56,6 +57,8 @@ app.use('/multimodal', multimodalRoutes);
 app.use('/question', questionRoutes);
 app.use('/questions', questionsRoutes);
 console.log('✓ /questions 라우터 등록됨');
+app.use('/counselors', counselorsRoutes);
+console.log('✓ /counselors 라우터 등록됨');
 
 // 기본 라우트 (선택 사항)
 app.get('/', (req, res) => {
