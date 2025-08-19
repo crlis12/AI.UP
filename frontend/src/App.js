@@ -226,7 +226,7 @@ function App() {
               body: JSON.stringify({
                 questions,
                 reportInput: messageText || 'KDST 문제들로 아기 발달 보고서 작성',
-                reportConfig: { vendor: 'gemini', model: 'gemini-2.5-flash' },
+                reportConfig: { vendor: 'gemini', model: 'gemini-2.5-pro' },
                 reportSpec: { language: 'Korean', reportType: '대화 보고서' }
               })
             });
@@ -256,7 +256,7 @@ function App() {
           query: messageText || '',
           input: messageText || '',
           history,
-          config: { vendor: 'gemini', model: 'gemini-2.5-flash' },
+          config: { vendor: 'gemini', model: 'gemini-2.5-pro' },
           spec: { language: 'Korean', reportType: '대화 보고서' },
           limit: 5,
           score_threshold: 0.5

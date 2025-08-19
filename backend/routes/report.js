@@ -183,20 +183,21 @@ router.post('/rag-report', async (req, res) => {
       });
     }
 
-    // 2단계: 검색 결과를 컨텍스트로 변환
-    let ragContext = `[RAG 검색 결과 - "${query}"에 대한 유사한 일기들]\n`;
-    ragContext += `총 ${searchResult.total_found}개의 유사한 일기를 찾았습니다.\n\n`;
-
-    if (searchResult.results && Array.isArray(searchResult.results)) {
-      searchResult.results.forEach((result, index) => {
-        ragContext += `--- 일기 ${index + 1} ---\n`;
-        ragContext += `날짜: ${result.date || result.payload?.date || 'N/A'}\n`;
-        ragContext += `내용: ${result.combined_text || result.payload?.combined_text || result.text || 'N/A'}\n`;
-        if (result.score !== undefined) {
-          ragContext += `유사도 점수: ${result.score.toFixed(3)}\n`;
+    // 2단계: 검색 결과를 컨텍스트로 변환 (JSON 원문이 아닌 "YYYY-MM-DD: content" 라인들만)
+    let ragContext = '';
+    if (Array.isArray(searchResult.results)) {
+      const lines = [];
+      for (const item of searchResult.results) {
+        try {
+          const content = item?.content || item?.combined_text || item?.payload?.combined_text || item?.text || item?.payload?.text || item?.content_preview || '';
+          const normalized = String(content || '').trim();
+          if (!normalized) continue;
+          lines.push(`${normalized}`);
+        } catch (_) {
+          // 개별 항목 오류는 무시
         }
-        ragContext += '\n';
-      });
+      }
+      ragContext = lines.join('\n');
     }
 
     // 3단계: Report 에이전트 실행 (RAG 컨텍스트 포함)
@@ -410,42 +411,124 @@ router.post('/kdst-generate-report', async (req, res) => {
     }
     
     console.log(`[${new Date().toISOString()}] KDST RAG 컨텍스트 생성 완료`);
-    
-    // 3단계: ReportAgent로 보고서 생성
+
+    // 3단계: 사용자 입력 컨텍스트 구성
+    // 3-1) K-DST 문항 블록 (번호. 문항텍스트 형태로 나열)
+    const kdstLines = [];
+    if (Array.isArray(questions)) {
+      for (let i = 0; i < questions.length; i++) {
+        const q = questions[i];
+        try {
+          if (q && typeof q === 'object') {
+            const num = (q.question_number != null ? String(q.question_number) : String(i + 1)).trim();
+            const text = String(q.question_text || '').trim();
+            if (!text) continue;
+            kdstLines.push(`${num}. ${text}`);
+          } else {
+            const text = String(q || '').trim();
+            if (!text) continue;
+            kdstLines.push(`${i + 1}. ${text}`);
+          }
+        } catch (_) {
+          // 개별 항목 오류 무시
+        }
+      }
+    }
+
+    const kdstBlock = kdstLines.length > 0
+      ? `K-DST 문항:\n${kdstLines.join('\n')}`
+      : '';
+
+    // 3-2) 육아일기 문항 블록 (RAG로 추출된 본문 라인들)
+    let diaryBlock = '';
+    if (kdstRagContext && Array.isArray(kdstRagContext.rag_results)) {
+      const diaryLines = [];
+      for (const result of kdstRagContext.rag_results) {
+        const diaries = Array.isArray(result?.일기) ? result.일기 : [];
+        for (const d of diaries) {
+          try {
+            const content = d?.content || d?.text || d?.내용 || d?.combined_text || d?.payload?.combined_text || '';
+            const normalized = String(content || '').trim();
+            if (!normalized) continue;
+            diaryLines.push(`${normalized}`);
+          } catch (_) {
+            // 개별 항목 오류 무시
+          }
+        }
+      }
+      if (diaryLines.length > 0) {
+        diaryBlock = `육아일기 문항:\n${diaryLines.join('\n')}`;
+      }
+    }
+
+    // 3-3) 최종 사용자 컨텍스트 결합
+    const parts = [];
+    if (kdstBlock) parts.push(kdstBlock);
+    if (diaryBlock) parts.push(diaryBlock);
+    const humanContext = parts.join('\n\n');
+
+    // 4단계: ReportAgent로 보고서 생성
     const defaultReportConfig = {
       vendor: 'gemini',
-      model: 'gemini-2.5-flash',
-      temperature: 0.7,
+      model: 'gemini-2.5-pro',
+      temperature: 0,
       ...reportConfig
     };
     
     const defaultReportSpec = {
-      reportType: 'KDST Development Assessment Report',
-      audience: 'Child Development Professionals and Parents',
-      tone: 'Professional and Informative',
-      length: 'Comprehensive',
-      language: 'Korean',
-      format: 'Markdown',
-      includeSummary: true,
-      sections: [
-        'Executive Summary',
-        'KDST Question Analysis',
-        'Behavioral Observations',
-        'Development Assessment',
-        'Recommendations'
-      ],
+      reportType: `
+      지금부터 한국 영유아 발달검사 (K-DST) 체크리스트와 육아일기가 입력으로 주어집니다. 육아일기 내용을 바탕으로 K-DST 채점을 하고, 정해진 양식에 맞게 output을 출력하세요.\n
+      JSON 블럭 내 내용들은 한국어 위주로 출력하세요.\n
+
+      한국 영유아 발달선별검사(K-DST) 체크리스트 사용법:
+      각 월령에 해당하는 모든 항목을 확인하고, 아이의 수행 수준에 가장 가까운 곳에 표시하십시오. 아이가 특정 행동을 할 수 있는지 확실하지 않다면, 직접 시켜본 후 답하는 것이 좋습니다.\n
+      평가 기준이 문항들은 아이가 해당 행동을 **'할 수 있는지'**를 평가하는 것입니다. 예를 들어, 아이가 블록 쌓기가 가능하지만 집에 블록이 없거나 그 놀이를 즐겨 하지 않아 평소에 하지 않았더라도 '할 수 있다'로 평가해야 합니다.\n
+      잘 할 수 있다 (3점): 아이가 해당 행동을 능숙하게 수행합니다.\n
+      할 수 있는 편이다 (2점): 아이가 해당 행동을 어느 정도 수행하지만 완벽하지는 않습니다.\n
+      하지 못하는 편이다 (1점): 아이가 해당 행동을 거의 수행하지 못합니다.\n
+      전혀 할 수 없다 (0점): 아이가 해당 행동을 전혀 수행하지 못합니다.\n
+        
+      아래 Output Schema를 참고하여 출력하세요.\n
+      추가적으로 검사 섹션이 끝나면 마지막 블록에는 지금 당장 판별이 불가능한 내용을 정리해서 "requirtments"라는 이름으로 출력해주세요.\n
+      해당 섹션엔 부모에게 이런 부분을 살펴보고 일기에 적어두면 좋다고 권유해주세요.\n
+
+      # Output Schema (JSON)\n
+      The output must strictly adhere to the following JSON structure:\n
+      {\n
+        "child_name": "[아이 이름]",\n
+        "child_age_month": "[월령]",\n
+        "domains": [\n
+          {\n
+            "domain_id": 1,\n
+            "domain_name": "대근육운동",\n
+            "questions": [\n
+              { "score": <0, 1, 2, 3, or null>, "question": "가구나 벽에서 손을 떼고 5초 이상 혼자 서 있다." },\n
+              // ... other questions in this domain\n
+            ]\n
+          },
+          {\n
+            "domain_id": 2,\n
+            "domain_name": "소근육운동",\n
+            "questions": [\n
+              { "score": <0, 1, 2, 3, or null>, "question": "손잡이를 사용하여 컵을 잡는다." },\n
+              // ... other questions in this domain\n
+            ]\n
+          },\n
+          // ... other domains (인지, 언어, 사회성, 추가 질문)\n
+        ]\n
+      }\n
+  `,
       ...reportSpec
     };
     
     console.log(`[${new Date().toISOString()}] ReportAgent로 보고서 생성 시작...`);
-    
+
     const reportResult = await runReportAgent({
       input: reportInput,
       history: [],
-      context: {},
+      context: humanContext,
       config: defaultReportConfig,
-      spec: defaultReportSpec,
-      kdstRagContext: kdstRagContext
+      spec: defaultReportSpec
     });
     
     console.log(`[${new Date().toISOString()}] KDST 보고서 생성 완료`);

@@ -31,23 +31,17 @@ function formatObjectAsBullets(obj, indent = 0) {
 function buildSystemPrompt({ systemPrompt, spec, k_dst, kdstRagContext }) {
   const base = systemPrompt || 'You are a professional report writing assistant. Produce accurate, well-structured, and concise reports.';
   const lines = [base];
-  
-  // RAG 컨텍스트 활용 지침 추가
-  lines.push('\nWhen RAG context is provided (similar diary entries), use it to:');
-  lines.push('- Analyze patterns and trends from the provided diary entries');
-  lines.push('- Reference specific examples from the context when relevant');
-  lines.push('- Provide insights based on the historical data provided');
-  lines.push('- Ensure your analysis is grounded in the actual diary content');
-  
+
+  // 사용자가 제공하는 systemPrompt를 중심으로, 필요한 경우 spec 기반의 메타 지시만 추가
   if (spec?.reportType) lines.push(`Report type: ${spec.reportType}`);
   if (spec?.audience) lines.push(`Target audience: ${spec.audience}`);
   if (spec?.tone) lines.push(`Tone: ${spec.tone}`);
   if (spec?.length) lines.push(`Target length: ${spec.length}`);
   if (spec?.language) lines.push(`Language: ${spec.language}`);
-  if (spec?.format) lines.push(`Output format: ${spec.format} (use markdown if applicable)`);
+  if (spec?.format) lines.push(`Output format: ${spec.format}`);
   if (spec?.includeSummary) lines.push('Include an executive summary at the beginning.');
   if (spec?.citations) lines.push('Add citations or references when applicable.');
-  
+
   if (spec?.sections && Array.isArray(spec.sections) && spec.sections.length > 0) {
     lines.push('Required sections:');
     for (const s of spec.sections) {
@@ -55,48 +49,16 @@ function buildSystemPrompt({ systemPrompt, spec, k_dst, kdstRagContext }) {
     }
   }
 
-  // 판단 기준(K-DST) 섹션 주입
+  // 판단 기준(K-DST) 섹션 주입 (정적 가이드라인만 유지)
   if (k_dst && typeof k_dst === 'object') {
     lines.push('Decision criteria (K-DST):');
     const kd = formatObjectAsBullets(k_dst, 1);
     if (kd) lines.push(kd);
-    lines.push('Apply the above K-DST criteria consistently when analyzing and concluding.');
   }
-  
-  // KDST RAG 컨텍스트 섹션 주입
-  if (kdstRagContext && typeof kdstRagContext === 'object') {
-    lines.push('\nKDST RAG Analysis Context:');
-    lines.push('Use the following RAG search results as evidence for your report:');
-    
-    if (kdstRagContext.kdst_questions) {
-      lines.push('KDST Questions to analyze:');
-      kdstRagContext.kdst_questions.forEach((q, i) => {
-        lines.push(`- Question ${i + 1}: ${q}`);
-      });
-    }
-    
-    if (kdstRagContext.rag_results) {
-      lines.push('\nRAG Search Results (Related Diary Entries):');
-      kdstRagContext.rag_results.forEach((result, i) => {
-        lines.push(`\nQuestion ${i + 1}: ${result.문제}`);
-        if (result.일기 && result.일기.length > 0) {
-          lines.push('  Related diary entries:');
-          result.일기.forEach((diary, j) => {
-            lines.push(`    ${j + 1}. ${diary.date}: ${diary.text.substring(0, 100)}... (Similarity: ${diary.similarity.toFixed(4)})`);
-          });
-        } else {
-          lines.push('  No related diary entries found.');
-        }
-      });
-    }
-    
-    lines.push('\nInstructions for using RAG context:');
-    lines.push('- Reference specific diary entries when analyzing each KDST question');
-    lines.push('- Use the similarity scores to assess relevance of evidence');
-    lines.push('- Consider the chronological progression of behaviors across dates');
-    lines.push('- Base your conclusions on the actual observed behaviors in the diaries');
-  }
-  
+
+  // 주의: RAG로 수집된 컨텍스트(kdstRagContext 포함)는 시스템 프롬프트에 주입하지 않습니다.
+  // 해당 내용은 사용자 입력 컨텍스트(assistant 입력)로만 전달되어야 합니다.
+
   return lines.join('\n');
 }
 
@@ -114,7 +76,7 @@ async function reconstructLangChainHistory(history) {
 }
 
 async function runReportAgent({ input, history, context, config, spec, childrenContext, k_dst, kdstRagContext }) {
-  const { vendor = 'gemini', model = 'gemini-2.5-flash', temperature, systemPrompt } = config || {};
+  const { vendor = 'gemini', model = 'gemini-2.5-pro', temperature, systemPrompt } = config || {};
   if (String(vendor).toLowerCase() !== 'gemini') {
     throw new Error('현재 보고서 에이전트는 vendor=gemini만 지원합니다.');
   }

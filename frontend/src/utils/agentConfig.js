@@ -24,7 +24,7 @@ export const AGENTS = {
     label: '보고서 에이전트',
     description: '요약/보고서 생성 특화 에이전트',
     endpoint: '/report',
-    config: { model: 'gemini-2.5-flash', temperature: 0.0 },
+    config: { model: 'gemini-2.5-pro', temperature: 0.0 },
   },
   multimodalAgent: {
     label: '멀티모달 캡셔너',
