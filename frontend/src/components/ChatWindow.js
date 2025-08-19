@@ -25,15 +25,19 @@ function ChatWindow({ messages, onSendMessage: originalOnSendMessage }) {
     ) {
       const initialMessage = location.state?.initialMessage || '';
       const initialFile = location.state?.initialFile || null;
-      originalOnSendMessage(initialMessage, initialFile);
+      originalOnSendMessage(initialMessage, initialFile, childId);
       initialMessageSent.current = true;
       // 뒤로가기/새로고침 시 중복 방지
       navigate('.', { replace: true, state: {} });
     }
   }, [location, navigate, originalOnSendMessage]);
 
-  // 임시로 AI 연동 없이 원래 메시지 전송 함수 사용 (디버깅용)
-  const onSendMessage = originalOnSendMessage;
+
+
+  // childId를 포함하여 부모의 전송 핸들러 호출
+  const onSendMessage = (text, file) => {
+    return originalOnSendMessage(text, file, childId);
+  };
 
   // 대화 요약 및 저장 핸들러
   const handleSummarizeAndSave = async () => {

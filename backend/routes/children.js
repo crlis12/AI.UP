@@ -33,8 +33,14 @@ const uploadProfileImage = multer({
 });
 
 // 프로필 이미지 업로드 엔드포인트
-router.post('/upload-profile', (req, res) => {
-  uploadProfileImage.single('file')(req, res, (err) => {
+router.post('/:childId/upload-profile', (req, res) => {
+  const childId = req.params.childId;
+  
+  if (!childId) {
+    return res.status(400).json({ success: false, message: '아동 ID가 필요합니다.' });
+  }
+
+  uploadProfileImage.single('profile_image')(req, res, (err) => {
     if (err) {
       console.error('프로필 이미지 업로드 오류:', err);
       return res.status(400).json({ success: false, message: err.message || '업로드 실패' });
@@ -44,10 +50,32 @@ router.post('/upload-profile', (req, res) => {
       return res.status(400).json({ success: false, message: '업로드할 파일이 없습니다.' });
     }
 
-    const relativePath = `/uploads/children/${req.file.filename}`;
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const absoluteUrl = `${baseUrl}${relativePath}`;
-    return res.status(201).json({ success: true, url: absoluteUrl, path: relativePath });
+    const filename = req.file.filename;
+    
+    // DB에서 해당 자녀의 profile_image 필드 업데이트
+    const updateQuery = 'UPDATE children SET profile_image = ? WHERE id = ? AND is_active = TRUE';
+    db.query(updateQuery, [filename, childId], (dbErr, result) => {
+      if (dbErr) {
+        console.error('DB 업데이트 오류:', dbErr);
+        return res.status(500).json({ success: false, message: '데이터베이스 업데이트 실패' });
+      }
+      
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ success: false, message: '아동 정보를 찾을 수 없습니다.' });
+      }
+
+      const relativePath = `/uploads/children/${filename}`;
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const absoluteUrl = `${baseUrl}${relativePath}`;
+      
+      return res.status(200).json({ 
+        success: true, 
+        message: '프로필 이미지가 성공적으로 업로드되었습니다.',
+        url: absoluteUrl, 
+        path: relativePath,
+        filename: filename
+      });
+    });
   });
 });
 

@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db'); // DB 연결 가져오기
+const { spawn } = require('child_process');
+const path = require('path');
 
 // 테스트 라우트
 router.get('/test', (req, res) => {
@@ -284,6 +286,353 @@ router.get('/domains', (req, res) => {
     return res.status(500).json({
       success: false,
       message: '서버 오류가 발생했습니다.',
+    });
+  }
+});
+
+// KDST 질문에 대한 RAG 검색 API
+router.post('/kdst-rag', async (req, res) => {
+  try {
+    const { childId, questions } = req.body;
+    
+    console.log('🔍 KDST RAG 검색 API 호출됨');
+    console.log('   - childId:', childId);
+    console.log('   - questions 수:', questions?.length || 0);
+    
+    if (!childId || !questions || !Array.isArray(questions) || questions.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'childId와 questions 배열이 필요합니다.'
+      });
+    }
+    
+    // Python RAG 모듈 실행
+    const pythonScriptPath = path.join(__dirname, '..', 'search-engine-py', 'kdst_rag_module.py');
+    console.log('   - Python 스크립트 경로:', pythonScriptPath);
+    
+    // Python 프로세스 실행 (UTF-8 인코딩 설정)
+    const pythonProcess = spawn('python', [pythonScriptPath], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      cwd: path.join(__dirname, '..', 'search-engine-py'),
+      env: {
+        ...process.env,
+        'PYTHONIOENCODING': 'utf-8',
+        'PYTHONPATH': path.join(__dirname, '..', 'search-engine-py')
+      }
+    });
+    
+    let outputData = '';
+    let errorData = '';
+    
+    // 표준 출력 데이터 수집 (UTF-8 인코딩)
+    pythonProcess.stdout.on('data', (data) => {
+      outputData += data.toString('utf8');
+    });
+    
+    // 표준 에러 데이터 수집 (UTF-8 인코딩)
+    pythonProcess.stderr.on('data', (data) => {
+      errorData += data.toString('utf8');
+      console.error('Python stderr:', data.toString('utf8'));
+    });
+    
+    let isResponseSent = false;
+    
+    // 프로세스 종료 처리
+    pythonProcess.on('close', (code) => {
+      console.log('   - Python 프로세스 종료 코드:', code);
+      
+      if (isResponseSent) return;
+      
+      if (code !== 0) {
+        console.error('Python 프로세스 실행 실패:', errorData);
+        isResponseSent = true;
+        return res.status(500).json({
+          success: false,
+          message: `Python RAG 모듈 실행 실패 (코드: ${code})`,
+          error: errorData
+        });
+      }
+      
+      try {
+        // Python 출력 결과 파싱
+        const ragResult = JSON.parse(outputData);
+        console.log('✅ KDST RAG 검색 완료');
+        console.log('   - 성공:', ragResult.success);
+        console.log('   - 결과 수:', ragResult.results?.length || 0);
+        
+        isResponseSent = true;
+        return res.status(200).json({
+          success: true,
+          childId: childId,
+          message: 'KDST RAG 검색 완료',
+          ragResult: ragResult
+        });
+        
+      } catch (parseError) {
+        console.error('Python 출력 파싱 실패:', parseError);
+        console.error('Raw output:', outputData);
+        isResponseSent = true;
+        return res.status(500).json({
+          success: false,
+          message: 'RAG 결과 파싱 실패',
+          error: parseError.message,
+          rawOutput: outputData
+        });
+      }
+    });
+    
+    // Python 프로세스에 질문 데이터 전송 (UTF-8 인코딩)
+    const inputData = JSON.stringify({ questions: questions });
+    pythonProcess.stdin.write(inputData, 'utf8');
+    pythonProcess.stdin.end();
+    
+    // 타임아웃 설정 (30초)
+    const timeoutId = setTimeout(() => {
+      if (!pythonProcess.killed && !isResponseSent) {
+        pythonProcess.kill();
+        isResponseSent = true;
+        return res.status(408).json({
+          success: false,
+          message: 'RAG 검색 시간 초과'
+        });
+      }
+    }, 30000);
+    
+  } catch (error) {
+    console.error('KDST RAG API 오류:', error);
+    return res.status(500).json({
+      success: false,
+      message: '서버 오류가 발생했습니다.',
+      error: error.message
+    });
+  }
+});
+
+// 단일 KDST 질문에 대한 RAG 검색 API
+router.post('/kdst-rag/single', async (req, res) => {
+  try {
+    const { childId, question } = req.body;
+    
+    console.log('🔍 단일 KDST RAG 검색 API 호출됨');
+    console.log('   - childId:', childId);
+    console.log('   - question:', question);
+    
+    if (!childId || !question) {
+      return res.status(400).json({
+        success: false,
+        message: 'childId와 question이 필요합니다.'
+      });
+    }
+    
+    // 단일 질문을 배열로 변환하여 기존 API 재사용
+    req.body.questions = [question];
+    
+    // 기존 RAG API 로직 재사용 (위의 코드와 동일)
+    const pythonScriptPath = path.join(__dirname, '..', 'search-engine-py', 'kdst_rag_module.py');
+    
+    const pythonProcess = spawn('python', [pythonScriptPath], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      cwd: path.join(__dirname, '..', 'search-engine-py'),
+      env: {
+        ...process.env,
+        'PYTHONIOENCODING': 'utf-8',
+        'PYTHONPATH': path.join(__dirname, '..', 'search-engine-py')
+      }
+    });
+    
+    let outputData = '';
+    let errorData = '';
+    
+    pythonProcess.stdout.on('data', (data) => {
+      outputData += data.toString('utf8');
+    });
+    
+    pythonProcess.stderr.on('data', (data) => {
+      errorData += data.toString('utf8');
+    });
+    
+    let isSingleResponseSent = false;
+    
+    pythonProcess.on('close', (code) => {
+      if (isSingleResponseSent) return;
+      
+      if (code !== 0) {
+        isSingleResponseSent = true;
+        return res.status(500).json({
+          success: false,
+          message: `Python RAG 모듈 실행 실패 (코드: ${code})`,
+          error: errorData
+        });
+      }
+      
+      try {
+        const ragResult = JSON.parse(outputData);
+        console.log('✅ 단일 KDST RAG 검색 완료');
+        
+        // 첫 번째 결과만 반환 (단일 질문이므로)
+        const singleResult = ragResult.results?.[0] || null;
+        
+        isSingleResponseSent = true;
+        return res.status(200).json({
+          success: true,
+          childId: childId,
+          question: question,
+          message: '단일 KDST RAG 검색 완료',
+          result: singleResult
+        });
+        
+      } catch (parseError) {
+        isSingleResponseSent = true;
+        return res.status(500).json({
+          success: false,
+          message: 'RAG 결과 파싱 실패',
+          error: parseError.message
+        });
+      }
+    });
+    
+    const inputData = JSON.stringify({ questions: [question] });
+    pythonProcess.stdin.write(inputData, 'utf8');
+    pythonProcess.stdin.end();
+    
+    const singleTimeoutId = setTimeout(() => {
+      if (!pythonProcess.killed && !isSingleResponseSent) {
+        pythonProcess.kill();
+        isSingleResponseSent = true;
+        return res.status(408).json({
+          success: false,
+          message: 'RAG 검색 시간 초과'
+        });
+      }
+    }, 30000);
+    
+  } catch (error) {
+    console.error('단일 KDST RAG API 오류:', error);
+    return res.status(500).json({
+      success: false,
+      message: '서버 오류가 발생했습니다.',
+      error: error.message
+    });
+  }
+});
+
+// KDST RAG 검색 결과를 JSON 파일로 저장하는 API
+router.post('/kdst-rag/save-json', async (req, res) => {
+  try {
+    const { childId, questions, outputFilename } = req.body;
+    
+    console.log('💾 KDST RAG JSON 저장 API 호출됨');
+    console.log('   - childId:', childId);
+    console.log('   - questions 수:', questions?.length || 0);
+    console.log('   - 출력 파일명:', outputFilename || 'auto-generated');
+    
+    if (!childId || !questions || !Array.isArray(questions) || questions.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'childId와 questions 배열이 필요합니다.'
+      });
+    }
+    
+    // Python JSON 저장 스크립트 실행
+    const pythonScriptPath = path.join(__dirname, '..', 'search-engine-py', 'save_kdst_rag_results.py');
+    console.log('   - Python 스크립트 경로:', pythonScriptPath);
+    
+    // Python 프로세스 실행 (UTF-8 인코딩 설정)
+    const pythonProcess = spawn('python', [pythonScriptPath], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      cwd: path.join(__dirname, '..', 'search-engine-py'),
+      env: {
+        ...process.env,
+        'PYTHONIOENCODING': 'utf-8',
+        'PYTHONPATH': path.join(__dirname, '..', 'search-engine-py')
+      }
+    });
+    
+    let outputData = '';
+    let errorData = '';
+    let isJsonResponseSent = false;
+    
+    // 표준 출력 데이터 수집 (UTF-8 인코딩)
+    pythonProcess.stdout.on('data', (data) => {
+      outputData += data.toString('utf8');
+    });
+    
+    // 표준 에러 데이터 수집 (UTF-8 인코딩)
+    pythonProcess.stderr.on('data', (data) => {
+      errorData += data.toString('utf8');
+      console.error('Python stderr:', data.toString('utf8'));
+    });
+    
+    // 프로세스 종료 처리
+    pythonProcess.on('close', (code) => {
+      console.log('   - Python 프로세스 종료 코드:', code);
+      
+      if (isJsonResponseSent) return;
+      
+      if (code !== 0) {
+        console.error('Python 프로세스 실행 실패:', errorData);
+        isJsonResponseSent = true;
+        return res.status(500).json({
+          success: false,
+          message: `Python JSON 저장 스크립트 실행 실패 (코드: ${code})`,
+          error: errorData
+        });
+      }
+      
+      try {
+        // Python 출력 결과 파싱
+        const saveResult = JSON.parse(outputData);
+        console.log('✅ KDST RAG JSON 저장 완료');
+        console.log('   - 성공:', saveResult.success);
+        console.log('   - 파일명:', saveResult.output_filename);
+        
+        isJsonResponseSent = true;
+        return res.status(200).json({
+          success: true,
+          childId: childId,
+          message: 'KDST RAG 결과 JSON 파일 저장 완료',
+          saveResult: saveResult
+        });
+        
+      } catch (parseError) {
+        console.error('Python 출력 파싱 실패:', parseError);
+        console.error('Raw output:', outputData);
+        isJsonResponseSent = true;
+        return res.status(500).json({
+          success: false,
+          message: 'JSON 저장 결과 파싱 실패',
+          error: parseError.message,
+          rawOutput: outputData
+        });
+      }
+    });
+    
+    // Python 프로세스에 데이터 전송 (UTF-8 인코딩)
+    const inputData = JSON.stringify({ 
+      questions: questions,
+      output_filename: outputFilename 
+    });
+    pythonProcess.stdin.write(inputData, 'utf8');
+    pythonProcess.stdin.end();
+    
+    // 타임아웃 설정 (60초 - JSON 저장은 시간이 더 걸릴 수 있음)
+    const jsonTimeoutId = setTimeout(() => {
+      if (!pythonProcess.killed && !isJsonResponseSent) {
+        pythonProcess.kill();
+        isJsonResponseSent = true;
+        return res.status(408).json({
+          success: false,
+          message: 'JSON 저장 시간 초과'
+        });
+      }
+    }, 60000);
+    
+  } catch (error) {
+    console.error('KDST RAG JSON 저장 API 오류:', error);
+    return res.status(500).json({
+      success: false,
+      message: '서버 오류가 발생했습니다.',
+      error: error.message
     });
   }
 });

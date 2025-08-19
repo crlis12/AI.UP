@@ -84,7 +84,8 @@ const DiaryEditPage = () => {
         body: JSON.stringify({
           date: diary.date,
           content: diary.content,
-        }),
+          child_id: child?.id
+        })
       });
 
       const data = await response.json();

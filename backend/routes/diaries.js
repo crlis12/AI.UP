@@ -5,6 +5,7 @@ const db = require('../db');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { spawn } = require('child_process');
 
 // multer 설정: uploads/diaries 폴더에 저장
 const storage = multer.diskStorage({
@@ -38,10 +39,54 @@ try {
   db.query(ensureDiaryFilesTableSql, () => {});
 } catch (_) {}
 
-// URL 길이 대비: file_path 컬럼 확장 시도 (이미 크면 무시)
-try {
-  db.query('ALTER TABLE diary_files MODIFY file_path VARCHAR(2048)', () => {});
-} catch (_) {}
+// 벡터 임베딩 생성 함수
+async function generateVectorEmbedding(diaryData) {
+  return new Promise((resolve, reject) => {
+    const pythonScriptPath = path.join(__dirname, '..', 'search-engine-py', 'upsert_diary.py');
+    
+    const pythonProcess = spawn('python', [pythonScriptPath], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      cwd: path.join(__dirname, '..', 'search-engine-py'),
+      env: { ...process.env, PYTHONIOENCODING: 'utf-8' }
+    });
+
+    let dataString = '';
+    let errorString = '';
+
+    pythonProcess.stdout.on('data', (data) => {
+      dataString += data.toString();
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+      errorString += data.toString();
+    });
+
+    pythonProcess.on('close', (code) => {
+      if (code !== 0) {
+        console.error('Python 스크립트 오류:', errorString);
+        return reject(new Error(`Python 스크립트 실행 실패 (code: ${code}): ${errorString}`));
+      }
+
+      try {
+        const result = JSON.parse(dataString.trim());
+        resolve(result);
+      } catch (parseError) {
+        console.error('JSON 파싱 오류:', parseError, 'Raw output:', dataString);
+        reject(new Error(`결과 파싱 실패: ${parseError.message}`));
+      }
+    });
+
+    pythonProcess.on('error', (error) => {
+      console.error('Python 프로세스 실행 오류:', error);
+      reject(error);
+    });
+
+    // 일기 데이터를 JSON으로 전송 (UTF-8 인코딩)
+    const inputData = JSON.stringify(diaryData);
+    pythonProcess.stdin.write(inputData, 'utf8');
+    pythonProcess.stdin.end();
+  });
+}
 
 // 특정 아동의 모든 일지 조회 (새 스키마: date, content)
 router.get('/child/:childId', (req, res) => {
@@ -151,16 +196,40 @@ router.post('/', upload.array('files', 10), (req, res) => {
     ON DUPLICATE KEY UPDATE content = VALUES(content), updated_at = CURRENT_TIMESTAMP
   `;
 
-  db.query(upsert, [child_id, dateOnly, content], (err, result) => {
+  db.query(upsert, [child_id, dateOnly, content], async (err, result) => {
     if (err) {
       console.error('일지 생성/업데이트 DB 오류:', err);
       return res
         .status(500)
         .json({ success: false, message: '일지 저장 중 서버 오류가 발생했습니다.' });
     }
+    
     // 업서트 후 diary id 확보
     const maybeId = result.insertId;
-    const fetchIdAndHandleFiles = (diaryId) => {
+    const fetchIdAndHandleFiles = async (diaryId) => {
+      // 벡터 임베딩 생성 (비동기, 실패해도 일기 저장은 성공으로 처리)
+      try {
+        const embeddingData = {
+          id: diaryId,
+          content: content,
+          date: dateOnly,
+          child_id: child_id
+        };
+        
+        console.log('벡터 임베딩 생성 시작:', embeddingData);
+        const embeddingResult = await generateVectorEmbedding(embeddingData);
+        console.log('벡터 임베딩 생성 결과:', embeddingResult);
+        
+        if (embeddingResult.success) {
+          console.log('✅ 벡터 임베딩 생성 성공:', diaryId);
+        } else {
+          console.warn('⚠️ 벡터 임베딩 생성 실패:', embeddingResult.message);
+        }
+      } catch (embeddingError) {
+        console.error('❌ 벡터 임베딩 생성 중 오류:', embeddingError.message);
+        // 벡터 임베딩 실패는 로그만 남기고 계속 진행
+      }
+      
       const files = Array.isArray(req.files) ? req.files : [];
       if (files.length === 0) {
         return res.status(201).json({
@@ -225,34 +294,30 @@ router.post('/', upload.array('files', 10), (req, res) => {
     };
 
     if (maybeId && maybeId > 0) {
-      fetchIdAndHandleFiles(maybeId);
+      await fetchIdAndHandleFiles(maybeId);
     } else {
-      db.query(
-        'SELECT id FROM diaries WHERE child_id = ? AND date = ? LIMIT 1',
-        [child_id, dateOnly],
-        (qErr, rows) => {
-          if (qErr || rows.length === 0) {
-            return res.status(201).json({ success: true, message: '일지가 저장되었습니다.' });
-          }
-          fetchIdAndHandleFiles(rows[0].id);
+      db.query('SELECT id FROM diaries WHERE child_id = ? AND date = ? LIMIT 1', [child_id, dateOnly], async (qErr, rows) => {
+        if (qErr || rows.length === 0) {
+          return res.status(201).json({ success: true, message: '일지가 저장되었습니다.' });
         }
-      );
+        await fetchIdAndHandleFiles(rows[0].id);
+      });
     }
   });
 });
 
 // 일기 수정
-router.put('/:diaryId', (req, res) => {
+router.put('/:diaryId', async (req, res) => {
   const { diaryId } = req.params;
-  const { date, content } = req.body;
+  const { date, content, child_id } = req.body;
 
   if (!date || !content) {
     return res.status(400).json({ success: false, message: '날짜와 내용은 필수입니다.' });
   }
 
   const query = 'UPDATE diaries SET date = ?, content = ?, updated_at = NOW() WHERE id = ?';
-
-  db.query(query, [date, content, diaryId], (err, result) => {
+  
+  db.query(query, [date, content, diaryId], async (err, result) => {
     if (err) {
       console.error('일기 수정 DB 오류:', err);
       return res
@@ -263,21 +328,93 @@ router.put('/:diaryId', (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: '일기를 찾을 수 없습니다.' });
     }
-
-    res.json({
-      success: true,
-      message: '일기가 성공적으로 수정되었습니다.',
+    
+    // 벡터 임베딩 업데이트 (비동기, 실패해도 일기 수정은 성공으로 처리)
+    try {
+      const embeddingData = {
+        id: parseInt(diaryId),
+        content: content,
+        date: date,
+        child_id: child_id
+      };
+      
+      console.log('벡터 임베딩 업데이트 시작:', embeddingData);
+      const embeddingResult = await generateVectorEmbedding(embeddingData);
+      console.log('벡터 임베딩 업데이트 결과:', embeddingResult);
+      
+      if (embeddingResult.success) {
+        console.log('✅ 벡터 임베딩 업데이트 성공:', diaryId);
+      } else {
+        console.warn('⚠️ 벡터 임베딩 업데이트 실패:', embeddingResult.message);
+      }
+    } catch (embeddingError) {
+      console.error('❌ 벡터 임베딩 업데이트 중 오류:', embeddingError.message);
+      // 벡터 임베딩 실패는 로그만 남기고 계속 진행
+    }
+    
+    res.json({ 
+      success: true, 
+      message: '일기가 성공적으로 수정되었습니다.'
     });
   });
 });
 
+// 벡터 임베딩 삭제 함수
+async function deleteVectorEmbedding(diaryId) {
+  return new Promise((resolve, reject) => {
+    const pythonScriptPath = path.join(__dirname, '..', 'search-engine-py', 'delete_diary.py');
+    
+    const pythonProcess = spawn('python', [pythonScriptPath], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      cwd: path.join(__dirname, '..', 'search-engine-py'),
+      env: { ...process.env, PYTHONIOENCODING: 'utf-8' }
+    });
+
+    let dataString = '';
+    let errorString = '';
+
+    pythonProcess.stdout.on('data', (data) => {
+      dataString += data.toString();
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+      errorString += data.toString();
+    });
+
+    pythonProcess.on('close', (code) => {
+      if (code !== 0) {
+        console.error('Python 삭제 스크립트 오류:', errorString);
+        return reject(new Error(`Python 삭제 스크립트 실행 실패 (code: ${code}): ${errorString}`));
+      }
+
+      try {
+        const result = JSON.parse(dataString.trim());
+        resolve(result);
+      } catch (parseError) {
+        console.error('JSON 파싱 오류:', parseError, 'Raw output:', dataString);
+        reject(new Error(`결과 파싱 실패: ${parseError.message}`));
+      }
+    });
+
+    pythonProcess.on('error', (error) => {
+      console.error('Python 삭제 프로세스 실행 오류:', error);
+      reject(error);
+    });
+
+    // 일기 ID를 JSON으로 전송 (UTF-8 인코딩)
+    const inputData = JSON.stringify({ diary_id: parseInt(diaryId) });
+    pythonProcess.stdin.write(inputData, 'utf8');
+    pythonProcess.stdin.end();
+  });
+}
+
 // 일기 삭제
-router.delete('/:diaryId', (req, res) => {
+router.delete('/:diaryId', async (req, res) => {
   const { diaryId } = req.params;
 
   const query = 'DELETE FROM diaries WHERE id = ?';
-
-  db.query(query, [diaryId], (err, result) => {
+  
+  db.query(query, [diaryId], async (err, result) => {
     if (err) {
       console.error('일기 삭제 DB 오류:', err);
       return res
@@ -288,10 +425,26 @@ router.delete('/:diaryId', (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: '일기를 찾을 수 없습니다.' });
     }
-
-    res.json({
-      success: true,
-      message: '일기가 성공적으로 삭제되었습니다.',
+    
+    // 벡터 임베딩 삭제 (비동기, 실패해도 일기 삭제는 성공으로 처리)
+    try {
+      console.log('벡터 임베딩 삭제 시작:', diaryId);
+      const embeddingResult = await deleteVectorEmbedding(diaryId);
+      console.log('벡터 임베딩 삭제 결과:', embeddingResult);
+      
+      if (embeddingResult.success) {
+        console.log('✅ 벡터 임베딩 삭제 성공:', diaryId);
+      } else {
+        console.warn('⚠️ 벡터 임베딩 삭제 실패:', embeddingResult.message);
+      }
+    } catch (embeddingError) {
+      console.error('❌ 벡터 임베딩 삭제 중 오류:', embeddingError.message);
+      // 벡터 임베딩 실패는 로그만 남기고 계속 진행
+    }
+    
+    res.json({ 
+      success: true, 
+      message: '일기가 성공적으로 삭제되었습니다.'
     });
   });
 });

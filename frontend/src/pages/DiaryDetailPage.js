@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { FiChevronLeft } from 'react-icons/fi';
+import API_BASE from '../utils/api'; // API_BASE import 추가
 
 function DiaryDetailPage() {
   const { diaryId } = useParams();
@@ -21,9 +22,7 @@ function DiaryDetailPage() {
     const fetchDiaryDetail = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/${diaryId}`
-        );
+        const response = await fetch(`${API_BASE}/diaries/${diaryId}`);
         const data = await response.json();
 
         if (data.success) {

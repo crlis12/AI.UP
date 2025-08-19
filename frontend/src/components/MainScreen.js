@@ -1,5 +1,6 @@
 // src/components/MainScreen.js
 
+/* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import API_BASE, { questionsAPI } from '../utils/api';
 import '../App.css';
@@ -128,270 +129,397 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
       age--;
     }
-
     return age;
   };
 
-  // 개월 수 계산 (생후 N개월)
-  const calculateMonths = (birthDate) => {
-    if (!birthDate) return 0;
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let months =
-      (today.getFullYear() - birth.getFullYear()) * 12 + (today.getMonth() - birth.getMonth());
-    if (today.getDate() < birth.getDate()) {
-      months -= 1;
-    }
-    return Math.max(0, months);
-  };
-
-  // 아동 정보 페이지로 이동하는 함수
-  const handleAddChildClick = () => {
-    navigate('/child-info');
-  };
-
-  // 현재 선택된 아동 정보 편집 페이지로 이동
-  const handleEditChildClick = () => {
-    if (!children || children.length === 0) return;
-    const child = children[currentChildIndex];
-    if (!child) return;
-    navigate('/child-info', {
-      state: {
-        mode: 'edit',
-        childId: child.id,
-        child: {
-          name: child.name || '',
-          gender: child.gender || '',
-          birthdate: child.birth_date || '',
-          weight: child.weight || '',
-          height: child.height || '',
-          notes: child.special_needs || '',
-          profile_image: child.profile_image || '',
-        },
-      },
-    });
-  };
-
-  // 이전/다음 자녀로 이동
-  // 자녀 이전/다음 전환 UI 미사용으로 핸들러 제거
-
-  const handleSelectChildIndex = async (index) => {
-    if (index < 0 || index >= children.length) return;
-    setCurrentChildIndex(index);
-    const newChildId = children[index].id;
-    const newChildName = children[index].name;
-    localStorage.setItem('currentChildId', newChildId);
-    await fetchDiaries(newChildId);
-    // 질문 데이터는 useEffect에서 자동으로 로드됨
-    setIsChildMenuOpen(false);
-  };
-
-  const toggleChildMenu = () => {
-    if (children.length === 0) return;
-    setIsChildMenuOpen((prev) => !prev);
-    // 스크롤 잠금/해제
-    const body = document.body;
-    if (!isChildMenuOpen) {
-      body.style.overflow = 'hidden';
-    } else {
-      body.style.overflow = '';
-    }
-  };
-
-  // 특정 자녀의 최신 일지를 불러오는 함수
-  const fetchDiaries = async (childId) => {
-    try {
-      const diaryResponse = await fetch(`${API_BASE}/diaries/child/${childId}`);
-      const diaryData = await diaryResponse.json();
-
-      if (diaryData.success && diaryData.diaries.length > 0) {
-        setDiaries(diaryData.diaries);
-      } else {
-        setDiaries([]);
-      }
-    } catch (error) {
-      console.error(`${childId} 자녀의 일지 조회 오류:`, error);
-      setDiaries([]);
-    }
-  };
-
-  // 자녀별 질문 데이터를 불러오는 함수
-  const fetchChildQuestions = useCallback(async (childId, childName) => {
-    if (!childId) {
-      console.log('❌ childId가 없습니다. 질문 데이터를 조회하지 않습니다.');
-      return;
-    }
-
-    try {
-      console.log('🔍 [메인페이지] 자녀 질문 데이터 조회 시작');
-      console.log('   - 자녀 ID:', childId);
-      console.log('   - 자녀 이름:', childName);
-      console.log('   - API 호출 중...');
-
-      const questionsData = await questionsAPI.getQuestionsForChild(childId);
-
-      console.log('✅ [메인페이지] 자녀 질문 데이터 조회 성공!');
-      console.log('   - 전체 응답 데이터:', questionsData);
-
-      if (questionsData.child) {
-        console.log('👶 자녀 정보:');
-        console.log('   - 이름:', questionsData.child.name);
-        console.log('   - 나이(개월):', questionsData.child.ageInMonths);
-      }
-
-      // 안전한 데이터 확인
-      console.log('📊 questionsData 상세 정보:');
-      console.log('   - questionsData:', questionsData);
-      console.log('   - questionsData.questions:', questionsData?.questions);
-      console.log('   - questions 타입:', typeof questionsData?.questions);
-      console.log('   - questions 길이:', questionsData?.questions?.length);
-
-      if (
-        questionsData &&
-        questionsData.questions &&
-        Array.isArray(questionsData.questions) &&
-        questionsData.questions.length > 0
-      ) {
-        console.log('📝 조회된 질문 수:', questionsData.questions.length + '개');
-        console.log('📋 질문 목록:');
-
-        // 발달 영역별로 그룹핑하여 출력
-        const questionsByDomain = {};
-
-        try {
-          questionsData.questions.forEach((q, index) => {
-            console.log('   - 질문 처리 중:', index, q);
-
-            const domainName = q?.domain_name || '알 수 없는 영역';
-
-            if (!questionsByDomain[domainName]) {
-              questionsByDomain[domainName] = [];
-            }
-            questionsByDomain[domainName].push(q);
-          });
-
-          Object.keys(questionsByDomain).forEach((domainName) => {
-            console.log(
-              '🎯 [' + domainName + '] 영역 (' + questionsByDomain[domainName].length + '개 질문):'
-            );
-
-            questionsByDomain[domainName].forEach((q, idx) => {
-              console.log(
-                '   ' +
-                  (idx + 1) +
-                  '. [ID: ' +
-                  (q?.question_id || 'N/A') +
-                  '] ' +
-                  (q?.question_text || '질문 없음')
-              );
-
-              if (q?.question_note) {
-                console.log('      💡 참고: ' + q.question_note);
-              }
-              if (q?.is_additional) {
-                console.log(
-                  '      ➕ 추가 질문 (카테고리: ' + (q.additional_category || 'N/A') + ')'
-                );
-              }
-            });
-          });
-        } catch (groupingError) {
-          console.error('❌ 질문 그룹핑 중 오류:', groupingError);
-          console.log('📝 전체 질문 목록 (그룹핑 없이):');
-          questionsData.questions.forEach((q, idx) => {
-            console.log('   ' + (idx + 1) + '. ' + (q?.question_text || '질문 없음'));
-          });
+    // 개월 수 계산 (생후 N개월)
+    const calculateMonths = (birthDate) => {
+        if (!birthDate) return 0;
+        const today = new Date();
+        const birth = new Date(birthDate);
+        let months = (today.getFullYear() - birth.getFullYear()) * 12 + (today.getMonth() - birth.getMonth());
+        if (today.getDate() < birth.getDate()) {
+            months -= 1;
         }
-      } else {
-        console.log('⚠️ 해당 자녀의 나이에 맞는 질문이 없습니다.');
-        console.log('   - questionsData 존재:', !!questionsData);
-        console.log('   - questions 존재:', !!questionsData?.questions);
-        console.log('   - questions 배열 여부:', Array.isArray(questionsData?.questions));
-        console.log('   - questions 길이:', questionsData?.questions?.length || 0);
-      }
-
-      setChildQuestions(questionsData.questions || []);
-    } catch (error) {
-      console.error('❌ [메인페이지] 자녀 질문 데이터 조회 실패:');
-      console.error('   - 오류 메시지:', error.message);
-      console.error('   - 전체 오류:', error);
-      // 실패해도 메인페이지는 계속 사용 가능하도록 빈 배열 설정
-      setChildQuestions([]);
-    }
-  }, []);
-
-  // 채팅 시작 핸들러 (현재 사용하지 않으므로 주석 처리)
-  // const handleStartChat = () => {
-  //     if (children.length > 0 && currentChildIndex >= 0) {
-  //         const childId = children[currentChildIndex].id;
-  //         navigate(`/chat/${childId}`);
-  //     } else {
-  //         alert("먼저 아이를 등록해주세요.");
-  //         navigate('/child-info');
-  //     }
-  // };
-
-  // 현재 선택된 자녀 정보 (현재 사용하지 않으므로 주석 처리)
-  // const currentChild = children[currentChildIndex];
-
-  // 컴포넌트 마운트 시 자녀 목록 및 첫 자녀의 일지 조회
-  useEffect(() => {
-    if (currentUser) {
-      fetchChildrenAndDiaries();
-    }
-  }, [currentUser, fetchChildrenAndDiaries]);
-
-  // 자녀가 변경될 때마다 질문 데이터 로드
-  useEffect(() => {
-    console.log('🔄 useEffect 실행됨 - 자녀 질문 데이터 로드 시도');
-    console.log('   - children.length:', children.length);
-    console.log('   - currentChildIndex:', currentChildIndex);
-    console.log('   - children:', children);
-
-    if (children.length > 0 && currentChildIndex >= 0) {
-      const currentChild = children[currentChildIndex];
-      console.log('   - currentChild:', currentChild);
-      if (currentChild) {
-        console.log('✅ fetchChildQuestions 호출 시작!');
-        fetchChildQuestions(currentChild.id, currentChild.name);
-      } else {
-        console.log('❌ currentChild가 없습니다');
-      }
-    } else {
-      console.log('❌ 조건 불만족 - children 없거나 currentChildIndex 잘못됨');
-    }
-  }, [children, currentChildIndex, fetchChildQuestions]);
-
-  // 외부 클릭으로는 닫히지 않도록 변경 (토글 버튼/항목 선택 시에만 닫힘)
-
-  // 드롭다운이 닫힐 때 스크롤 잠금 해제 보장
-  useEffect(() => {
-    if (!isChildMenuOpen) {
-      document.body.style.overflow = '';
-    }
-  }, [isChildMenuOpen]);
-
-  // 언마운트 시 스크롤 잠금 해제 보장
-  useEffect(() => {
-    return () => {
-      document.body.style.overflow = '';
+        return Math.max(0, months);
     };
-  }, []);
 
-  // 필요 시 디버깅 로그 사용
+    // 아동 정보 페이지로 이동하는 함수
+    const handleAddChildClick = () => {
+        navigate('/child-info');
+    };
 
-  // 날짜별로 유일한 최신 일지만 필터링
-  const uniqueDiaries = [];
-  if (diaries.length > 0) {
-    const seenDates = new Set();
-    for (const diary of diaries) {
-      const diaryDate = new Date(diary.date).toLocaleDateString('ko-KR');
-      if (!seenDates.has(diaryDate)) {
-        uniqueDiaries.push(diary);
-        seenDates.add(diaryDate);
-      }
+    // 현재 선택된 아동 정보 편집 페이지로 이동
+    const handleEditChildClick = () => {
+        if (!children || children.length === 0) return;
+        const child = children[currentChildIndex];
+        if (!child) return;
+        navigate('/child-info', {
+            state: {
+                mode: 'edit',
+                childId: child.id,
+                child: {
+                    name: child.name || '',
+                    gender: child.gender || '',
+                    birthdate: child.birth_date || '',
+                    weight: child.weight || '',
+                    height: child.height || '',
+                    notes: child.special_needs || '',
+                    profile_image: child.profile_image || '',
+                },
+            },
+        });
+    };
+
+    // 이전/다음 자녀로 이동
+    // 자녀 이전/다음 전환 UI 미사용으로 핸들러 제거
+
+    const handleSelectChildIndex = async (index) => {
+        if (index < 0 || index >= children.length) return;
+        setCurrentChildIndex(index);
+        const newChildId = children[index].id;
+        const newChildName = children[index].name;
+        localStorage.setItem('currentChildId', newChildId);
+        await fetchDiaries(newChildId);
+        // 질문 데이터는 useEffect에서 자동으로 로드됨
+        setIsChildMenuOpen(false);
+    };
+
+    const toggleChildMenu = () => {
+        if (children.length === 0) return;
+        setIsChildMenuOpen(prev => !prev);
+        // 스크롤 잠금/해제
+        const body = document.body;
+        if (!isChildMenuOpen) {
+            body.style.overflow = 'hidden';
+        } else {
+            body.style.overflow = '';
+        }
+    };
+
+    // 특정 자녀의 최신 일지를 불러오는 함수
+    const fetchDiaries = async (childId) => {
+        try {
+            const diaryResponse = await fetch(`${API_BASE}/diaries/child/${childId}`);
+            const diaryData = await diaryResponse.json();
+
+            if (diaryData.success && diaryData.diaries.length > 0) {
+                setDiaries(diaryData.diaries);
+            } else {
+                setDiaries([]);
+            }
+        } catch (error) {
+            console.error(`${childId} 자녀의 일지 조회 오류:`, error);
+            setDiaries([]);
+        }
+    };
+
+    // 자녀별 질문 데이터를 불러오는 함수
+    const fetchChildQuestions = useCallback(async (childId, childName) => {
+        if (!childId) {
+            console.log('❌ childId가 없습니다. 질문 데이터를 조회하지 않습니다.');
+            return;
+        }
+        
+        try {
+            console.log('🔍 [메인페이지] 자녀 질문 데이터 조회 시작');
+            console.log('   - 자녀 ID:', childId);
+            console.log('   - 자녀 이름:', childName);
+            console.log('   - API 호출 중...');
+            
+            const questionsData = await questionsAPI.getQuestionsForChild(childId);
+            
+            console.log('✅ [메인페이지] 자녀 질문 데이터 조회 성공!');
+            console.log('   - 전체 응답 데이터:', questionsData);
+            
+            if (questionsData.child) {
+                console.log('👶 자녀 정보:');
+                console.log('   - 이름:', questionsData.child.name);
+                console.log('   - 나이(개월):', questionsData.child.ageInMonths);
+            }
+            
+                    // 안전한 데이터 확인
+        console.log('📊 questionsData 상세 정보:');
+        console.log('   - questionsData:', questionsData);
+        console.log('   - questionsData.questions:', questionsData?.questions);
+        console.log('   - questions 타입:', typeof questionsData?.questions);
+        console.log('   - questions 길이:', questionsData?.questions?.length);
+        
+        if (questionsData && questionsData.questions && Array.isArray(questionsData.questions) && questionsData.questions.length > 0) {
+            console.log('📝 조회된 질문 수:', questionsData.questions.length + '개');
+            console.log('📋 질문 목록:');
+            
+            // 발달 영역별로 그룹핑하여 출력
+            const questionsByDomain = {};
+            
+            try {
+                questionsData.questions.forEach((q, index) => {
+                    console.log('   - 질문 처리 중:', index, q);
+                    
+                    const domainName = q?.domain_name || '알 수 없는 영역';
+                    
+                    if (!questionsByDomain[domainName]) {
+                        questionsByDomain[domainName] = [];
+                    }
+                    questionsByDomain[domainName].push(q);
+                });
+                
+                Object.keys(questionsByDomain).forEach(domainName => {
+                    console.log('🎯 [' + domainName + '] 영역 (' + questionsByDomain[domainName].length + '개 질문):');
+                    
+                    questionsByDomain[domainName].forEach((q, idx) => {
+                        console.log('   ' + (idx + 1) + '. [ID: ' + (q?.question_id || 'N/A') + '] ' + (q?.question_text || '질문 없음'));
+                        
+                        if (q?.question_note) {
+                            console.log('      💡 참고: ' + q.question_note);
+                        }
+                        if (q?.is_additional) {
+                            console.log('      ➕ 추가 질문 (카테고리: ' + (q.additional_category || 'N/A') + ')');
+                        }
+                    });
+                });
+            } catch (groupingError) {
+                console.error('❌ 질문 그룹핑 중 오류:', groupingError);
+                console.log('📝 전체 질문 목록 (그룹핑 없이):');
+                questionsData.questions.forEach((q, idx) => {
+                    console.log('   ' + (idx + 1) + '. ' + (q?.question_text || '질문 없음'));
+                });
+            }
+        } else {
+            console.log('⚠️ 해당 자녀의 나이에 맞는 질문이 없습니다.');
+            console.log('   - questionsData 존재:', !!questionsData);
+            console.log('   - questions 존재:', !!questionsData?.questions);
+            console.log('   - questions 배열 여부:', Array.isArray(questionsData?.questions));
+            console.log('   - questions 길이:', questionsData?.questions?.length || 0);
+        }
+            
+            setChildQuestions(questionsData.questions || []);
+            
+            // KDST RAG 사전 검색/JSON 저장은 무거워서 기본 비활성화
+            // 필요 시 아래 두 줄의 주석을 해제하세요
+            // await performKdstRagSearch(childId, questionsData.questions);
+            // await saveKdstRagResultsToJson(childId, questionsData.questions);
+            
+        } catch (error) {
+            console.error('❌ [메인페이지] 자녀 질문 데이터 조회 실패:');
+            console.error('   - 오류 메시지:', error.message);
+            console.error('   - 전체 오류:', error);
+            // 실패해도 메인페이지는 계속 사용 가능하도록 빈 배열 설정
+            setChildQuestions([]);
+        }
+    }, []);
+
+    // KDST RAG 검색 수행 함수
+    const performKdstRagSearch = useCallback(async (childId, questions) => {
+        if (!childId || !questions || questions.length === 0) {
+            console.log('❌ KDST RAG 검색 조건 불충족');
+            return;
+        }
+        
+        try {
+            console.log('🔍 [메인페이지] KDST RAG 검색 시작');
+            console.log('   - childId:', childId);
+            console.log('   - 질문 수:', questions.length);
+            
+            // 질문 텍스트만 추출
+            const questionTexts = questions.map(q => q.question_text).filter(text => text && text.trim());
+            
+            if (questionTexts.length === 0) {
+                console.log('❌ 검색할 질문 텍스트가 없습니다');
+                return;
+            }
+            
+            console.log('📝 검색할 질문들:', questionTexts);
+            
+            // RAG 검색 API 호출
+            const ragResults = await questionsAPI.getKdstRagResults(childId, questionTexts);
+            
+            console.log('✅ [메인페이지] KDST RAG 검색 완료!');
+            console.log('🎯 RAG 검색 결과 상세:');
+            console.log('   - 성공:', ragResults.success);
+            console.log('   - 메시지:', ragResults.message);
+            console.log('   - RAG 결과:', ragResults.ragResult);
+            
+            if (ragResults.ragResult && ragResults.ragResult.results) {
+                console.log('📊 질문별 RAG 검색 결과:');
+                console.log('   - 총 질문 수:', ragResults.ragResult.results.length);
+                
+                ragResults.ragResult.results.forEach((result, index) => {
+                    const question = result['문제'] || result.question || 'N/A';
+                    const diaries = result['일기'] || result.diaries || [];
+                    
+                    console.log(`\n🎯 질문 ${index + 1}: "${question}"`);
+                    console.log(`   - 관련 일기 수: ${diaries.length}개`);
+                    
+                    if (diaries.length > 0) {
+                        console.log('   📖 관련 일기들:');
+                        diaries.forEach((diary, diaryIndex) => {
+                            const similarity = diary.similarity || 0;
+                            const date = diary.date || 'N/A';
+                            const text = diary.text || diary.content || 'N/A';
+                            const diaryId = diary.diary_id || diary.id || 'N/A';
+                            
+                            console.log(`      ${diaryIndex + 1}. [ID: ${diaryId}] 유사도: ${(similarity * 100).toFixed(1)}%`);
+                            console.log(`         날짜: ${date}`);
+                            console.log(`         내용: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`);
+                        });
+                    } else {
+                        console.log('   ⚠️ 관련 일기가 없습니다');
+                    }
+                });
+            } else {
+                console.log('⚠️ RAG 결과 데이터가 없습니다');
+            }
+            
+        } catch (error) {
+            console.error('❌ [메인페이지] KDST RAG 검색 실패:');
+            console.error('   - 오류 메시지:', error.message);
+            console.error('   - 전체 오류:', error);
+        }
+    }, []);
+
+    // KDST RAG 결과를 JSON 파일로 저장하는 함수
+    const saveKdstRagResultsToJson = useCallback(async (childId, questions) => {
+        if (!childId || !questions || questions.length === 0) {
+            console.log('❌ JSON 저장 조건 불충족');
+            return;
+        }
+        
+        try {
+            console.log('💾 [메인페이지] KDST RAG JSON 저장 시작');
+            console.log('   - childId:', childId);
+            console.log('   - 질문 수:', questions.length);
+            
+            // 질문 텍스트만 추출
+            const questionTexts = questions.map(q => q.question_text).filter(text => text && text.trim());
+            
+            if (questionTexts.length === 0) {
+                console.log('❌ 저장할 질문 텍스트가 없습니다');
+                return;
+            }
+            
+            // 자녀 이름으로 파일명 생성
+            const childName = children[currentChildIndex]?.name || 'child';
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+            const outputFilename = `kdst_rag_${childName}_${timestamp}.json`;
+            
+            console.log('📁 생성될 파일명:', outputFilename);
+            
+            // JSON 저장 API 호출
+            const saveResults = await questionsAPI.saveKdstRagResultsToJson(childId, questionTexts, outputFilename);
+            
+            console.log('✅ [메인페이지] KDST RAG JSON 저장 완료!');
+            console.log('🎯 JSON 저장 결과 상세:');
+            console.log('   - 성공:', saveResults.success);
+            console.log('   - 메시지:', saveResults.message);
+            console.log('   - 저장된 파일:', saveResults.saveResult?.output_filename);
+            
+            // 사용자에게 알림
+            if (saveResults.success) {
+                console.log('🎉 KDST RAG 검색 결과가 JSON 파일로 저장되었습니다!');
+                console.log(`📄 파일 위치: backend/search-engine-py/${saveResults.saveResult?.output_filename}`);
+                
+                // 브라우저 알림 (선택적)
+                if (window.confirm(`KDST RAG 검색 결과가 JSON 파일로 저장되었습니다!\n파일명: ${saveResults.saveResult?.output_filename}\n\n파일을 열어보시겠습니까?`)) {
+                    console.log('💡 JSON 파일은 backend/search-engine-py/ 폴더에서 확인할 수 있습니다.');
+                }
+            }
+            
+        } catch (error) {
+            console.error('❌ [메인페이지] KDST RAG JSON 저장 실패:');
+            console.error('   - 오류 메시지:', error.message);
+            console.error('   - 전체 오류:', error);
+        }
+    }, [children, currentChildIndex]);
+
+    // 채팅 시작 핸들러 (현재 사용하지 않으므로 주석 처리)
+    // const handleStartChat = () => {
+    //     if (children.length > 0 && currentChildIndex >= 0) {
+    //         const childId = children[currentChildIndex].id;
+    //         navigate(`/chat/${childId}`);
+    //     } else {
+    //         alert("먼저 아이를 등록해주세요.");
+    //         navigate('/child-info');
+    //     }
+    // };
+
+    // 현재 선택된 자녀 정보 (현재 사용하지 않으므로 주석 처리)
+    // const currentChild = children[currentChildIndex];
+
+    // 컴포넌트 마운트 시 자녀 목록 및 첫 자녀의 일지 조회
+    useEffect(() => {
+        if (currentUser) {
+            fetchChildrenAndDiaries();
+        }
+    }, [currentUser, fetchChildrenAndDiaries]);
+
+    // 자녀가 변경될 때마다 질문 데이터 로드
+    useEffect(() => {
+        console.log('🔄 useEffect 실행됨 - 자녀 질문 데이터 로드 시도');
+        console.log('   - children.length:', children.length);
+        console.log('   - currentChildIndex:', currentChildIndex);
+        console.log('   - children:', children);
+        
+        if (children.length > 0 && currentChildIndex >= 0) {
+            const currentChild = children[currentChildIndex];
+            console.log('   - currentChild:', currentChild);
+            if (currentChild) {
+                console.log('✅ fetchChildQuestions 호출 시작!');
+                fetchChildQuestions(currentChild.id, currentChild.name);
+            } else {
+                console.log('❌ currentChild가 없습니다');
+            }
+        } else {
+            console.log('❌ 조건 불만족 - children 없거나 currentChildIndex 잘못됨');
+        }
+    }, [children, currentChildIndex, fetchChildQuestions]);
+
+    // 외부 클릭으로는 닫히지 않도록 변경 (토글 버튼/항목 선택 시에만 닫힘)
+
+    // 드롭다운이 닫힐 때 스크롤 잠금 해제 보장
+    useEffect(() => {
+        if (!isChildMenuOpen) {
+            document.body.style.overflow = '';
+        }
+    }, [isChildMenuOpen]);
+
+    // 언마운트 시 스크롤 잠금 해제 보장
+    useEffect(() => {
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, []);
+
+    // 필요 시 디버깅 로그 사용
+
+    // 날짜별로 유일한 최신 일지만 필터링
+    const uniqueDiaries = [];
+    if (diaries.length > 0) {
+        const seenDates = new Set();
+        for (const diary of diaries) {
+            const diaryDate = new Date(diary.date).toLocaleDateString('ko-KR');
+            if (!seenDates.has(diaryDate)) {
+                uniqueDiaries.push(diary);
+                seenDates.add(diaryDate);
+            }
+        }
     }
-  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   // 최근 일지 미리보기용 포맷터들
   const formatMonthDay = (dateString) => {
@@ -592,7 +720,18 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                     />
                     <button
                       className="main-screen__report-button"
-                      onClick={() => navigate('/ai-analysis')}
+                      onClick={() => {
+                        if (children[currentChildIndex]) {
+                          navigate('/ai-analysis', {
+                            state: {
+                              childId: children[currentChildIndex].id,
+                              childName: children[currentChildIndex].name
+                            }
+                          });
+                        } else {
+                          alert('자녀 정보를 찾을 수 없습니다.');
+                        }
+                      }}
                     >
                       리포트 보기
                     </button>

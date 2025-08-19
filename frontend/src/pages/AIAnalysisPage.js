@@ -1,10 +1,28 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import '../App.css';
 import TrendChart from '../components/TrendChart';
 
 function AIAnalysisPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { childId, childName } = location.state || {};
   const [input1, setInput1] = useState('주간 리포트');
+
+  // 상담사 매칭 페이지로 이동
+  const handleCounselorMatching = () => {
+    if (!childId) {
+      alert('자녀 정보가 필요합니다.');
+      return;
+    }
+    navigate('/counselor-matching', {
+      state: {
+        childId: childId,
+        childName: childName
+      }
+    });
+  };
 
   const titleStyle = { fontSize: '16px', color: '#000000', fontWeight: 'bold' };
 
@@ -263,7 +281,7 @@ function AIAnalysisPage() {
                 {'사회성 영역에서 또래보다 발달이 느려요. \n전문가와 상담을 받아보는 건 어떨까요?'}
               </span>
             </div>
-            <div className="view10">
+            <div className="view10" onClick={handleCounselorMatching} style={{ cursor: 'pointer' }}>
               <span className="text21">{'상담사 연결하기'}</span>
             </div>
           </div>

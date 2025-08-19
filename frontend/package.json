@@ -22,7 +22,8 @@
     "format:check:js": "prettier --check \"src/**/*.{js,jsx}\"",
     "deploy": "npm run build && swa deploy ./build --app-name ai-up-frontend --resource-group ai-up-resource-group",
     "deploy:build-only": "npm run build",
-    "deploy:upload-only": "swa deploy ./build --app-name ai-up-frontend --resource-group ai-up-resource-group"
+    "deploy:upload-only": "swa deploy ./build --app-name ai-up-frontend --resource-group ai-up-resource-group",
+    "start:local": "react-scripts start"
   },
   "devDependencies": {
     "prettier": "^3.3.3"
