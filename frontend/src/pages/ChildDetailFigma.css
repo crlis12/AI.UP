@@ -1,0 +1,351 @@
+/* Field boxes for original design segmentation */
+.child-info-page .field-box { 
+	border: 1px solid #e0e0e0; 
+	border-radius: 12px; 
+	background: #F3F8F4; 
+	margin: 0 16px 6px 16px; 
+	padding: 4px 6px 4px 6px; 
+}
+.child-info-page .field-box--multiline { padding-bottom: 8px; }
+.child-info-page .field-box .row-view2 { margin: 0; }
+.child-info-page .field-box .row-view3 { margin: 0; }
+.child-info-page .absolute-image {
+	position: absolute;
+	bottom: 6px;
+	right: -5px;
+	width: 32px;
+	height: 32px;
+	object-fit: fill;
+}
+.child-info-page .box {
+	width: 24px;
+	height: 24px;
+}
+.child-info-page .column {
+	align-self: stretch;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	padding-top: 4px;
+}
+.child-info-page .column2 {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	position: relative;
+}
+.child-info-page .column3 {
+	align-self: stretch;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch; /* 자식 박스들을 가로로 꽉 차게 */
+	background: #05612512;
+	border-radius: 12px;
+	padding-top: 4px;
+	padding-bottom: 6px;
+	margin-bottom: 6px;
+	margin-left: 16px;
+	margin-right: 16px;
+}
+
+/* Field box styles removed for original design */
+.child-info-page .column4 {
+	flex: 1;
+	display: flex;
+	flex-direction: row; /* 라벨-값 가로 배치 */
+	align-items: center;
+	margin-right: 0;
+	width: 100%;
+	gap: 6px;
+	min-width: 0;
+}
+.child-info-page .column5 {
+	flex: 1;
+	display: flex;
+	flex-direction: row; /* 라벨-값 가로 배치 */
+	align-items: center;
+	margin-right: 0;
+	width: 100%;
+	gap: 8px;
+}
+.child-info-page .column6 {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	border-radius: 8px;
+	padding: 8px 21px;
+	margin-right: 1px;
+}
+.child-info-page .column7 {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	border-radius: 8px;
+	padding: 8px 25px;
+	margin-right: 1px;
+}
+.child-info-page .column8 {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	border-radius: 8px;
+	padding: 8px 25px;
+}
+
+
+.child-info-page .contain {
+	display: flex;
+	flex-direction: column;
+	background: #FBFDF7;
+	/* 모든 페이지 동일 규격 적용 */
+	width: 100%;
+	max-width: 400px; /* 모바일 기준 통일 폭 */
+	min-height: 100vh; /* 화면 높이 통일 */
+	margin: 0 auto; /* 중앙 정렬 */
+	box-sizing: border-box;
+	align-items: stretch; /* 내부 컨텐츠가 폭을 가득 사용 */
+}
+.child-info-page .image {
+	width: 24px;
+	height: 24px;
+	object-fit: fill;
+}
+.child-info-page .image2 {
+	width: 112px;
+	height: 112px;
+	border-radius: 50%; /* 원형 표시 */
+	object-fit: cover; /* 이미지 비율 유지하며 채우기 */
+	display: block;
+}
+.child-info-page .image3 {
+	border-radius: 12px;
+	width: 16px;
+	height: 16px;
+	object-fit: contain;
+}
+.child-info-page .image4 {
+	border-radius: 12px;
+	width: 15px;
+	height: 15px;
+	object-fit: fill;
+}
+.child-info-page .image5 {
+	width: 74px;
+	height: 56px;
+	object-fit: fill;
+}
+.child-info-page .image6 {
+	border-radius: 8px;
+	height: 24px;
+	margin-left: 5px;
+	margin-right: 5px;
+	align-self: stretch;
+	object-fit: fill;
+}
+.child-info-page .image7 {
+	border-radius: 8px;
+	height: 24px;
+	align-self: stretch;
+	object-fit: fill;
+}
+.child-info-page .input {
+	color: #111827;
+	font-size: 16px;
+	font-weight: bold;
+	flex: 1;
+	align-self: stretch;
+	background: none;
+	border: none;
+}
+.child-info-page .row-view {
+	align-self: stretch;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background: #FFFFFF;
+	border-top-left-radius: 20px;
+	border-top-right-radius: 20px;
+	padding: 14px;
+	box-shadow: 0px 1px 2px #0000000D;
+}
+
+
+.child-info-page .row-view2 {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin: 0 10px 6px 6px;
+	white-space: nowrap; /* 줄바꿈 방지 */
+}
+.child-info-page .row-view2 .grow { flex: 1; width: auto; }
+.child-info-page .row-view2 .text4 { margin-right: 8px; }
+.child-info-page .row-view2 .icon-right { margin-left: 10px; margin-right: 0; }
+.child-info-page .row-view3 {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin: 0 14px;
+}
+.child-info-page .row-view3 .grow { flex: 1; width: auto; }
+.child-info-page .row-view3 .icon-right { margin-left: 10px; }
+.child-info-page .row-view4 {
+	align-self: stretch;
+	display: flex;
+	align-items: flex-start;
+	background: #FFFFFF;
+	border-bottom-right-radius: 20px;
+	border-bottom-left-radius: 20px;
+	padding: 8px 8px 6px 8px;
+}
+.child-info-page .scroll-view {
+	/* 고정 높이 제거하여 공통 레이아웃에 맞춤 */
+	flex: 1;
+	align-self: stretch;
+	display: flex;
+	flex-direction: column;
+	background: transparent;
+	border-radius: 0;
+	gap: 2px;
+	overflow: visible; /* 페이지 자체 스크롤 사용 */
+	align-items: stretch; /* 내부가 컨테이너 폭을 채움 */
+	margin-right: 0;
+	padding-right: 0;
+}
+
+/* 열 컨테이너를 화면 중앙에 맞춤 */
+.child-info-page .column { width: 100%; max-width: 100%; align-items: stretch; }
+
+/* 하단 추가 버튼 영역 */
+.child-info__footer {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	column-gap: 12px;
+	margin: 20px 16px 24px; /* 위쪽 간격 확대 */
+	padding: 0;
+}
+/* 단일 버튼(추가 모드)일 때 컨테이너의 정확한 중앙(절반 너비) 정렬 */
+.child-info__footer > .child-info__add-btn:only-child,
+.child-info__footer > .child-info__delete-btn:only-child {
+	grid-column: 1 / -1;
+	justify-self: center;
+	width: 50%;
+}
+.child-info__add-btn { width: 100%; height: 48px; padding: 10px 16px; font-size: 0.95rem; border-radius: 18px; }
+.child-info__delete-btn {
+	width: 100%;
+	height: 48px;
+	border-radius: 18px; /* 저장 버튼과 동일한 둥근 모서리 */
+	background: #dc2626; /* 빨간색 */
+	box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+}
+.child-info__delete-btn:hover { box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4); }
+
+/* --- Modal styles for inline edit --- */
+.modal-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0,0,0,0.35);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 10000;
+}
+.modal {
+	width: 90%;
+	max-width: 360px;
+	background: #FFFFFF;
+	border: 1px solid #e9e9e9;
+	border-radius: 12px;
+	box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+	padding: 16px;
+}
+.modal-title { margin: 0 0 12px 0; font-size: 16px; font-weight: 800; color: #111827; }
+.modal-input { width: 100%; border: 1px solid #e0e0e0; border-radius: 10px; padding: 12px 14px; font-size: 14px; box-sizing: border-box; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.modal-btn { border: none; border-radius: 10px; padding: 10px 14px; font-weight: 700; cursor: pointer; }
+.modal-btn.cancel { background: #f3f4f6; color: #374151; }
+.modal-btn.save { background: #056125; color: #fff; }
+
+/* Gender segmented control */
+.gender-segment { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+.gender-option { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; font-weight: 700; cursor: pointer; }
+.gender-option.active { background: #056125; color: #fff; border-color: #056125; }
+.child-info-page .text {
+	color: #1A1C19;
+	font-size: 22px;
+	font-weight: bold;
+}
+.child-info-page .text2 {
+	color: #44483E;
+	font-size: 15px;
+	margin-bottom: 28px;
+	margin-left: 149px;
+}
+.child-info-page .text3 {
+	color: #1A1C19;
+	font-size: 16px;
+	font-weight: bold;
+	margin-bottom: 18px;
+	margin-left: 16px;
+}
+.child-info-page .text4 {
+	color: #44483E;
+	font-size: 12px;
+	min-width: 72px; /* 라벨 폭 미세 축소 */
+}
+.child-info-page .text5 {
+	color: #1A1C19;
+	font-size: 14px;
+	font-weight: bold;
+}
+.child-info-page .text6 {
+	color: #44483E;
+	font-size: 13px;
+	margin-left: 16px;
+}
+.child-info-page .text7 {
+	color: #1A1C19;
+	font-size: 14px;
+	font-weight: bold;
+	margin-right: 0;
+}
+.child-info-page .text8 {
+	color: #1A1C19;
+	font-size: 14px;
+	font-weight: bold;
+	margin-right: 0;
+}
+.child-info-page .text9 {
+	color: #44483E;
+	font-size: 13px;
+	margin-left: 14px;
+}
+.child-info-page .text10 {
+	color: #6B7280;
+	font-size: 12px;
+	font-weight: bold;
+}
+.child-info-page .view {
+	align-self: stretch;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin-bottom: 8px;
+}
+.child-info-page .view2 {
+	align-self: stretch;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin-bottom: 2px;
+}
+
+
+
+
+/* Skeleton styles removed for original design */
+
+/* Debug styles removed for original design */

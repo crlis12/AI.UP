@@ -563,12 +563,17 @@ html { overflow-y: auto; }
 .page-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  max-width: 400px; /* ?�마?�폰 ?�면 ?�비 */
-  margin: 0 auto; /* 정확한 중앙 정렬 복원 */
+  width: 100%;
+  max-width: 390px;
+  height: 884px; /* 헤더~바텀네비까지 포함 전체 높이 */
+  margin: 0 auto;
   background-color: #FBFDF7;
   position: relative;
+  box-sizing: border-box;
 }
+.page-container--compact .page-header { padding: 10px 10px; }
+.page-container--compact .page-title { font-size: 25px; }
+.page-container--compact .page-content { padding: 0 6px 6px; }
 
 .page-header {
   flex-shrink: 0; /* ?�더??줄어?��? ?�도�??�정 */
@@ -587,19 +592,24 @@ html { overflow-y: auto; }
 }
 
 .page-content {
-  flex-grow: 1; /* 콘텐�??�역???��? 공간??모두 차�??�도�?*/
-  overflow-y: auto; /* ?�용??많아지�??�크�??�성 */
+  flex: 1 1 auto; /* 헤더와 바텀네비 사이 남은 높이 */
+  min-height: 0;
+  overflow-y: auto;
   padding: 20px;
 }
+.page-content.no-scroll { overflow: hidden; padding: 8px; }
 
 /* --- BottomNavBar.js ?��???--- */
 .bottom-nav-bar {
-  flex-shrink: 0; /* ?�단 바는 줄어?��? ?�도�??�정 */
+  flex-shrink: 0;
   display: flex;
   justify-content: space-around;
   background-color: #FBFDF7;
   border-top: 1px solid #e9e9e9;
   padding: 8px 0;
+  width: 100%;
+  max-width: 390px;
+  margin: 0 auto; /* 페이지 너비 정렬 */
 }
 
 .nav-item {
@@ -653,14 +663,14 @@ html { overflow-y: auto; }
 
 .main-screen {
   width: 100%;
-  max-width: 400px; /* ?�마?�폰 ?�면 ?�비 */
-  flex: 1;
-  min-height: 0;
+  max-width: 390px;
+  flex: 1 1 auto; /* 남은 높이를 차지 */
+  min-height: 0; /* 내부 스크롤 활성화 */
   margin: 0 auto;
   background-color: #FBFDF7;
   display: flex;
   flex-direction: column;
-  position: relative; /* ?�식 ?�소??position: absolute 기�???*/
+  position: relative;
 }
 
 /* --- ?�용???�보 ?�더 ?��???--- */
@@ -733,21 +743,21 @@ html { overflow-y: auto; }
 
 /* 로그아웃 버튼 스타일 */
 .logout-button {
-  background: none;
+  background: #056125;
+  color: #fff;
   border: none;
-  color: #666;
-  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 6px;
-  transition: background-color 0.2s;
+  padding: 6px 12px;
+  border-radius: 9999px; /* pill 형태 (chip과 동일) */
+  transition: background-color 0.15s ease;
   margin-left: 8px;
 }
 
-.logout-button:hover {
-  background-color: #f5f5f5;
-  color: #333;
-}
+.logout-button:hover { background-color: #04551f; }
 .chip { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 9999px; font-size: 12px; font-weight: 700; }
 .chip--muted { background: #FBFDF7; color: #6B7280; border: 1px solid #e5e7eb; }
 .chip--primary { background: #2f6b19; color: #fff; border: none; cursor: pointer; }
@@ -1070,7 +1080,7 @@ html { overflow-y: auto; }
   align-items: center;
   margin-bottom: 30px;
   padding-bottom: 15px;
-  border-bottom: 2px solid #e9ecef;
+  border-bottom: 2px solid #FBFDF7;
 }
 
 .page-header h1 {
@@ -1096,6 +1106,8 @@ html { overflow-y: auto; }
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(70, 109, 29, 0.4);
 }
+
+/* 삭제 버튼 레드 스타일은 페이지 전용 CSS에서 관리합니다. */
 
 /* ?�동 추�? ???��???*/
 .add-child-form {
@@ -1161,7 +1173,7 @@ html { overflow-y: auto; }
 }
 
 .submit-btn {
-  background: #FBFDF7;
+  background: #056125;
   color: white;
   border: none;
   padding: 12px 30px;
@@ -1226,7 +1238,7 @@ html { overflow-y: auto; }
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   transition: all 0.3s ease;
-  border: 1px solid #e9ecef;
+  border: 1px solid #FBFDF7;
 }
 
 .child-profile-card:hover {
@@ -1289,7 +1301,7 @@ html { overflow-y: auto; }
 
 .development-stage {
   background: #FBFDF7;
-  color: white;
+  color: #FBFDF7;
   padding: 4px 12px;
   border-radius: 15px;
   font-size: 0.8rem;
@@ -1620,11 +1632,13 @@ html { overflow-y: auto; }
 .main-screen-container {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* ?��? ?�크롤바�???컨테?�너 ?�른쪽에 고정 */
-  max-width: 400px; /* ?�마?�폰 ?�면 ?�비 */
+  height: 884px; /* 헤더~네비 합산 고정 */
+  width: 100%;
+  max-width: 390px;
   margin: 0 auto;
   background-color: #FBFDF7;
   position: relative;
+  box-sizing: border-box;
 }
 
 /* 메인?�크�??�적 컨텐�??��???*/
@@ -2265,11 +2279,11 @@ html { overflow-y: auto; }
 }
 .row-view2, .row-view3 {
 	display: flex;
-	align-items: center; /* ?�로 중앙 ?�렬 ?�일 */
-	margin-left: 16px;
+	align-items: center; /* 세로 중앙 정렬 */
+	margin: 0 16px; /* 좌우 동일 마진 */
 	gap: 16px;
 	cursor: pointer;
-  padding: 8px 0; /* ?�하 ?�백 추�??�여 간격 ?�보 */
+	padding: 8px 0; /* 상하 패딩 */
 }
 .row-view4 {
 	align-self: stretch;
@@ -2415,7 +2429,8 @@ html { overflow-y: auto; }
 .analysis-page .image5{border-radius:16px;width:16px;height:16px;margin-right:4px;object-fit:fill}
 .analysis-page .input{color:#111827;font-size:18px;font-weight:bold;flex:1;align-self:stretch;background:none;border:none}
 .analysis-page .row-view{align-self:stretch;display:flex;justify-content:space-between;align-items:center;background:#FFFFFF;border-top-left-radius:20px;border-top-right-radius:20px;padding:16px;margin-bottom:12px;box-shadow:0px 1px 2px #0000000D}
-.analysis-page .row-view2{align-self:stretch;display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;margin-left:16px;margin-right:16px}
+.analysis-page .row-view2{align-self:stretch;display:flex;justify-content:center;align-items:center;margin-bottom:24px;margin-left:16px;margin-right:16px;position:relative}
+.analysis-page .row-view2 .image2:last-child{position:absolute;right:16px}
 .analysis-page .row-view3{display:flex;align-items:flex-start;margin-left:56px}
 .analysis-page .row-view4{align-self:stretch;display:grid;grid-template-columns: 36px minmax(24px,auto) 16px 40px;align-items:center;column-gap:8px;margin-left:16px;margin-right:16px}
 .analysis-page .row-view5{display:grid;grid-template-columns:64px minmax(0,1fr) 32px;align-items:center;column-gap:8px;margin-bottom:6px;margin-left:16px;margin-right:16px}
@@ -2469,6 +2484,30 @@ html { overflow-y: auto; }
 .analysis-page .view9{align-self:stretch;display:flex;flex-direction:column;background:#FFFFFF;border-radius:16px;border:1px solid #A7F3D0;padding-top:17px;padding-bottom:17px;margin-bottom:16px;margin-left:16px;margin-right:16px;box-shadow:0px 1px 2px #0000000D}
 .analysis-page .view10{align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#056125;border-radius:12px;padding-top:12px;padding-bottom:12px;margin-bottom:90px;margin-left:16px;margin-right:16px}
 
+/* --- Graph box (Figma main) --- */
+.analysis-page .graph-container{align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;background:#FFFFFF;border-radius:16px;padding:19px 16px;margin:0 16px 27px 16px;box-shadow:0px 1px 2px #0000000D}
+.analysis-page .graph-row-top{align-self:stretch;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.analysis-page .graph-icon{width:36px;height:36px;object-fit:fill}
+.analysis-page .graph-title{color:#111812;font-size:16px;font-weight:bold}
+
+.analysis-page .graph-box{align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;background:#FFFFFF;border-radius:16px;padding:16px;box-shadow:0px 1px 2px #0000000D}
+.analysis-page .graph-line{height:1px;margin-bottom:17px;align-self:stretch;object-fit:fill}
+.analysis-page .graph-inner{align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;margin:0 31px 2px 31px}
+.analysis-page .graph-right-dots{align-self:stretch;display:flex;flex-direction:column;align-items:flex-end}
+.analysis-page .graph-dot{width:7px;height:7px;object-fit:fill}
+.analysis-page .graph-overlay{align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;position:relative;margin:2px}
+.analysis-page .graph-overlay-inner{align-self:stretch;display:flex;flex-direction:column;position:relative}
+.analysis-page .graph-area{height:35px;align-self:stretch;object-fit:fill}
+.analysis-page .graph-abs-line{position:absolute;top:9px;right:-33px;left:-33px;height:1px;align-self:stretch;object-fit:fill}
+.analysis-page .graph-abs-point{position:absolute;top:0;left:63px;width:7px;height:7px;object-fit:fill}
+.analysis-page .graph-line2{height:1px;margin-bottom:30px;align-self:stretch;object-fit:fill}
+.analysis-page .graph-line3{height:1px;margin-bottom:10px;align-self:stretch;object-fit:fill}
+.analysis-page .graph-x-labels{display:flex;align-items:flex-start;margin-left:21px}
+.analysis-page .graph-label{color:#6B7280;font-size:12px;margin-right:28px}
+.analysis-page .graph-label:nth-child(3){margin-right:30px}
+.analysis-page .graph-label:nth-child(4){margin-right:29px}
+.analysis-page .graph-label.last{margin-right:0}
+
 /* --- ReportDetailPage styles --- */
 .report-detail__content { padding: 0 16px 24px 16px; }
 .report-detail__header { padding: 12px 0; margin: 0 0 8px 0; border-bottom: 1px solid #e9e9e9; }
@@ -2515,6 +2554,17 @@ html { overflow-y: auto; }
 .next-assessment-info .next-date { margin: 0; font-size: 14px; font-weight: 700; color: #056125; }
 .next-assessment-info .next-description { margin: 4px 0 0 0; color: #6B7280; font-size: 12px; }
 
+/* 체크리스트 섹션 (ReportDetailPage) */
+.report-checklist-section { margin-top: 16px; }
+.checklist-headline { margin: 4px 0 10px 0; color: #414942; font-size: 14px; }
+.checklist-card { display: flex; flex-direction: column; gap: 8px; }
+.checklist-item { display: flex; align-items: center; gap: 8px; background: #FFFFFF; border: 1px solid #e9e9e9; border-radius: 12px; padding: 12px; color: #111827; cursor: pointer; text-align: left; }
+.checklist-item__icon { width: 28px; height: 28px; border-radius: 9999px; background: #f0f7f2; color: #056125; display: inline-flex; align-items: center; justify-content: center; }
+.checklist-item__text { font-size: 14px; }
+.checklist-more-link { background: #EAF3EA; border: 1px solid #dbe7db; color: #056125; border-radius: 9999px; padding: 10px 12px; font-weight: 700; font-size: 12px; cursor: pointer; }
+.checklist-alert { margin-top: 10px; background: #f6fff0; border: 1px solid #d7f5c4; color: #2e5f12; border-radius: 12px; padding: 12px; font-size: 12px; }
+.connect-counselor-button { width: 100%; margin-top: 12px; background: #056125; color: #FFFFFF; border: none; border-radius: 12px; padding: 14px; font-weight: 800; cursor: pointer; }
+
 /* --- DiaryWritePage.js 스타일 --- */
 .diary-write__container { padding: 16px; }
 .diary-write__date-box { display: flex; align-items: center; justify-content: space-between; background: #FBFDF7; border: 1px solid #e9e9e9; border-radius: 12px; padding: 12px; margin-bottom: 12px; }
@@ -2538,3 +2588,23 @@ html { overflow-y: auto; }
 /* --- Debug: 레이아웃 박스 경계 표시 (사용시 컨테이너에 debug-borders 클래스 추가) --- */
 .debug-borders * { outline: 0; }
 
+
+/* 공통 버튼 스타일 확장: 위험/삭제 버튼 (저장 버튼과 동일한 형태) */
+.modal-btn.danger {
+	background: #dc2626;
+	color: #ffffff;
+	border: none;
+	padding: 12px 24px;
+	border-radius: 25px;
+	font-size: 1rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+}
+.modal-btn.danger:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+}
+
+/* ChildInfoPage 전용 버튼 레이아웃은 페이지 CSS로 이동 */

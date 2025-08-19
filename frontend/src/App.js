@@ -1,7 +1,7 @@
 // src/App.js (로그인 상태 비유지)
 
-import React, { useState, useEffect, useCallback } from 'react'; 
-import { Routes, Route, Navigate } from 'react-router-dom'; 
+import React, { useState, useEffect, useCallback } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 
 // 페이지 컴포넌트 임포트 (src/pages 폴더에 있다고 가정)
@@ -26,15 +26,12 @@ import MainScreen from './components/MainScreen';
 import ChatWindow from './components/ChatWindow';
 
 // LLM 호출을 백엔드 API로 위임합니다.
-import { HumanMessage, AIMessage } from "@langchain/core/messages";
+import { HumanMessage, AIMessage } from '@langchain/core/messages';
 import API_BASE, { questionsAPI } from './utils/api';
-
 
 // BASE URL은 공통 config 사용
 
-
 function App() {
-
   // 로그인 상태 관리 (localStorage에서 초기값 가져오기)
   const [isLoggedIn, setIsLoggedIn] = useState(false); // 초기값 false로 유지
   // 사용자 정보 상태 관리
@@ -56,7 +53,7 @@ function App() {
     console.log('localStorage isLoggedIn:', localStorage.getItem('isLoggedIn'));
     console.log('loggedIn 상태:', loggedIn);
     setIsLoggedIn(loggedIn);
-    
+
     // 사용자 정보 확인
     const savedUser = localStorage.getItem('currentUser');
     console.log('localStorage currentUser:', savedUser);
@@ -67,7 +64,7 @@ function App() {
     } else {
       console.log('저장된 사용자 정보가 없습니다');
     }
-    
+
     // **새로운 로직: 웰컴 화면을 봤는지 확인**
     const seenWelcome = localStorage.getItem('hasSeenWelcome') === 'true';
     setHasSeenWelcome(seenWelcome);
@@ -77,7 +74,7 @@ function App() {
     if (savedChildInfo) {
       setChildInfo(JSON.parse(savedChildInfo));
     }
-    
+
     console.log('=== App.js 초기화 완료 ===');
   }, []);
 
@@ -87,6 +84,8 @@ function App() {
     setCurrentUser(user);
     localStorage.setItem('isLoggedIn', 'true'); // 로그인 상태 유지 로직 유지
     localStorage.setItem('currentUser', JSON.stringify(user)); // 사용자 정보 저장
+    // 다른 계정의 자녀 ID가 남아있는 문제 방지: 로그인 시 초기화
+    localStorage.removeItem('currentChildId');
   };
 
   const handleSeenWelcome = () => {
@@ -100,6 +99,8 @@ function App() {
     setCurrentUser(null);
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('currentUser');
+    // 자녀 선택 상태도 초기화
+    localStorage.removeItem('currentChildId');
     // 메시지도 초기화
     setMessages([]);
   };
@@ -161,11 +162,11 @@ function App() {
       const data = await resp.json();
       if (!data.success) throw new Error(data.message || '에이전트 호출 실패');
       const aiMessage = new AIMessage(data.content);
-      setMessages(prev => [...prev, aiMessage]);
+      setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
       console.error('Agent API 호출 오류:', error);
       const errorMessage = new AIMessage('죄송합니다. 메시지를 처리하는 중 오류가 발생했습니다.');
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -281,20 +282,17 @@ function App() {
     <div className="App">
       <Routes>
         {/* 앱의 초기 진입점: 웰컴 화면을 봤는지 여부에 따라 리다이렉트 */}
-        <Route 
-          path="/" 
-          element={hasSeenWelcome ? <Navigate to="/main" /> : <Navigate to="/login" />} 
+        <Route
+          path="/"
+          element={hasSeenWelcome ? <Navigate to="/main" /> : <Navigate to="/login" />}
         />
-
         {/* 로그인 관련 라우트 */}
         <Route path="/login" element={<WelcomePage onSeenWelcome={handleSeenWelcome} />} />
-
         <Route path="/signin" element={<SigninPage onLogin={handleLogin} />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} /> {/* 경로 복구 */}
         <Route path="/verify-code" element={<VerifyCodePage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        
         {/* 메인 화면 라우트 (이제 '/main' 경로로 접근) */}
         <Route
           path="/main"
@@ -306,13 +304,20 @@ function App() {
           path="/chat/:childId" 
           element={isLoggedIn ? <ChatWindow messages={messages} onSendMessage={handleSendReportMessage} isLoading={isLoading} /> : <Navigate to="/login" />} 
         />
-
         {/* 기타 보호된 라우트 */}
-
-        <Route path="/child-info" element={isLoggedIn ? <ChildInfoPage /> : <Navigate to="/login" />} />
-        <Route path="/child-detail/:childId" element={isLoggedIn ? <ChildDetailPage /> : <Navigate to="/login" />} />
+        <Route
+          path="/child-info"
+          element={isLoggedIn ? <ChildInfoPage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/child-detail/:childId"
+          element={isLoggedIn ? <ChildDetailPage /> : <Navigate to="/login" />}
+        />
         {/* 일지 작성 기본 경로 */}
-        <Route path="/diary/:childId" element={isLoggedIn ? <DiaryWritePage /> : <Navigate to="/login" />} />
+        <Route
+          path="/diary/:childId"
+          element={isLoggedIn ? <DiaryWritePage /> : <Navigate to="/login" />}
+        />
         {/* 일지 목록 경로 */}
         <Route path="/diary/list/:childId" element={isLoggedIn ? <DiaryPage /> : <Navigate to="/login" />} />
         <Route path="/diary/detail/:diaryId" element={isLoggedIn ? <DiaryDetailPage /> : <Navigate to="/login" />} /> {/* DiaryDetailPage 라우트 추가 */}

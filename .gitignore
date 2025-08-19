@@ -42,4 +42,5 @@
 /backend/db.js
 /backend/node_modules*
 /backend/.env*
+/backend/.env.local
 

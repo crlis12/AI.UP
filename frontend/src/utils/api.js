@@ -5,33 +5,34 @@ function getDefaultApiBase() {
     console.log('개발 환경 감지 - localhost:3001 사용');
     return 'http://localhost:3001';
   }
-  
+
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     console.log('현재 hostname:', hostname);
-    
+
     // Local development - 명시적으로 localhost 체크
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       console.log('로컬 개발 환경 감지 - localhost:3001 사용');
       return 'http://localhost:3001';
     }
-    
+
     // If hosted on Azure Static Web Apps, point to the deployed backend
     if (hostname.includes('azurestaticapps.net')) {
       console.log('Azure 환경 감지 - 실서버 URL 사용');
       return 'https://ai-up-backend.azurewebsites.net';
     }
   }
-  
+
   // Default fallback to local
   console.log('기본값으로 localhost:3001 사용');
   return 'http://localhost:3001';
 }
 
 // 로컬 개발 환경에서는 강제로 localhost 사용
-const API_BASE = (process.env.NODE_ENV === 'development') 
-  ? 'http://localhost:3001' 
-  : (process.env.REACT_APP_API_BASE_URL || getDefaultApiBase());
+const API_BASE =
+  process.env.NODE_ENV === 'development'
+    ? 'http://localhost:3001'
+    : process.env.REACT_APP_API_BASE_URL || getDefaultApiBase();
 console.log('최종 API_BASE:', API_BASE);
 
 // Questions API 호출 함수들
@@ -41,11 +42,11 @@ export const questionsAPI = {
     try {
       const response = await fetch(`${API_BASE}/questions/child/${childId}`);
       const data = await response.json();
-      
+
       if (!data.success) {
         throw new Error(data.message || '질문 조회에 실패했습니다.');
       }
-      
+
       return data;
     } catch (error) {
       console.error('질문 조회 오류:', error);
@@ -58,11 +59,11 @@ export const questionsAPI = {
     try {
       const response = await fetch(`${API_BASE}/questions/child/${childId}/domain/${domainId}`);
       const data = await response.json();
-      
+
       if (!data.success) {
         throw new Error(data.message || '발달 영역 질문 조회에 실패했습니다.');
       }
-      
+
       return data;
     } catch (error) {
       console.error('발달 영역 질문 조회 오류:', error);
@@ -75,11 +76,11 @@ export const questionsAPI = {
     try {
       const response = await fetch(`${API_BASE}/questions/domains`);
       const data = await response.json();
-      
+
       if (!data.success) {
         throw new Error(data.message || '발달 영역 조회에 실패했습니다.');
       }
-      
+
       return data;
     } catch (error) {
       console.error('발달 영역 조회 오류:', error);
@@ -194,6 +195,135 @@ export const questionsAPI = {
   }
 };
 
+// Children API 관련 함수들
+export const childrenAPI = {
+  // 모든 자녀 목록 조회
+  getChildren: async (parentId) => {
+    try {
+      const response = await fetch(`${API_BASE}/children/parent/${parentId}`);
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || '자녀 목록 조회에 실패했습니다.');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('자녀 목록 조회 오류:', error);
+      throw error;
+    }
+  },
+
+  // 특정 자녀 정보 조회
+  getChild: async (childId) => {
+    try {
+      const response = await fetch(`${API_BASE}/children/${childId}`);
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || '자녀 정보 조회에 실패했습니다.');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('자녀 정보 조회 오류:', error);
+      throw error;
+    }
+  },
+
+  // 자녀 정보 등록
+  registerChild: async (childData) => {
+    try {
+      const response = await fetch(`${API_BASE}/children/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(childData)
+      });
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || '자녀 등록에 실패했습니다.');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('자녀 등록 오류:', error);
+      throw error;
+    }
+  },
+
+  // 자녀 정보 수정
+  updateChild: async (childId, childData) => {
+    try {
+      const response = await fetch(`${API_BASE}/children/${childId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(childData)
+      });
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || '자녀 정보 수정에 실패했습니다.');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('자녀 정보 수정 오류:', error);
+      throw error;
+    }
+  },
+
+  // 자녀 삭제
+  deleteChild: async (childId) => {
+    try {
+      const response = await fetch(`${API_BASE}/children/${childId}`, {
+        method: 'DELETE'
+      });
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || '자녀 삭제에 실패했습니다.');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('자녀 삭제 오류:', error);
+      throw error;
+    }
+  },
+
+  // 프로필 이미지 업로드
+  uploadProfileImage: async (childId, imageFile) => {
+    try {
+      const formData = new FormData();
+      formData.append('profile_image', imageFile);
+      
+      const response = await fetch(`${API_BASE}/children/${childId}/upload-profile`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || '프로필 이미지 업로드에 실패했습니다.');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('프로필 이미지 업로드 오류:', error);
+      throw error;
+    }
+  }
+};
+
 // Report Agent 관련 API
 export const reportAPI = {
   // RAG + Report 통합 엔드포인트 호출
@@ -246,5 +376,3 @@ export const reportAPI = {
 };
 
 export default API_BASE;
-
-

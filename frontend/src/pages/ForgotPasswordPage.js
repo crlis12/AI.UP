@@ -32,13 +32,19 @@ function FindPasswordPage() {
 
   return (
     <PageLayout title="비밀번호 찾기">
-      <div className="login-content-wrapper" style={{gap: '30px', alignItems: 'flex-start', textAlign: 'left'}}>
-        <p style={{margin: 0, color: '#666', width: '100%', maxWidth: '350px'}}>
-            가입 시 사용한 이메일을 입력하시면,
-            비밀번호 재설정을 위한 인증번호를 보내드립니다.
+      <div
+        className="login-content-wrapper"
+        style={{ gap: '30px', alignItems: 'flex-start', textAlign: 'left' }}
+      >
+        <p style={{ margin: 0, color: '#666', width: '100%', maxWidth: '350px' }}>
+          가입 시 사용한 이메일을 입력하시면, 비밀번호 재설정을 위한 인증번호를 보내드립니다.
         </p>
 
-        <form onSubmit={handleSubmit} className="login-form-container" style={{width: '100%', maxWidth: '350px'}}>
+        <form
+          onSubmit={handleSubmit}
+          className="login-form-container"
+          style={{ width: '100%', maxWidth: '350px' }}
+        >
           <label htmlFor="email">이메일</label>
           <input
             id="email"
@@ -49,7 +55,12 @@ function FindPasswordPage() {
             className="login-input"
             required
           />
-          <button type="submit" className="form-login-button" disabled={isLoading} style={{backgroundColor: '#056125', borderRadius: '12px', marginTop: '20px'}}>
+          <button
+            type="submit"
+            className="form-login-button"
+            disabled={isLoading}
+            style={{ backgroundColor: '#056125', borderRadius: '12px', marginTop: '20px' }}
+          >
             {isLoading ? '전송 중...' : '인증번호 받기'}
           </button>
         </form>
