@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import PageLayout from '../components/PageLayout';
 import '../App.css';
+import TrendChart from '../components/TrendChart';
 
 function AIAnalysisPage() {
   const [input1, setInput1] = useState('주간 리포트');
@@ -18,98 +19,17 @@ function AIAnalysisPage() {
 
             <span className="text2">{'종합 발달 점수 추이'}</span>
 
-            {/* Figma 기반 그래프 박스 */}
+            {/* 인터랙티브 SVG 그래프 */}
             <div className="graph-container">
               <div className="graph-row-top">
-                <img
-                  src={
-                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/vmfvb9y2_expires_30_days.png'
-                  }
-                  className="graph-icon"
-                  alt="calendar-left"
-                />
                 <span className="graph-title">{'8월 2주차'}</span>
-                <img
-                  src={
-                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/98rfqepv_expires_30_days.png'
-                  }
-                  className="graph-icon"
-                  alt="more-right"
-                />
               </div>
-
               <div className="graph-box">
-                <img
-                  src={
-                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/s63g6i4u_expires_30_days.png'
-                  }
-                  className="graph-line"
-                  alt="top-line"
+                <TrendChart
+                  labels={["7월 2주", "7월 3주", "7월 4주", "8월 1주", "8월 2주"]}
+                  values={[72, 81, 78, 74, 86]}
+                  height={180}
                 />
-                <div className="graph-inner">
-                  <div className="graph-right-dots">
-                    <img
-                      src={
-                        'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/a0dtx8ey_expires_30_days.png'
-                      }
-                      className="graph-dot"
-                      alt="right-dot"
-                    />
-                  </div>
-                  <div className="graph-overlay">
-                    <div className="graph-overlay-inner">
-                      <img
-                        src={
-                          'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/bdyvv5xv_expires_30_days.png'
-                        }
-                        className="graph-area"
-                        alt="area"
-                      />
-                      <img
-                        src={
-                          'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/5n8ipwit_expires_30_days.png'
-                        }
-                        className="graph-abs-line"
-                        alt="abs-line"
-                      />
-                    </div>
-                    <img
-                      src={
-                        'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/1due7ie3_expires_30_days.png'
-                      }
-                      className="graph-abs-point"
-                      alt="abs-point"
-                    />
-                  </div>
-                  <img
-                    src={
-                      'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/n8m5wgo8_expires_30_days.png'
-                    }
-                    className="graph-dot"
-                    alt="left-dot"
-                  />
-                </div>
-                <img
-                  src={
-                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/78cvtpm5_expires_30_days.png'
-                  }
-                  className="graph-line2"
-                  alt="mid-line"
-                />
-                <img
-                  src={
-                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/7arag9m2_expires_30_days.png'
-                  }
-                  className="graph-line3"
-                  alt="bottom-line"
-                />
-                <div className="graph-x-labels">
-                  <span className="graph-label">{'7월 2주'}</span>
-                  <span className="graph-label">{'7월 3주'}</span>
-                  <span className="graph-label">{'7월 4주'}</span>
-                  <span className="graph-label">{'8월 1주'}</span>
-                  <span className="graph-label last">{'8월 2주'}</span>
-                </div>
               </div>
             </div>
 
