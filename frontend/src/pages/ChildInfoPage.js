@@ -314,10 +314,15 @@ function ChildInfoPage() {
                       communication_level: null,
                     };
 
+                    let targetChildId = childId;
                     if (isEditMode) {
                       await childrenAPI.updateChild(childId, payload);
                     } else {
-                      await childrenAPI.registerChild(payload);
+                      const res = await childrenAPI.registerChild(payload);
+                      targetChildId = res?.child?.id || res?.id || targetChildId;
+                    }
+                    if (targetChildId) {
+                      localStorage.setItem('currentChildId', String(targetChildId));
                     }
                     navigate('/main');
                   } catch (err) {

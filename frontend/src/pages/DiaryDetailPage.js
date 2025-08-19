@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { FiChevronLeft } from 'react-icons/fi';
+import API_BASE from '../utils/api';
 
 function DiaryDetailPage() {
   const { diaryId } = useParams();
@@ -9,21 +10,17 @@ function DiaryDetailPage() {
   const [diary, setDiary] = useState(null);
   const [loading, setLoading] = useState(true);
   const childIdFromState = location.state?.childId;
-  const backendBase = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 
-  const buildFileUrl = (path) => {
-    if (!path) return '';
-    const isAbsolute = /^https?:\/\//i.test(path);
-    return isAbsolute ? path : `${backendBase}${path}`;
+  const buildUploadsUrl = (filename) => {
+    if (!filename) return '';
+    return `${API_BASE}/uploads/diaries/${filename}`;
   };
 
   useEffect(() => {
     const fetchDiaryDetail = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/${diaryId}`
-        );
+        const response = await fetch(`${API_BASE}/diaries/${diaryId}`);
         const data = await response.json();
 
         if (data.success) {
@@ -85,34 +82,31 @@ function DiaryDetailPage() {
           </div>
           <div className="diary-detail__body">
             <p>{diary.content}</p>
-            {Array.isArray(diary.files) && diary.files.length > 0 && (
+            {diary.children_img && (
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
-                {diary.files.map((f) => (
-                  <div
-                    key={f.id}
-                    style={{
-                      width: 120,
-                      height: 120,
-                      borderRadius: 8,
-                      overflow: 'hidden',
-                      background: '#f5f5f5',
-                    }}
-                  >
-                    {f.file_type === 'video' ? (
-                      <video
-                        src={buildFileUrl(f.file_path)}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        controls
-                      />
-                    ) : (
-                      <img
-                        src={buildFileUrl(f.file_path)}
-                        alt="첨부"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    )}
-                  </div>
-                ))}
+                <div
+                  style={{
+                    width: 120,
+                    height: 120,
+                    borderRadius: 8,
+                    overflow: 'hidden',
+                    background: '#f5f5f5',
+                  }}
+                >
+                  {/\.(mp4|webm|ogg)$/i.test(diary.children_img) ? (
+                    <video
+                      src={buildUploadsUrl(diary.children_img)}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      controls
+                    />
+                  ) : (
+                    <img
+                      src={buildUploadsUrl(diary.children_img)}
+                      alt="첨부"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -133,10 +127,7 @@ function DiaryDetailPage() {
               onClick={async () => {
                 if (!window.confirm('이 일지를 삭제하시겠습니까?')) return;
                 try {
-                  const resp = await fetch(
-                    `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/${diary.id}`,
-                    { method: 'DELETE' }
-                  );
+                  const resp = await fetch(`${API_BASE}/diaries/${diary.id}`, { method: 'DELETE' });
                   const data = await resp.json();
                   if (!data.success) throw new Error(data.message || '삭제 실패');
                   const backChildId = childIdFromState || diary.child_id;

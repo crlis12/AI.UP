@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import '../App.css';
 
 function AIAnalysisPage() {
+  const navigate = useNavigate();
   const [input1, setInput1] = useState('주간 리포트');
+  const [check1, setCheck1] = useState('');
+  const [check2, setCheck2] = useState('');
+  const [check3, setCheck3] = useState('');
 
   const titleStyle = { fontSize: '16px', color: '#000000', fontWeight: 'bold' };
 
@@ -116,6 +121,8 @@ function AIAnalysisPage() {
             <div className="view">
               <span className="text6">{'이번 주 언어 영역이 상승했어요.'}</span>
             </div>
+
+            
 
             <div className="column2">
               <div className="row-view4">
@@ -337,12 +344,44 @@ function AIAnalysisPage() {
               </div>
             </div>
 
-            <span className="text19">{'이 부분은 특별히 봐주세요!'}</span>
-            <div className="view9">
-              <span className="text20">
-                {'사회성 영역에서 또래보다 발달이 느려요. \n전문가와 상담을 받아보는 건 어떨까요?'}
-              </span>
+            {/* 체크리스트 섹션: 영역별 발달 비교 아래로 이동 */}
+            <div className="report-checklist-section">
+              <span className="text21">{'우리 아이에게 필요한 체크리스트'}</span>
+              <div className="row-view7">
+                <img
+                  src={'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/m51wxq1p_expires_30_days.png'}
+                  className="image9"
+                  alt="check-1"
+                />
+                <span className="checklist-label">다른 아이들과 어울려 노는 것을 즐기나요?</span>
+              </div>
+              <div className="row-view8">
+                <img
+                  src={'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/sfyo1ejm_expires_30_days.png'}
+                  className="image10"
+                  alt="check-2"
+                />
+                <span className="checklist-label">다른 아이의 행동에 대해 이야기를 하나요?</span>
+              </div>
+              <div className="row-view9">
+                <img
+                  src={'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/ctvxxzy0_expires_30_days.png'}
+                  className="image10"
+                  alt="check-3"
+                />
+                <span className="checklist-label">자신의 기분을 좋거나 나쁘다고 말하나요?</span>
+              </div>
+              <button
+                type="button"
+                className="text22"
+                onClick={() => navigate('/kdst-checklist')}
+                style={{ background: 'transparent', border: 'none', width: '100%', cursor: 'pointer' }}
+              >
+                {'K-DST 발달 체크리스트 더보기'}
+              </button>
             </div>
+
+            {/* 하단 알림 블록 제거됨 */}
             <div className="view10">
               <span className="text21">{'상담사 연결하기'}</span>
             </div>
