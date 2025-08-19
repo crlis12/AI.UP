@@ -28,38 +28,9 @@ function formatObjectAsBullets(obj, indent = 0) {
   return lines.join('\n');
 }
 
-function buildSystemPrompt({ systemPrompt, spec, k_dst, kdstRagContext }) {
-  const base = systemPrompt || 'You are a professional report writing assistant. Produce accurate, well-structured, and concise reports.';
-  const lines = [base];
-
-  // 사용자가 제공하는 systemPrompt를 중심으로, 필요한 경우 spec 기반의 메타 지시만 추가
-  if (spec?.reportType) lines.push(`Report type: ${spec.reportType}`);
-  if (spec?.audience) lines.push(`Target audience: ${spec.audience}`);
-  if (spec?.tone) lines.push(`Tone: ${spec.tone}`);
-  if (spec?.length) lines.push(`Target length: ${spec.length}`);
-  if (spec?.language) lines.push(`Language: ${spec.language}`);
-  if (spec?.format) lines.push(`Output format: ${spec.format}`);
-  if (spec?.includeSummary) lines.push('Include an executive summary at the beginning.');
-  if (spec?.citations) lines.push('Add citations or references when applicable.');
-
-  if (spec?.sections && Array.isArray(spec.sections) && spec.sections.length > 0) {
-    lines.push('Required sections:');
-    for (const s of spec.sections) {
-      lines.push(`- ${s}`);
-    }
-  }
-
-  // 판단 기준(K-DST) 섹션 주입 (정적 가이드라인만 유지)
-  if (k_dst && typeof k_dst === 'object') {
-    lines.push('Decision criteria (K-DST):');
-    const kd = formatObjectAsBullets(k_dst, 1);
-    if (kd) lines.push(kd);
-  }
-
-  // 주의: RAG로 수집된 컨텍스트(kdstRagContext 포함)는 시스템 프롬프트에 주입하지 않습니다.
-  // 해당 내용은 사용자 입력 컨텍스트(assistant 입력)로만 전달되어야 합니다.
-
-  return lines.join('\n');
+function buildSystemPrompt({ systemPrompt }) {
+  // config에서 systemPrompt가 있으면 그대로 사용, 없으면 기본값
+  return systemPrompt || '시스템 프롬프트 오류가 났다는 것을 알려주세요';
 }
 
 async function reconstructLangChainHistory(history) {
@@ -94,7 +65,7 @@ async function runReportAgent({ input, history, context, config, spec, childrenC
 
   const lcHistory = await reconstructLangChainHistory(history);
 
-  const sys = buildSystemPrompt({ systemPrompt, spec, k_dst, kdstRagContext });
+  const sys = buildSystemPrompt({ systemPrompt });
   const prompt = ChatPromptTemplate.fromMessages([
     ['system', sys],
     new MessagesPlaceholder('history'),
