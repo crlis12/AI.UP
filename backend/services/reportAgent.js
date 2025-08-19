@@ -54,6 +54,7 @@ const REPORT_OUTPUT_SCHEMA = {
               type: 'object',
               additionalProperties: false,
               properties: {
+                question_number: { type: 'integer', minimum: 1 },
                 score: {
                   oneOf: [
                     { type: 'integer', minimum: 0, maximum: 3 },
@@ -62,7 +63,7 @@ const REPORT_OUTPUT_SCHEMA = {
                 },
                 question: { type: 'string' }
               },
-              required: ['question']
+              required: ['question_number', 'question']
             }
           }
         },
