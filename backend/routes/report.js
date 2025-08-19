@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { runReportAgent } = require('../services/reportAgent');
+const { runReportAgent, REPORT_OUTPUT_SCHEMA } = require('../services/reportAgent');
 const path = require('path');
 const { spawn } = require('child_process');
 const config = require('../config');
@@ -206,7 +206,7 @@ router.post('/rag-report', async (req, res) => {
       history, 
       context: ragContext,
       config, 
-      spec 
+      spec: { ...(spec || {}), outputSchema: REPORT_OUTPUT_SCHEMA } 
     });
 
     if (!reportResult.success) {
@@ -472,52 +472,29 @@ router.post('/kdst-generate-report', async (req, res) => {
       vendor: 'gemini',
       model: 'gemini-2.5-pro',
       temperature: 0,
+      systemPrompt: `당신은 전문적인 아동 발달 분석가입니다. 
+
+지금부터 한국 영유아 발달검사 (K-DST) 체크리스트와 육아일기가 입력으로 주어집니다. 육아일기 내용을 바탕으로 K-DST 채점을 하고, 정해진 양식에 맞게 output을 출력하세요.
+
+한국 영유아 발달선별검사(K-DST) 체크리스트 사용법:
+각 월령에 해당하는 모든 항목을 확인하고, 아이의 수행 수준에 가장 가까운 곳에 표시하십시오. 아이가 특정 행동을 할 수 있는지 확실하지 않다면, 직접 시켜본 후 답하는 것이 좋습니다.
+
+평가 기준:
+- 잘 할 수 있다 (3점): 아이가 해당 행동을 능숙하게 수행합니다.
+- 할 수 있는 편이다 (2점): 아이가 해당 행동을 어느 정도 수행하지만 완벽하지는 않습니다.
+- 하지 못하는 편이다 (1점): 아이가 해당 행동을 거의 수행하지 못합니다.
+- 전혀 할 수 없다 (0점): 아이가 해당 행동을 전혀 수행하지 못합니다.
+
+보고서 마지막에는 지금 당장 판별이 불가능한 내용을 정리해서 "requirements"라는 이름으로 출력해주세요. 해당 섹션엔 부모에게 이런 부분을 살펴보고 일기에 적어두면 좋다고 권유해주세요.
+
+한국어로 작성하고, 부모가 이해하기 쉽게 설명해주세요.
+반드시 JSON 형태로 출력해주세요.
+`,
       ...reportConfig
     };
     
+    // spec은 아예 빈 객체나 필요없으면 제거
     const defaultReportSpec = {
-      reportType: `
-      지금부터 한국 영유아 발달검사 (K-DST) 체크리스트와 육아일기가 입력으로 주어집니다. 육아일기 내용을 바탕으로 K-DST 채점을 하고, 정해진 양식에 맞게 output을 출력하세요.\n
-      JSON 블럭 내 내용들은 한국어 위주로 출력하세요.\n
-
-      한국 영유아 발달선별검사(K-DST) 체크리스트 사용법:
-      각 월령에 해당하는 모든 항목을 확인하고, 아이의 수행 수준에 가장 가까운 곳에 표시하십시오. 아이가 특정 행동을 할 수 있는지 확실하지 않다면, 직접 시켜본 후 답하는 것이 좋습니다.\n
-      평가 기준이 문항들은 아이가 해당 행동을 **'할 수 있는지'**를 평가하는 것입니다. 예를 들어, 아이가 블록 쌓기가 가능하지만 집에 블록이 없거나 그 놀이를 즐겨 하지 않아 평소에 하지 않았더라도 '할 수 있다'로 평가해야 합니다.\n
-      잘 할 수 있다 (3점): 아이가 해당 행동을 능숙하게 수행합니다.\n
-      할 수 있는 편이다 (2점): 아이가 해당 행동을 어느 정도 수행하지만 완벽하지는 않습니다.\n
-      하지 못하는 편이다 (1점): 아이가 해당 행동을 거의 수행하지 못합니다.\n
-      전혀 할 수 없다 (0점): 아이가 해당 행동을 전혀 수행하지 못합니다.\n
-        
-      아래 Output Schema를 참고하여 출력하세요.\n
-      추가적으로 검사 섹션이 끝나면 마지막 블록에는 지금 당장 판별이 불가능한 내용을 정리해서 "requirtments"라는 이름으로 출력해주세요.\n
-      해당 섹션엔 부모에게 이런 부분을 살펴보고 일기에 적어두면 좋다고 권유해주세요.\n
-
-      # Output Schema (JSON)\n
-      The output must strictly adhere to the following JSON structure:\n
-      {\n
-        "child_name": "[아이 이름]",\n
-        "child_age_month": "[월령]",\n
-        "domains": [\n
-          {\n
-            "domain_id": 1,\n
-            "domain_name": "대근육운동",\n
-            "questions": [\n
-              { "score": <0, 1, 2, 3, or null>, "question": "가구나 벽에서 손을 떼고 5초 이상 혼자 서 있다." },\n
-              // ... other questions in this domain\n
-            ]\n
-          },
-          {\n
-            "domain_id": 2,\n
-            "domain_name": "소근육운동",\n
-            "questions": [\n
-              { "score": <0, 1, 2, 3, or null>, "question": "손잡이를 사용하여 컵을 잡는다." },\n
-              // ... other questions in this domain\n
-            ]\n
-          },\n
-          // ... other domains (인지, 언어, 사회성, 추가 질문)\n
-        ]\n
-      }\n
-  `,
       ...reportSpec
     };
     
@@ -528,7 +505,7 @@ router.post('/kdst-generate-report', async (req, res) => {
       history: [],
       context: humanContext,
       config: defaultReportConfig,
-      spec: defaultReportSpec
+      spec: { ...defaultReportSpec, outputSchema: REPORT_OUTPUT_SCHEMA }
     });
     
     console.log(`[${new Date().toISOString()}] KDST 보고서 생성 완료`);
