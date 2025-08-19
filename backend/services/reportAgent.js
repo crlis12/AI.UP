@@ -1,36 +1,79 @@
 const { createGeminiChat, normalizeGeminiModel } = require('./modelFactory');
 
-function buildSystemPrompt({ systemPrompt, spec }) {
-  const base =
-    systemPrompt ||
-    (spec && typeof spec === 'object' && spec.default) ||
-    'You are a professional report writing assistant. Produce accurate, well-structured, and concise reports.';
-  const lines = [base];
-  if (!spec || typeof spec !== 'object') return lines.join('\n');
-
-  for (const [key, value] of Object.entries(spec)) {
-    if (key === 'default') continue; // default는 시스템 프롬프트로만 사용하고 본문에 출력하지 않음
+function formatObjectAsBullets(obj, indent = 0) {
+  if (!obj || typeof obj !== 'object') return '';
+  const pad = '  '.repeat(indent);
+  const lines = [];
+  for (const key of Object.keys(obj)) {
+    const value = obj[key];
     if (value === undefined || value === null) continue;
-    const keyLabel = String(key).trim();
-    if (Array.isArray(value)) {
+    if (typeof value === 'object' && !Array.isArray(value)) {
+      lines.push(`${pad}- ${key}:`);
+      const nested = formatObjectAsBullets(value, indent + 1);
+      if (nested) lines.push(nested);
+    } else if (Array.isArray(value)) {
       if (value.length === 0) continue;
-      lines.push(`${keyLabel}:`);
+      lines.push(`${pad}- ${key}:`);
       for (const item of value) {
-        if (item === undefined || item === null || String(item).trim() === '') continue;
-        lines.push(`- ${typeof item === 'string' ? item : JSON.stringify(item)}`);
+        if (typeof item === 'object') {
+          lines.push(formatObjectAsBullets(item, indent + 1));
+        } else {
+          lines.push(`${pad}  - ${String(item)}`);
+        }
       }
-      continue;
+    } else {
+      lines.push(`${pad}- ${key}: ${String(value)}`);
     }
-    if (typeof value === 'object') {
-      lines.push(`${keyLabel}: ${JSON.stringify(value)}`);
-      continue;
-    }
-    const primitive = String(value).trim();
-    if (primitive !== '') lines.push(`${keyLabel}: ${primitive}`);
   }
-
   return lines.join('\n');
 }
+
+function buildSystemPrompt({ systemPrompt }) {
+  // config에서 systemPrompt가 있으면 그대로 사용, 없으면 기본값
+  return systemPrompt || '시스템 프롬프트 오류가 났다는 것을 알려주세요';
+}
+
+// KDST 보고서 전용 JSON 스키마 (필요 시 명시적으로 전달하여 사용)
+const REPORT_OUTPUT_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    child_name: { type: 'string' },
+    child_age_month: { type: 'string' },
+    domains: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          domain_id: { type: 'integer' },
+          domain_name: { type: 'string' },
+          questions: {
+            type: 'array',
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                question_number: { type: 'integer', minimum: 1 },
+                score: {
+                  oneOf: [
+                    { type: 'integer', minimum: 0, maximum: 3 },
+                    { type: 'null' }
+                  ]
+                },
+                question: { type: 'string' }
+              },
+              required: ['question_number', 'question']
+            }
+          }
+        },
+        required: ['domain_id', 'domain_name', 'questions']
+      }
+    },
+    requirements: { type: 'array', items: { type: 'string' } }
+  },
+  required: ['child_name', 'child_age_month', 'domains', 'requirements']
+};
 
 async function reconstructLangChainHistory(history) {
   const { HumanMessage, AIMessage } = await import('@langchain/core/messages');
@@ -45,8 +88,8 @@ async function reconstructLangChainHistory(history) {
     : [];
 }
 
-async function runReportAgent({ input, history, context, config, spec }) {
-  const { vendor = 'gemini', model = 'gemini-2.5-flash', temperature, systemPrompt } = config || {};
+async function runReportAgent({ input, history, context, config, spec, childrenContext, k_dst, kdstRagContext }) {
+  const { vendor = 'gemini', model = 'gemini-2.5-pro', temperature, systemPrompt } = config || {};
   if (String(vendor).toLowerCase() !== 'gemini') {
     throw new Error('현재 보고서 에이전트는 vendor=gemini만 지원합니다.');
   }
@@ -64,22 +107,48 @@ async function runReportAgent({ input, history, context, config, spec }) {
 
   const lcHistory = await reconstructLangChainHistory(history);
 
-  const sys = buildSystemPrompt({ systemPrompt, spec });
+  const sys = buildSystemPrompt({ systemPrompt });
   const prompt = ChatPromptTemplate.fromMessages([
     ['system', sys],
     new MessagesPlaceholder('history'),
     ['human', 'User request:\n{input}\n\nContext (optional):\n{context}'],
   ]);
 
-  const chain = RunnableSequence.from([prompt, chat]);
-  const response = await chain.invoke({ input, history: lcHistory, context: context || '' });
-  const content =
-    typeof response?.content === 'string'
+  // childrenContext를 컨텍스트에 구조화하여 병합
+  let mergedContext = context || '';
+  if (childrenContext && typeof childrenContext === 'object') {
+    const block = formatObjectAsBullets(childrenContext, 0);
+    if (block) {
+      mergedContext = `${mergedContext}\n\n[Children Context]\n${block}`.trim();
+    }
+  }
+
+  // 출력 스키마 적용: 우선순위 spec.outputSchema > config.outputSchema (기본 스키마 자동 적용 없음)
+  const outputSchema = (spec && spec.outputSchema) || (config && config.outputSchema) || null;
+
+  // 스키마가 있으면 구조화 출력 모드로 전환
+  const llm = outputSchema && typeof chat.withStructuredOutput === 'function'
+    ? chat.withStructuredOutput(outputSchema)
+    : chat;
+
+  const chain = RunnableSequence.from([prompt, llm]);
+  const response = await chain.invoke({ input, history: lcHistory, context: mergedContext });
+
+  // 구조화 모드에서는 객체가 반환될 수 있음 → JSON 문자열로 직렬화
+  let content;
+  if (outputSchema && response && typeof response === 'object' && !('content' in response)) {
+    try {
+      content = JSON.stringify(response);
+    } catch (_) {
+      content = String(response);
+    }
+  } else {
+    content = typeof response?.content === 'string'
       ? response.content
       : Array.isArray(response?.content)
         ? response.content.map((p) => p?.text || '').join('\n')
         : String(response?.content ?? '');
-
+  }
   return {
     success: true,
     content,
@@ -91,4 +160,5 @@ async function runReportAgent({ input, history, context, config, spec }) {
   };
 }
 
-module.exports = { runReportAgent };
+
+module.exports = { runReportAgent, REPORT_OUTPUT_SCHEMA };

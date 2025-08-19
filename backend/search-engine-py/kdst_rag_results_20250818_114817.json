@@ -1,0 +1,365 @@
+{
+  "metadata": {
+    "timestamp": "2025-08-18T11:48:21.346916",
+    "total_questions": 10,
+    "search_success": true,
+    "message": "KDST 문제 RAG 검색 완료"
+  },
+  "questions": [
+    {
+      "question_id": 1,
+      "question_text": "엎드린 자세에서 뒤집는다.",
+      "related_diaries_count": 3,
+      "related_diaries": [
+        {
+          "rank": 1,
+          "diary_id": 3,
+          "date": "2024-01-17",
+          "similarity_score": 0.6836194493724739,
+          "similarity_percentage": 68.36,
+          "content": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는 연습을 하고 있어요. 아직 팔이 몸통에 깔리는 경우가 있지만 점점 나아지고 있어요.",
+          "content_preview": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는 연습을 하고 있어요. 아직 팔이 몸통에 깔리는 경우가 있지만 점점 나아지고 있어요."
+        },
+        {
+          "rank": 2,
+          "diary_id": 1,
+          "date": "2024-01-15",
+          "similarity_score": 0.5307072269603117,
+          "similarity_percentage": 53.07,
+          "content": "오늘 아기가 처음으로 엎드린 자세에서 뒤집기를 성공했습니다. 정말 신기하고 감동적이었어요. 몇 번 시도하더니 드디어 성공하네요.",
+          "content_preview": "오늘 아기가 처음으로 엎드린 자세에서 뒤집기를 성공했습니다. 정말 신기하고 감동적이었어요. 몇 번 시도하더니 드디어 성공하네요."
+        },
+        {
+          "rank": 3,
+          "diary_id": 4,
+          "date": "2024-01-18",
+          "similarity_score": 0.34588404814016277,
+          "similarity_percentage": 34.59,
+          "content": "아기가 앉은 자세에서 균형을 잡고 있어요. 아직 완전하지는 않지만 몇 초 정도는 혼자 앉아있을 수 있어요. 발달이 빠른 것 같아요.",
+          "content_preview": "아기가 앉은 자세에서 균형을 잡고 있어요. 아직 완전하지는 않지만 몇 초 정도는 혼자 앉아있을 수 있어요. 발달이 빠른 것 같아요."
+        }
+      ],
+      "top_similarity": 0.6836194493724739
+    },
+    {
+      "question_id": 2,
+      "question_text": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는다(팔이 몸통에 깔려 있지 않아야 한다).",
+      "related_diaries_count": 3,
+      "related_diaries": [
+        {
+          "rank": 1,
+          "diary_id": 3,
+          "date": "2024-01-17",
+          "similarity_score": 0.8104506707952059,
+          "similarity_percentage": 81.05,
+          "content": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는 연습을 하고 있어요. 아직 팔이 몸통에 깔리는 경우가 있지만 점점 나아지고 있어요.",
+          "content_preview": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는 연습을 하고 있어요. 아직 팔이 몸통에 깔리는 경우가 있지만 점점 나아지고 있어요."
+        },
+        {
+          "rank": 2,
+          "diary_id": 1,
+          "date": "2024-01-15",
+          "similarity_score": 0.4549779748552024,
+          "similarity_percentage": 45.5,
+          "content": "오늘 아기가 처음으로 엎드린 자세에서 뒤집기를 성공했습니다. 정말 신기하고 감동적이었어요. 몇 번 시도하더니 드디어 성공하네요.",
+          "content_preview": "오늘 아기가 처음으로 엎드린 자세에서 뒤집기를 성공했습니다. 정말 신기하고 감동적이었어요. 몇 번 시도하더니 드디어 성공하네요."
+        },
+        {
+          "rank": 3,
+          "diary_id": 4,
+          "date": "2024-01-18",
+          "similarity_score": 0.439025453806542,
+          "similarity_percentage": 43.9,
+          "content": "아기가 앉은 자세에서 균형을 잡고 있어요. 아직 완전하지는 않지만 몇 초 정도는 혼자 앉아있을 수 있어요. 발달이 빠른 것 같아요.",
+          "content_preview": "아기가 앉은 자세에서 균형을 잡고 있어요. 아직 완전하지는 않지만 몇 초 정도는 혼자 앉아있을 수 있어요. 발달이 빠른 것 같아요."
+        }
+      ],
+      "top_similarity": 0.8104506707952059
+    },
+    {
+      "question_id": 3,
+      "question_text": "누워 있을 때 자기 발을 잡고 논다",
+      "related_diaries_count": 3,
+      "related_diaries": [
+        {
+          "rank": 1,
+          "diary_id": 2,
+          "date": "2024-01-16",
+          "similarity_score": 0.6932429084744582,
+          "similarity_percentage": 69.32,
+          "content": "아기가 누워있을 때 자기 발을 잡고 놀고 있어요. 발가락을 입에 넣으려고 하는 모습이 너무 귀여워요. 유연성도 좋은 것 같아요.",
+          "content_preview": "아기가 누워있을 때 자기 발을 잡고 놀고 있어요. 발가락을 입에 넣으려고 하는 모습이 너무 귀여워요. 유연성도 좋은 것 같아요."
+        },
+        {
+          "rank": 2,
+          "diary_id": 3,
+          "date": "2024-01-17",
+          "similarity_score": 0.45720716285692964,
+          "similarity_percentage": 45.72,
+          "content": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는 연습을 하고 있어요. 아직 팔이 몸통에 깔리는 경우가 있지만 점점 나아지고 있어요.",
+          "content_preview": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는 연습을 하고 있어요. 아직 팔이 몸통에 깔리는 경우가 있지만 점점 나아지고 있어요."
+        },
+        {
+          "rank": 3,
+          "diary_id": 4,
+          "date": "2024-01-18",
+          "similarity_score": 0.4034952372435315,
+          "similarity_percentage": 40.35,
+          "content": "아기가 앉은 자세에서 균형을 잡고 있어요. 아직 완전하지는 않지만 몇 초 정도는 혼자 앉아있을 수 있어요. 발달이 빠른 것 같아요.",
+          "content_preview": "아기가 앉은 자세에서 균형을 잡고 있어요. 아직 완전하지는 않지만 몇 초 정도는 혼자 앉아있을 수 있어요. 발달이 빠른 것 같아요."
+        }
+      ],
+      "top_similarity": 0.6932429084744582
+    },
+    {
+      "question_id": 4,
+      "question_text": "앉은 자세에서 균형을 잡는다",
+      "related_diaries_count": 3,
+      "related_diaries": [
+        {
+          "rank": 1,
+          "diary_id": 3,
+          "date": "2024-01-17",
+          "similarity_score": 0.6021850682678138,
+          "similarity_percentage": 60.22,
+          "content": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는 연습을 하고 있어요. 아직 팔이 몸통에 깔리는 경우가 있지만 점점 나아지고 있어요.",
+          "content_preview": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는 연습을 하고 있어요. 아직 팔이 몸통에 깔리는 경우가 있지만 점점 나아지고 있어요."
+        },
+        {
+          "rank": 2,
+          "diary_id": 4,
+          "date": "2024-01-18",
+          "similarity_score": 0.5514602676005436,
+          "similarity_percentage": 55.15,
+          "content": "아기가 앉은 자세에서 균형을 잡고 있어요. 아직 완전하지는 않지만 몇 초 정도는 혼자 앉아있을 수 있어요. 발달이 빠른 것 같아요.",
+          "content_preview": "아기가 앉은 자세에서 균형을 잡고 있어요. 아직 완전하지는 않지만 몇 초 정도는 혼자 앉아있을 수 있어요. 발달이 빠른 것 같아요."
+        },
+        {
+          "rank": 3,
+          "diary_id": 1,
+          "date": "2024-01-15",
+          "similarity_score": 0.3678813426325825,
+          "similarity_percentage": 36.79,
+          "content": "오늘 아기가 처음으로 엎드린 자세에서 뒤집기를 성공했습니다. 정말 신기하고 감동적이었어요. 몇 번 시도하더니 드디어 성공하네요.",
+          "content_preview": "오늘 아기가 처음으로 엎드린 자세에서 뒤집기를 성공했습니다. 정말 신기하고 감동적이었어요. 몇 번 시도하더니 드디어 성공하네요."
+        }
+      ],
+      "top_similarity": 0.6021850682678138
+    },
+    {
+      "question_id": 5,
+      "question_text": "배밀이를 한다",
+      "related_diaries_count": 3,
+      "related_diaries": [
+        {
+          "rank": 1,
+          "diary_id": 5,
+          "date": "2024-01-19",
+          "similarity_score": 0.3921884784513384,
+          "similarity_percentage": 39.22,
+          "content": "기어다니기 시작했어요! 배를 바닥에 대고 팔로 끌면서 움직이고 있어요. 이제 눈을 뗄 수가 없네요.",
+          "content_preview": "기어다니기 시작했어요! 배를 바닥에 대고 팔로 끌면서 움직이고 있어요. 이제 눈을 뗄 수가 없네요."
+        },
+        {
+          "rank": 2,
+          "diary_id": 3,
+          "date": "2024-01-17",
+          "similarity_score": 0.2903273413801432,
+          "similarity_percentage": 29.03,
+          "content": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는 연습을 하고 있어요. 아직 팔이 몸통에 깔리는 경우가 있지만 점점 나아지고 있어요.",
+          "content_preview": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는 연습을 하고 있어요. 아직 팔이 몸통에 깔리는 경우가 있지만 점점 나아지고 있어요."
+        },
+        {
+          "rank": 3,
+          "diary_id": 1,
+          "date": "2024-01-15",
+          "similarity_score": 0.21369764403675823,
+          "similarity_percentage": 21.37,
+          "content": "오늘 아기가 처음으로 엎드린 자세에서 뒤집기를 성공했습니다. 정말 신기하고 감동적이었어요. 몇 번 시도하더니 드디어 성공하네요.",
+          "content_preview": "오늘 아기가 처음으로 엎드린 자세에서 뒤집기를 성공했습니다. 정말 신기하고 감동적이었어요. 몇 번 시도하더니 드디어 성공하네요."
+        }
+      ],
+      "top_similarity": 0.3921884784513384
+    },
+    {
+      "question_id": 6,
+      "question_text": "네발기기를 한다",
+      "related_diaries_count": 3,
+      "related_diaries": [
+        {
+          "rank": 1,
+          "diary_id": 2,
+          "date": "2024-01-16",
+          "similarity_score": 0.45092943891439674,
+          "similarity_percentage": 45.09,
+          "content": "아기가 누워있을 때 자기 발을 잡고 놀고 있어요. 발가락을 입에 넣으려고 하는 모습이 너무 귀여워요. 유연성도 좋은 것 같아요.",
+          "content_preview": "아기가 누워있을 때 자기 발을 잡고 놀고 있어요. 발가락을 입에 넣으려고 하는 모습이 너무 귀여워요. 유연성도 좋은 것 같아요."
+        },
+        {
+          "rank": 2,
+          "diary_id": 3,
+          "date": "2024-01-17",
+          "similarity_score": 0.36092937470559344,
+          "similarity_percentage": 36.09,
+          "content": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는 연습을 하고 있어요. 아직 팔이 몸통에 깔리는 경우가 있지만 점점 나아지고 있어요.",
+          "content_preview": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는 연습을 하고 있어요. 아직 팔이 몸통에 깔리는 경우가 있지만 점점 나아지고 있어요."
+        },
+        {
+          "rank": 3,
+          "diary_id": 1,
+          "date": "2024-01-15",
+          "similarity_score": 0.35542893546249343,
+          "similarity_percentage": 35.54,
+          "content": "오늘 아기가 처음으로 엎드린 자세에서 뒤집기를 성공했습니다. 정말 신기하고 감동적이었어요. 몇 번 시도하더니 드디어 성공하네요.",
+          "content_preview": "오늘 아기가 처음으로 엎드린 자세에서 뒤집기를 성공했습니다. 정말 신기하고 감동적이었어요. 몇 번 시도하더니 드디어 성공하네요."
+        }
+      ],
+      "top_similarity": 0.45092943891439674
+    },
+    {
+      "question_id": 7,
+      "question_text": "잡고 서 있는다",
+      "related_diaries_count": 3,
+      "related_diaries": [
+        {
+          "rank": 1,
+          "diary_id": 2,
+          "date": "2024-01-16",
+          "similarity_score": 0.3696811654739708,
+          "similarity_percentage": 36.97,
+          "content": "아기가 누워있을 때 자기 발을 잡고 놀고 있어요. 발가락을 입에 넣으려고 하는 모습이 너무 귀여워요. 유연성도 좋은 것 같아요.",
+          "content_preview": "아기가 누워있을 때 자기 발을 잡고 놀고 있어요. 발가락을 입에 넣으려고 하는 모습이 너무 귀여워요. 유연성도 좋은 것 같아요."
+        },
+        {
+          "rank": 2,
+          "diary_id": 3,
+          "date": "2024-01-17",
+          "similarity_score": 0.32925695385897163,
+          "similarity_percentage": 32.93,
+          "content": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는 연습을 하고 있어요. 아직 팔이 몸통에 깔리는 경우가 있지만 점점 나아지고 있어요.",
+          "content_preview": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는 연습을 하고 있어요. 아직 팔이 몸통에 깔리는 경우가 있지만 점점 나아지고 있어요."
+        },
+        {
+          "rank": 3,
+          "diary_id": 5,
+          "date": "2024-01-19",
+          "similarity_score": 0.31781747462155363,
+          "similarity_percentage": 31.78,
+          "content": "기어다니기 시작했어요! 배를 바닥에 대고 팔로 끌면서 움직이고 있어요. 이제 눈을 뗄 수가 없네요.",
+          "content_preview": "기어다니기 시작했어요! 배를 바닥에 대고 팔로 끌면서 움직이고 있어요. 이제 눈을 뗄 수가 없네요."
+        }
+      ],
+      "top_similarity": 0.3696811654739708
+    },
+    {
+      "question_id": 8,
+      "question_text": "혼자 걷는다",
+      "related_diaries_count": 3,
+      "related_diaries": [
+        {
+          "rank": 1,
+          "diary_id": 4,
+          "date": "2024-01-18",
+          "similarity_score": 0.2503527739138734,
+          "similarity_percentage": 25.04,
+          "content": "아기가 앉은 자세에서 균형을 잡고 있어요. 아직 완전하지는 않지만 몇 초 정도는 혼자 앉아있을 수 있어요. 발달이 빠른 것 같아요.",
+          "content_preview": "아기가 앉은 자세에서 균형을 잡고 있어요. 아직 완전하지는 않지만 몇 초 정도는 혼자 앉아있을 수 있어요. 발달이 빠른 것 같아요."
+        },
+        {
+          "rank": 2,
+          "diary_id": 5,
+          "date": "2024-01-19",
+          "similarity_score": 0.16143125226139435,
+          "similarity_percentage": 16.14,
+          "content": "기어다니기 시작했어요! 배를 바닥에 대고 팔로 끌면서 움직이고 있어요. 이제 눈을 뗄 수가 없네요.",
+          "content_preview": "기어다니기 시작했어요! 배를 바닥에 대고 팔로 끌면서 움직이고 있어요. 이제 눈을 뗄 수가 없네요."
+        },
+        {
+          "rank": 3,
+          "diary_id": 2,
+          "date": "2024-01-16",
+          "similarity_score": 0.15037800448722433,
+          "similarity_percentage": 15.04,
+          "content": "아기가 누워있을 때 자기 발을 잡고 놀고 있어요. 발가락을 입에 넣으려고 하는 모습이 너무 귀여워요. 유연성도 좋은 것 같아요.",
+          "content_preview": "아기가 누워있을 때 자기 발을 잡고 놀고 있어요. 발가락을 입에 넣으려고 하는 모습이 너무 귀여워요. 유연성도 좋은 것 같아요."
+        }
+      ],
+      "top_similarity": 0.2503527739138734
+    },
+    {
+      "question_id": 9,
+      "question_text": "계단을 기어 올라간다",
+      "related_diaries_count": 3,
+      "related_diaries": [
+        {
+          "rank": 1,
+          "diary_id": 5,
+          "date": "2024-01-19",
+          "similarity_score": 0.36220876348081776,
+          "similarity_percentage": 36.22,
+          "content": "기어다니기 시작했어요! 배를 바닥에 대고 팔로 끌면서 움직이고 있어요. 이제 눈을 뗄 수가 없네요.",
+          "content_preview": "기어다니기 시작했어요! 배를 바닥에 대고 팔로 끌면서 움직이고 있어요. 이제 눈을 뗄 수가 없네요."
+        },
+        {
+          "rank": 2,
+          "diary_id": 3,
+          "date": "2024-01-17",
+          "similarity_score": 0.2361599506170899,
+          "similarity_percentage": 23.62,
+          "content": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는 연습을 하고 있어요. 아직 팔이 몸통에 깔리는 경우가 있지만 점점 나아지고 있어요.",
+          "content_preview": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는 연습을 하고 있어요. 아직 팔이 몸통에 깔리는 경우가 있지만 점점 나아지고 있어요."
+        },
+        {
+          "rank": 3,
+          "diary_id": 1,
+          "date": "2024-01-15",
+          "similarity_score": 0.18619160838171356,
+          "similarity_percentage": 18.62,
+          "content": "오늘 아기가 처음으로 엎드린 자세에서 뒤집기를 성공했습니다. 정말 신기하고 감동적이었어요. 몇 번 시도하더니 드디어 성공하네요.",
+          "content_preview": "오늘 아기가 처음으로 엎드린 자세에서 뒤집기를 성공했습니다. 정말 신기하고 감동적이었어요. 몇 번 시도하더니 드디어 성공하네요."
+        }
+      ],
+      "top_similarity": 0.36220876348081776
+    },
+    {
+      "question_id": 10,
+      "question_text": "공을 던진다",
+      "related_diaries_count": 3,
+      "related_diaries": [
+        {
+          "rank": 1,
+          "diary_id": 3,
+          "date": "2024-01-17",
+          "similarity_score": 0.25058877484440956,
+          "similarity_percentage": 25.06,
+          "content": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는 연습을 하고 있어요. 아직 팔이 몸통에 깔리는 경우가 있지만 점점 나아지고 있어요.",
+          "content_preview": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는 연습을 하고 있어요. 아직 팔이 몸통에 깔리는 경우가 있지만 점점 나아지고 있어요."
+        },
+        {
+          "rank": 2,
+          "diary_id": 2,
+          "date": "2024-01-16",
+          "similarity_score": 0.1827028347840075,
+          "similarity_percentage": 18.27,
+          "content": "아기가 누워있을 때 자기 발을 잡고 놀고 있어요. 발가락을 입에 넣으려고 하는 모습이 너무 귀여워요. 유연성도 좋은 것 같아요.",
+          "content_preview": "아기가 누워있을 때 자기 발을 잡고 놀고 있어요. 발가락을 입에 넣으려고 하는 모습이 너무 귀여워요. 유연성도 좋은 것 같아요."
+        },
+        {
+          "rank": 3,
+          "diary_id": 5,
+          "date": "2024-01-19",
+          "similarity_score": 0.17056925299290454,
+          "similarity_percentage": 17.06,
+          "content": "기어다니기 시작했어요! 배를 바닥에 대고 팔로 끌면서 움직이고 있어요. 이제 눈을 뗄 수가 없네요.",
+          "content_preview": "기어다니기 시작했어요! 배를 바닥에 대고 팔로 끌면서 움직이고 있어요. 이제 눈을 뗄 수가 없네요."
+        }
+      ],
+      "top_similarity": 0.25058877484440956
+    }
+  ],
+  "summary": {
+    "questions_with_results": 10,
+    "total_diary_matches": 30,
+    "average_top_similarity": 0.4865
+  }
+}

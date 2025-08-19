@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { FiChevronLeft } from 'react-icons/fi';
-import API_BASE from '../utils/api';
+
+import API_BASE from '../utils/api'; // API_BASE import 추가
 
 function DiaryDetailPage() {
   const { diaryId } = useParams();

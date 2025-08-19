@@ -118,11 +118,19 @@ function ChildInfoPage() {
                   onChange={async (e) => {
                     const file = e.target.files && e.target.files[0];
                     if (!file) return;
+                    
+                    // 편집 모드가 아니면 업로드할 수 없음
+                    if (!isEditMode || !childId) {
+                      alert('자녀 정보를 먼저 저장한 후 프로필 이미지를 업로드해주세요.');
+                      return;
+                    }
+                    
                     try {
-                      const { path, url } = await childrenAPI.uploadProfileImage(file);
-                      // DB에는 파일명만 저장 (절대/상대 경로 금지)
-                      const filename = (path || url || '').split('/').pop();
+                      const result = await childrenAPI.uploadProfileImage(childId, file);
+                      // 서버에서 반환된 filename 사용
+                      const filename = result.filename || result.path?.split('/').pop() || result.url?.split('/').pop();
                       setChildInfo((prev) => ({ ...prev, profile_image: filename }));
+                      alert('프로필 이미지가 성공적으로 업로드되었습니다.');
                     } catch (err) {
                       console.error('이미지 업로드 실패:', err);
                       alert(err.message || '이미지 업로드에 실패했습니다.');

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import PageLayout from '../components/PageLayout'; // PageLayout 임포트
 import { FiPlus } from 'react-icons/fi';
+import API_BASE from '../utils/api'; // API_BASE import 추가
 import '../App.css';
 
 function DiaryPage() {
@@ -16,9 +17,7 @@ function DiaryPage() {
       try {
         setLoading(true);
         // 목업 데이터 대신 실제 API 호출
-        const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/child/${childId}`
-        );
+        const response = await fetch(`${API_BASE}/diaries/child/${childId}`);
         const data = await response.json();
         if (data.success) {
           // 새 스키마: date, content 기반. 최신 날짜 순
