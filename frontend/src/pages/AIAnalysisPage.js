@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import '../App.css';
 
 function AIAnalysisPage() {
+  const navigate = useNavigate();
   const [input1, setInput1] = useState('주간 리포트');
   const [check1, setCheck1] = useState('');
   const [check2, setCheck2] = useState('');
@@ -372,7 +374,7 @@ function AIAnalysisPage() {
               <button
                 type="button"
                 className="text22"
-                onClick={() => alert('K-DST 체크리스트는 준비 중입니다.')}
+                onClick={() => navigate('/kdst-checklist')}
                 style={{ background: 'transparent', border: 'none', width: '100%', cursor: 'pointer' }}
               >
                 {'K-DST 발달 체크리스트 더보기'}

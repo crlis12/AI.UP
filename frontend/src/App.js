@@ -11,6 +11,7 @@ import SigninPage from './pages/SigninPage';
 import SignupPage from './pages/SignupPage';
 import ChildInfoPage from './pages/ChildInfoPage';
 import AIAnalysisPage from './pages/AIAnalysisPage';
+import KdstChecklistPage from './pages/KdstChecklistPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage'; // 이름 복구
 import VerifyCodePage from './pages/VerifyCodePage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
@@ -236,6 +237,10 @@ function App() {
         <Route
           path="/ai-analysis"
           element={isLoggedIn ? <AIAnalysisPage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/kdst-checklist"
+          element={isLoggedIn ? <KdstChecklistPage /> : <Navigate to="/login" />}
         />
       </Routes>
     </div>

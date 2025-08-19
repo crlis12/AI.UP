@@ -81,6 +81,12 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
             : childrenData.children[0].id;
         localStorage.setItem('currentChildId', firstChildId);
 
+        // 메인 화면에서 표시되는 선택된 자녀 인덱스를 저장된 childId와 동기화
+        const selectedIndex = childrenData.children.findIndex(
+          (c) => String(c.id) === String(firstChildId)
+        );
+        setCurrentChildIndex(selectedIndex >= 0 ? selectedIndex : 0);
+
         console.log('첫 번째 자녀 ID:', firstChildId);
         const firstChildObj = childrenData.children.find(
           (c) => String(c.id) === String(firstChildId)

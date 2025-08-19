@@ -51,7 +51,11 @@ function BottomNavBar() {
 
   // 현재 경로를 기반으로 활성화된 탭을 결정
   const getActiveClass = (path) => {
-    return location.pathname.startsWith(path) ? 'active' : '';
+    const current = location.pathname;
+    if (path === '/ai-analysis') {
+      return current.startsWith('/ai-analysis') || current.startsWith('/kdst-checklist') ? 'active' : '';
+    }
+    return current.startsWith(path) ? 'active' : '';
   };
 
   const handleNavigate = (path) => {

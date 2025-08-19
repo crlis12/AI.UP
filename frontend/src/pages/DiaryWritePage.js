@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import API_BASE from '../utils/api';
 import PageLayout from '../components/PageLayout';
 import { FiCalendar, FiChevronDown, FiPlus, FiX } from 'react-icons/fi';
 import '../App.css';
@@ -50,13 +51,10 @@ function DiaryWritePage() {
       form.append('content', content.trim());
       form.append('date', dateValue);
       files.forEach((f) => form.append('files', f));
-      const resp = await fetch(
-        `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries`,
-        {
-          method: 'POST',
-          body: form,
-        }
-      );
+      const resp = await fetch(`${API_BASE}/diaries`, {
+        method: 'POST',
+        body: form,
+      });
       const data = await resp.json();
       if (!data.success) throw new Error(data.message || '일지 저장 실패');
       navigate(`/diary/list/${childId}`, { replace: true });
@@ -85,9 +83,7 @@ function DiaryWritePage() {
     }
     const fetchExisting = async () => {
       try {
-        const resp = await fetch(
-          `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/child/${childId}?date=${dateValue}`
-        );
+        const resp = await fetch(`${API_BASE}/diaries/child/${childId}?date=${dateValue}`);
         const data = await resp.json();
         if (data.success && Array.isArray(data.diaries) && data.diaries.length > 0) {
           setContent(data.diaries[0].content || '');
