@@ -13,48 +13,75 @@ from sentence_transformers import SentenceTransformer
 MODEL_NAME = 'jhgan/ko-sroberta-multitask'
 COLLECTION_NAME = "my_journal_on_disk"
 QDRANT_PATH = "../my_local_qdrant_db"
+EMBEDDING_DB_PATH = os.path.join(os.path.dirname(__file__), 'my_local_qdrant_db', 'diary_embeddings.db')
 
 def setup_model_and_data():
-    """임베딩 모델을 준비하고 기존 데이터를 로드합니다"""
+    """임베딩 모델을 준비하고 기존 데이터를 로드합니다
+    우선순위: diary_embeddings.db → Qdrant storage.sqlite → 샘플 데이터
+    """
     try:
         model = SentenceTransformer(MODEL_NAME)
-        sqlite_path = os.path.join(QDRANT_PATH, "collection", COLLECTION_NAME, "storage.sqlite")
-        
-        if not os.path.exists(sqlite_path):
-            return model, get_sample_data()
-        
-        try:
-            conn = sqlite3.connect(sqlite_path)
-            cursor = conn.cursor()
-            cursor.execute("SELECT id, point FROM points LIMIT 10")
-            rows = cursor.fetchall()
-            
-            data = []
-            for row in rows:
-                if len(row) >= 2:
-                    vector_id = row[0]
-                    blob_data = row[1]
-                    vector_data = parse_vector_blob(blob_data)
-                    
-                    if vector_data and 'vector' in vector_data:
-                        payload = vector_data.get('payload', {})
-                        text = extract_text_from_payload(payload)
-                        
+
+        # 1) diary_embeddings.db 우선 사용 (일지 저장 시 업서트되는 DB)
+        if os.path.exists(EMBEDDING_DB_PATH):
+            try:
+                conn = sqlite3.connect(EMBEDDING_DB_PATH)
+                cursor = conn.cursor()
+                cursor.execute('SELECT diary_id, text, embedding, date FROM diary_embeddings')
+                rows = cursor.fetchall()
+                data = []
+                for diary_id, text, embedding_blob, date in rows:
+                    try:
+                        vec = json.loads(embedding_blob)
                         data.append({
-                            'id': vector_id,
-                            'vector': vector_data['vector'],
-                            'payload': payload,
+                            'id': diary_id,
+                            'vector': vec,
                             'text': text,
-                            'date': payload.get('date', '2024-08-14'),
+                            'date': date,
                             'combined_text': text
                         })
-            
-            conn.close()
-            return model, data if data else get_sample_data()
-                
-        except Exception:
-            return model, get_sample_data()
-            
+                    except Exception:
+                        continue
+                conn.close()
+                if data:
+                    return model, data
+            except Exception:
+                pass
+
+        # 2) Qdrant storage.sqlite (있다면 사용)
+        sqlite_path = os.path.join(QDRANT_PATH, "collection", COLLECTION_NAME, "storage.sqlite")
+        if os.path.exists(sqlite_path):
+            try:
+                conn = sqlite3.connect(sqlite_path)
+                cursor = conn.cursor()
+                cursor.execute("SELECT id, point FROM points")
+                rows = cursor.fetchall()
+                data = []
+                for row in rows:
+                    if len(row) >= 2:
+                        vector_id = row[0]
+                        blob_data = row[1]
+                        vector_data = parse_vector_blob(blob_data)
+                        if vector_data and 'vector' in vector_data:
+                            payload = vector_data.get('payload', {})
+                            text = extract_text_from_payload(payload)
+                            data.append({
+                                'id': vector_id,
+                                'vector': vector_data['vector'],
+                                'payload': payload,
+                                'text': text,
+                                'date': payload.get('date', '2024-08-14'),
+                                'combined_text': text
+                            })
+                conn.close()
+                if data:
+                    return model, data
+            except Exception:
+                pass
+
+        # 3) 아무것도 없으면 샘플 데이터
+        return model, get_sample_data()
+
     except Exception:
         return None, get_sample_data()
 
@@ -182,19 +209,18 @@ def search_similar_diaries(model, data, query_text, limit=5, score_threshold=0.5
             if 'vector' in item and item['vector']:
                 stored_vector = item['vector']
                 similarity = cosine_similarity(query_vector, stored_vector)
-                score = 1.0 - similarity
-                
-                if score >= score_threshold:
+                # 임계치 해석을 "유사도 >= 임계치"로 통일
+                if similarity >= score_threshold:
                     results.append({
                         'id': item['id'],
-                        'score': float(score),
+                        'similarity': float(similarity),
                         'text': item.get('text', ''),
                         'date': item.get('date', '2024-08-14'),
                         'combined_text': item.get('combined_text', ''),
-                        'similarity_percentage': round(similarity * 100, 2)
                     })
         
-        results.sort(key=lambda x: x['score'])
+        # 유사도 높은 순으로 정렬 후 상위 N개 반환
+        results.sort(key=lambda x: x.get('similarity', 0.0), reverse=True)
         results = results[:limit]
         
         return {

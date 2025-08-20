@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
+const path = require('path');
+const { spawn } = require('child_process');
+const config = require('../config');
 
 let multerInstance = null;
 function getMulter() {
@@ -12,6 +15,64 @@ function getMulter() {
     });
   }
   return multerInstance;
+}
+
+// history 배열(JSON/string)을 받아 role/content 쌍의 텍스트 메시지 리스트로 변환
+function extractHistoryMessages(historyRaw) {
+  try {
+    const historyArr = Array.isArray(historyRaw) ? historyRaw : [];
+    const messages = [];
+    for (const msg of historyArr) {
+      try {
+        // LangChain 직렬화 형태 대비: msg.kwargs.content 또는 msg.content 사용
+        const rawContent = msg?.kwargs?.content ?? msg?.content ?? '';
+        let text = '';
+        if (Array.isArray(rawContent)) {
+          // 멀티모달 형태일 수 있음 → text 파트만 추출 및 합침
+          const parts = [];
+          for (const p of rawContent) {
+            if (p && typeof p === 'object') {
+              if (typeof p.text === 'string' && p.text.trim() !== '') parts.push(p.text.trim());
+              if (typeof p.image_url === 'string') parts.push('[이미지]');
+              if (typeof p.video_url === 'string') parts.push('[비디오]');
+            }
+          }
+          text = parts.join('\n');
+        } else if (typeof rawContent === 'string') {
+          text = rawContent;
+        } else {
+          text = String(rawContent ?? '');
+        }
+
+        text = String(text || '').trim();
+        if (!text) continue;
+
+        // 역할 추정: LangChain id 마지막이 HumanMessage인지 검사, 아니면 type/role 힌트 사용
+        let role = 'assistant';
+        try {
+          const idArr = Array.isArray(msg?.id) ? msg.id : [];
+          if (idArr.length > 0 && idArr[idArr.length - 1] === 'HumanMessage') role = 'user';
+        } catch (_) {
+          // ignore
+        }
+        if (typeof msg?._getType === 'function') {
+          const t = msg._getType();
+          if (t === 'human') role = 'user';
+          else if (t === 'ai') role = 'assistant';
+        } else if (typeof msg?.type === 'string') {
+          if (msg.type === 'human') role = 'user';
+          else if (msg.type === 'ai') role = 'assistant';
+        }
+
+        messages.push({ role, content: text });
+      } catch (_) {
+        // 개별 메시지 파싱 오류 무시
+      }
+    }
+    return messages;
+  } catch (_) {
+    return [];
+  }
 }
 
 async function loadLangChain() {
@@ -29,6 +90,52 @@ function buildSystemPromptFromSpec({ systemPrompt, spec }) {
   // 없으면 백엔드 기본 questionAgent 프롬프트를 그대로 사용합니다.
   if (systemPrompt && String(systemPrompt).trim() !== '') return String(systemPrompt);
   return QUESTION_AGENT_PROMPT;
+}
+
+// 일반 RAG 검색을 위한 Python 스크립트 실행 함수 (search_diaries.py 재사용)
+async function runPythonSearchScript(queryData) {
+  return new Promise((resolve, reject) => {
+    try {
+      const scriptPath = path.join(__dirname, '..', 'search-engine-py', 'search_diaries.py');
+      const pythonProcess = spawn(config.python.path, [scriptPath], {
+        cwd: path.dirname(scriptPath),
+      });
+
+      let stdout = '';
+      let stderr = '';
+
+      pythonProcess.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      pythonProcess.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      pythonProcess.on('close', (code) => {
+        if (code === 0) {
+          try {
+            const result = JSON.parse(stdout);
+            resolve(result);
+          } catch (parseError) {
+            reject(new Error(`JSON 파싱 오류: ${parseError.message}`));
+          }
+        } else {
+          reject(new Error(`Python 스크립트 실행 실패, exit code: ${code}. ${stderr}`));
+        }
+      });
+
+      pythonProcess.on('error', (error) => {
+        reject(error);
+      });
+
+      const inputData = JSON.stringify(queryData);
+      pythonProcess.stdin.write(inputData);
+      pythonProcess.stdin.end();
+    } catch (err) {
+      reject(err);
+    }
+  });
 }
 
 async function uploadToGeminiFiles({ fileBuffer, mimeType, displayName }) {
@@ -88,6 +195,9 @@ router.post('/', async (req, res) => {
     let model = QUESTION_AGENT_DEFAULT_CONFIG.model;
     let temperature = QUESTION_AGENT_DEFAULT_CONFIG.temperature;
     let spec = undefined; // 별도 스키마/스펙 비사용
+    let combinedInput = '';
+
+    let history = [];
 
     if ((req.headers['content-type'] || '').includes('multipart/form-data')) {
       const upload = getMulter().single('file');
@@ -100,6 +210,15 @@ router.post('/', async (req, res) => {
       }
       input = req.body?.input || '';
       mode = req.body?.mode || 'auto';
+      // history: 문자열이면 JSON 파싱 시도
+      if (req.body?.history) {
+        try {
+          const h = typeof req.body.history === 'string' ? JSON.parse(req.body.history) : req.body.history;
+          history = Array.isArray(h) ? h : [];
+        } catch (_) {
+          history = [];
+        }
+      }
       if (req.body?.config) {
         let cfg = req.body.config;
         if (typeof cfg === 'string') {
@@ -117,11 +236,62 @@ router.post('/', async (req, res) => {
       const body = req.body || {};
       input = body.input || '';
       mode = body.mode || 'auto';
+      if (body?.history && Array.isArray(body.history)) {
+        history = body.history;
+      }
       if (body?.config) {
         if (body.config.model) model = body.config.model;
         if (typeof body.config.temperature === 'number') temperature = body.config.temperature;
       }
       // spec은 더 이상 사용하지 않습니다 (무시)
+    }
+
+    // 0단계: 입력 텍스트를 키워드로 RAG 검색을 수행하고, 결과를 입력 하단에 문자열로 붙입니다.
+    try {
+      combinedInput = String(input || '').trim();
+      // 0-1) 과거 대화 히스토리를 간략 텍스트로 압축하여 상단에 첨부
+      const historyMsgs = extractHistoryMessages(history);
+      if (historyMsgs.length > 0) {
+        const lastFew = historyMsgs.slice(-6); // 최근 6개만 사용
+        const historyLines = lastFew.map((m) => `${m.role === 'user' ? '사용자' : 'AI'}: ${m.content}`);
+        const historyBlock = `[대화 요약]\n${historyLines.join('\n')}`;
+        combinedInput = historyBlock + (combinedInput ? `\n\n${combinedInput}` : '');
+      }
+      const queryForRag = combinedInput;
+      if (queryForRag) {
+        const limit = (req.body && typeof req.body.limit !== 'undefined') ? Number(req.body.limit) : 5;
+        const score_threshold = (req.body && typeof req.body.score_threshold !== 'undefined') ? Number(req.body.score_threshold) : 0.0;
+        const searchResult = await runPythonSearchScript({ query: queryForRag, limit, score_threshold });
+        console.log('[RAG][question] query:', queryForRag, 'limit:', limit, 'threshold:', score_threshold);
+        console.log('[RAG][question] raw result:', JSON.stringify(searchResult)?.slice(0, 500) + '...');
+        if (searchResult?.success && Array.isArray(searchResult.results)) {
+          const lines = [];
+          for (const item of searchResult.results) {
+            try {
+              const content =
+                item?.content ||
+                item?.combined_text ||
+                item?.payload?.combined_text ||
+                item?.text ||
+                item?.payload?.text ||
+                item?.content_preview || '';
+              const normalized = String(content || '').trim();
+              if (!normalized) continue;
+              lines.push(normalized);
+            } catch (_) {
+              // 개별 항목 오류는 무시
+            }
+          }
+          if (lines.length > 0) {
+            const ragBlock = `[관련 일기]\n${lines.join('\n')}`;
+            combinedInput = combinedInput ? `${combinedInput}\n\n${ragBlock}` : ragBlock;
+            console.log('[RAG][question] appended lines:', lines.length);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('RAG 검색 실패, 원문 입력만 사용합니다.', e?.message || e);
+      combinedInput = input || '';
     }
 
     const isImage = mimeType?.startsWith('image/');
@@ -138,7 +308,7 @@ router.post('/', async (req, res) => {
       const sys = buildSystemPromptFromSpec({ systemPrompt: undefined, spec });
       const response = await chat.invoke([
         { role: 'system', content: sys },
-        { role: 'user', content: input || '부모의 질문에 간결하고 실용적으로 답변해 주세요.' },
+        { role: 'user', content: combinedInput || '부모의 질문에 간결하고 실용적으로 답변해 주세요.' },
       ]);
       const content =
         typeof response?.content === 'string'
@@ -176,7 +346,7 @@ router.post('/', async (req, res) => {
           content: [
             {
               type: 'text',
-              text: input || '부모의 질문에 답변하기 위한 필요한 정보를 추출해 답변해 주세요.',
+              text: combinedInput || '부모의 질문에 답변하기 위한 필요한 정보를 추출해 답변해 주세요.',
             },
             { type: 'image_url', image_url: dataUrl },
           ],
@@ -204,7 +374,7 @@ router.post('/', async (req, res) => {
         {
           role: 'user',
           parts: [
-            { text: input ? `요청:${input}` : '영상 기반으로 부모의 질문에 답변해 주세요.' },
+            { text: combinedInput ? `요청:${combinedInput}` : '영상 기반으로 부모의 질문에 답변해 주세요.' },
             { fileData: { fileUri, mimeType } },
           ],
         },
