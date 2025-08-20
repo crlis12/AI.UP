@@ -11,14 +11,12 @@ import SigninPage from './pages/SigninPage';
 import SignupPage from './pages/SignupPage';
 import ChildInfoPage from './pages/ChildInfoPage';
 import ChildDetailPage from './pages/ChildDetailPage';
-// import AIAnalysisPage from './pages/AIAnalysisPage';
-import KdstChecklistPage from './pages/KdstChecklistPage';
+import AIAnalysisPage from './pages/AIAnalysisPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage'; // 이름 복구
 import VerifyCodePage from './pages/VerifyCodePage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import DiaryPage from './pages/DiaryPage'; // DiaryPage 임포트 추가
 import DiaryWritePage from './pages/DiaryWritePage';
-import DiaryEditPage from './pages/DiaryEditPage';
 import DiaryDetailPage from './pages/DiaryDetailPage'; // DiaryDetailPage 임포트 추가
 import ReportAgentTestPage from './pages/ReportAgentTestPage';
 import ReportDetailPage from './pages/ReportDetailPage';
@@ -299,12 +297,13 @@ function App() {
         {/* 메인 화면 라우트 (이제 '/main' 경로로 접근) */}
         <Route
           path="/main"
-          element={isLoggedIn ? <MainScreen onSendMessage={handleSendMessage} currentUser={currentUser} onLogout={handleLogout} /> : <Navigate to="/login" />}
+          element={isLoggedIn ? <MainScreen onSendMessage={handleSendReportMessage} currentUser={currentUser} onLogout={handleLogout} /> : <Navigate to="/login" />}
         />
         
+        {/* 기본 채팅을 리포트 에이전트로 연결 */}
         <Route 
           path="/chat/:childId" 
-          element={isLoggedIn ? <ChatWindow messages={messages} onSendMessage={handleSendMessage} isLoading={isLoading} /> : <Navigate to="/login" />} 
+          element={isLoggedIn ? <ChatWindow messages={messages} onSendMessage={handleSendReportMessage} isLoading={isLoading} /> : <Navigate to="/login" />} 
         />
         {/* 기타 보호된 라우트 */}
         <Route
@@ -320,21 +319,11 @@ function App() {
           path="/diary/:childId"
           element={isLoggedIn ? <DiaryWritePage /> : <Navigate to="/login" />}
         />
-        <Route
-          path="/diary/write/:childId"
-          element={isLoggedIn ? <DiaryWritePage /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/diary/edit/:diaryId"
-          element={isLoggedIn ? <DiaryEditPage /> : <Navigate to="/login" />}
-        />
         {/* 일지 목록 경로 */}
-
         <Route path="/diary/list/:childId" element={isLoggedIn ? <DiaryPage /> : <Navigate to="/login" />} />
         <Route path="/diary/detail/:diaryId" element={isLoggedIn ? <DiaryDetailPage /> : <Navigate to="/login" />} /> {/* DiaryDetailPage 라우트 추가 */}
 
-        {/* /ai-analysis는 더 이상 사용하지 않음 */}
-        <Route path="/kdst-checklist" element={isLoggedIn ? <KdstChecklistPage /> : <Navigate to="/login" />} />
+        <Route path="/ai-analysis" element={isLoggedIn ? <AIAnalysisPage /> : <Navigate to="/login" />} />
 
         {/* 리포트 에이전트 테스트 라우트 */}
         <Route path="/report/test" element={isLoggedIn ? <ReportAgentTestPage /> : <Navigate to="/login" />} />

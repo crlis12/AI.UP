@@ -3,6 +3,8 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import { FiCalendar, FiChevronDown, FiPlus, FiX } from 'react-icons/fi';
 import '../App.css';
+import './DiaryWritePage.css'; // DiaryWritePage 전용 CSS 추가
+import API_BASE from '../utils/api'; // API_BASE import 추가
 
 function DiaryWritePage() {
   const navigate = useNavigate();
