@@ -127,9 +127,9 @@ function ReportDetailPage() {
       const reqs = Array.isArray(agentReport?.final_opinion?.requirements) ? agentReport.final_opinion.requirements : [];
       const recommendations = [...opinion, ...reqs];
 
-      // 다음 평가일: 오늘 기준 + 3개월
+      // 다음 평가일: 오늘 기준 + 7일
       const next = new Date();
-      next.setMonth(next.getMonth() + 3);
+      next.setDate(next.getDate() + 7);
       const nextAssessment = next.toISOString().split('T')[0];
 
       return {
