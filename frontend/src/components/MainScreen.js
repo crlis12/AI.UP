@@ -82,12 +82,6 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
             : childrenData.children[0].id;
         localStorage.setItem('currentChildId', firstChildId);
 
-        // 메인 화면에서 표시되는 선택된 자녀 인덱스를 저장된 childId와 동기화
-        const selectedIndex = childrenData.children.findIndex(
-          (c) => String(c.id) === String(firstChildId)
-        );
-        setCurrentChildIndex(selectedIndex >= 0 ? selectedIndex : 0);
-
         console.log('첫 번째 자녀 ID:', firstChildId);
         const firstChildObj = childrenData.children.find(
           (c) => String(c.id) === String(firstChildId)
@@ -671,7 +665,9 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                     <div className="card__title">아이 정보</div>
                     <button
                       className="card__action"
-                      onClick={handleEditChildClick}
+                      onClick={() =>
+                        navigate(`/child-detail/${children[currentChildIndex]?.id || ''}`)
+                      }
                     >
                       전체보기
                     </button>
@@ -724,7 +720,18 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                     />
                     <button
                       className="main-screen__report-button"
-                      onClick={() => navigate('/ai-analysis')}
+                      onClick={() => {
+                        if (children[currentChildIndex]) {
+                          navigate('/ai-analysis', {
+                            state: {
+                              childId: children[currentChildIndex].id,
+                              childName: children[currentChildIndex].name
+                            }
+                          });
+                        } else {
+                          alert('자녀 정보를 찾을 수 없습니다.');
+                        }
+                      }}
                     >
                       리포트 보기
                     </button>

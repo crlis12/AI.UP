@@ -223,7 +223,7 @@
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	column-gap: 12px;
-	margin: 8px 16px 24px; /* 위쪽 간격 축소 */
+	margin: 20px 16px 24px; /* 위쪽 간격 확대 */
 	padding: 0;
 }
 /* 단일 버튼(추가 모드)일 때 컨테이너의 정확한 중앙(절반 너비) 정렬 */

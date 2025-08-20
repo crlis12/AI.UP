@@ -324,6 +324,88 @@ export const childrenAPI = {
   }
 };
 
+// Counselors API 관련 함수들
+export const counselorsAPI = {
+  // 모든 상담사 목록 조회
+  getCounselors: async () => {
+    try {
+      const response = await fetch(`${API_BASE}/counselors`);
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || '상담사 목록 조회에 실패했습니다.');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('상담사 목록 조회 오류:', error);
+      throw error;
+    }
+  },
+
+  // 지역별 상담사 조회
+  getCounselorsByRegion: async (regionId) => {
+    try {
+      const response = await fetch(`${API_BASE}/counselors/region/${regionId}`);
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || '지역별 상담사 조회에 실패했습니다.');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('지역별 상담사 조회 오류:', error);
+      throw error;
+    }
+  },
+
+  // 도메인별 상담사 조회
+  getCounselorsByDomain: async (domain) => {
+    try {
+      const response = await fetch(`${API_BASE}/counselors/domain/${encodeURIComponent(domain)}`);
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || '도메인별 상담사 조회에 실패했습니다.');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('도메인별 상담사 조회 오류:', error);
+      throw error;
+    }
+  },
+
+  // 상담사 매칭 요청
+  requestCounselorMatching: async (childId, counselorId, message) => {
+    try {
+      const response = await fetch(`${API_BASE}/counselors/match`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          child_id: childId,
+          counselor_id: counselorId,
+          message: message
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || '상담사 매칭 요청에 실패했습니다.');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('상담사 매칭 요청 오류:', error);
+      throw error;
+    }
+  }
+};
+
 // Report Agent 관련 API
 export const reportAPI = {
   // RAG + Report 통합 엔드포인트 호출

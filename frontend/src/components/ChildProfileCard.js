@@ -91,23 +91,7 @@ const ChildProfileCard = ({ child, onUpdate }) => {
         <div className="profile-actions">
           <button
             className="edit-btn"
-            onClick={() =>
-              navigate('/child-info', {
-                state: {
-                  mode: 'edit',
-                  childId: child.id,
-                  child: {
-                    name: child.name || '',
-                    gender: child.gender || '',
-                    birthdate: child.birth_date || '',
-                    weight: child.weight || '',
-                    height: child.height || '',
-                    notes: child.special_needs || '',
-                    profile_image: child.profile_image || '',
-                  },
-                },
-              })
-            }
+            onClick={() => navigate(`/child-detail/${child.id}`)}
             title="상세 수정"
           >
             <FaEdit />
