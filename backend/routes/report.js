@@ -102,7 +102,7 @@ async function runPythonSearchScript(queryData) {
 // POST /report/rag-search
 router.post('/rag-search', async (req, res) => {
   try {
-    const { query, limit = 5, score_threshold = 0.5 } = req.body;
+    const { query, limit = 5, score_threshold = 0.0 } = req.body;
     
     if (!query || typeof query !== 'string') {
       return res.status(400).json({ 
@@ -116,6 +116,8 @@ router.post('/rag-search', async (req, res) => {
       limit: limit,
       score_threshold: score_threshold
     });
+    console.log('[RAG][report] query:', query, 'limit:', limit, 'threshold:', score_threshold);
+    console.log('[RAG][report] raw result:', JSON.stringify(searchResult)?.slice(0, 500) + '...');
     
     if (searchResult.success) {
       return res.json({
@@ -151,7 +153,7 @@ router.post('/rag-report', async (req, res) => {
       config,          // Report 에이전트 설정
       spec,            // Report 스펙
       limit = 5,       // 검색 결과 개수
-      score_threshold = 0.5  // 검색 점수 임계값
+      score_threshold = 0.0  // 검색 점수 임계값
     } = req.body;
 
     // 필수 파라미터 검증
@@ -175,6 +177,8 @@ router.post('/rag-report', async (req, res) => {
       limit: limit,
       score_threshold: score_threshold
     });
+    console.log('[RAG][report] query:', query, 'limit:', limit, 'threshold:', score_threshold);
+    console.log('[RAG][report] raw result:', JSON.stringify(searchResult)?.slice(0, 500) + '...');
 
     if (!searchResult.success) {
       return res.status(500).json({
