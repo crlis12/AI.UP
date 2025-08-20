@@ -259,7 +259,7 @@ router.post('/', async (req, res) => {
       }
       const queryForRag = combinedInput;
       if (queryForRag) {
-        const limit = (req.body && typeof req.body.limit !== 'undefined') ? Number(req.body.limit) : 5;
+        const limit = (req.body && typeof req.body.limit !== 'undefined') ? Number(req.body.limit) : 3;
         const score_threshold = (req.body && typeof req.body.score_threshold !== 'undefined') ? Number(req.body.score_threshold) : 0.0;
         const searchResult = await runPythonSearchScript({ query: queryForRag, limit, score_threshold });
         console.log('[RAG][question] query:', queryForRag, 'limit:', limit, 'threshold:', score_threshold);

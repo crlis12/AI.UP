@@ -102,7 +102,7 @@ async function runPythonSearchScript(queryData) {
 // POST /report/rag-search
 router.post('/rag-search', async (req, res) => {
   try {
-    const { query, limit = 5, score_threshold = 0.0 } = req.body;
+    const { query, limit = 3, score_threshold = 0.0 } = req.body;
     
     if (!query || typeof query !== 'string') {
       return res.status(400).json({ 
@@ -152,7 +152,7 @@ router.post('/rag-report', async (req, res) => {
       history,         // 대화 히스토리
       config,          // Report 에이전트 설정
       spec,            // Report 스펙
-      limit = 5,       // 검색 결과 개수
+      limit = 3,       // 검색 결과 개수
       score_threshold = 0.0  // 검색 점수 임계값
     } = req.body;
 
