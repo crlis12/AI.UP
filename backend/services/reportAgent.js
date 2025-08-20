@@ -70,9 +70,23 @@ const REPORT_OUTPUT_SCHEMA = {
         required: ['domain_id', 'domain_name', 'questions']
       }
     },
-    requirements: { type: 'array', items: { type: 'string' } }
+    final_opinion: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        isWarning: {
+          oneOf: [
+            { type: 'boolean' },
+            { type: 'null' }
+          ]
+        },
+        opinion_text: { type: 'string' },
+        requirements: { type: 'array', items: { type: 'string' } }
+      },
+      required: ['isWarning', 'opinion_text','requirements']
+    }
   },
-  required: ['child_name', 'child_age_month', 'domains', 'requirements']
+  required: ['child_name', 'child_age_month', 'domains', 'final_opinion']
 };
 
 async function reconstructLangChainHistory(history) {

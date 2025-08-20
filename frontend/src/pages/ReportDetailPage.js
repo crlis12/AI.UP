@@ -269,15 +269,59 @@ function ReportDetailPage() {
                       alert('생성할 KDST 문항을 찾지 못했습니다.');
                       return;
                     }
-                    const resp = await fetch(`${API_BASE}/report/kdst-generate-report`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ questions })
-                    });
-                    const data = await resp.json();
-                    if (!data?.success) {
-                      throw new Error(data?.message || '리포트 생성 실패');
+                    const requestOnce = async () => {
+                      const resp = await fetch(`${API_BASE}/report/kdst-generate-report`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ questions })
+                      });
+                      return resp.json();
+                    };
+
+                    const isValidContent = (content) => {
+                      if (Array.isArray(content)) return content.length > 0; // [] 방지
+                      if (content == null) return false;
+                      const text = String(content).trim();
+                      if (!text) return false;
+                      if (text === '[]') return false;
+                      return true;
+                    };
+
+                    let attempt = 0;
+                    const maxRetries = 100; // 빈 응답 들어올 시 100회 재시도 (기본1회 요청 + 100회 재요청 = 101회 재요청)
+                    let data = null;
+                    let lastError = null;
+                    while (attempt <= maxRetries) {
+                      try {
+                        attempt += 1;
+                        console.log(`[Report] 생성 요청 시도 ${attempt}/${maxRetries + 1}`);
+                        data = await requestOnce();
+                        if (!data?.success) throw new Error(data?.message || '리포트 생성 실패');
+                        const content = data?.report?.content;
+                        if (isValidContent(content)) {
+                          break; // 성공
+                        } else {
+                          console.warn('[Report] report.content가 비어있거나 [] 입니다. 재시도합니다.');
+                          if (attempt <= maxRetries) {
+                            await new Promise((r) => setTimeout(r, attempt * 600));
+                            continue;
+                          }
+                        }
+                      } catch (err) {
+                        lastError = err;
+                        console.warn(`[Report] 요청 실패 (시도 ${attempt})`, err?.message || err);
+                        if (attempt <= maxRetries) {
+                          await new Promise((r) => setTimeout(r, attempt * 600));
+                          continue;
+                        }
+                      }
+                      break;
                     }
+
+                    if (!data?.success || !isValidContent(data?.report?.content)) {
+                      throw new Error(lastError?.message || '리포트 생성에 여러 번 실패했습니다. 잠시 후 다시 시도해주세요.');
+                    }
+
                     alert('리포트 생성이 완료되었습니다.');
                     console.group('[Report] 생성 결과');
                     console.log('원본 응답 객체:', data);
