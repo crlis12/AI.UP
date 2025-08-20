@@ -1,41 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-KDST RAG 모듈 - ReportAgent에서 사용
-이 모듈을 import하여 KDST 문제에 대한 RAG 검색을 수행할 수 있습니다.
-"""
-
 import json
 import sys
-import os
-
-# UTF-8 인코딩 설정
-if sys.platform.startswith('win'):
-    import codecs
-    sys.stdout = codecs.getwriter('utf-8')(sys.stdout.detach())
-    sys.stderr = codecs.getwriter('utf-8')(sys.stderr.detach())
-
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import sqlite3
+import os
 from sklearn.metrics.pairwise import cosine_similarity
 from datetime import datetime
 
-# 모델 로드 (한 번만 로드)
-_model = None
-
-def get_model():
-    """Sentence Transformer 모델을 싱글톤으로 반환"""
-    global _model
-    if _model is None:
-        _model = SentenceTransformer('BM-K/KoSimCSE-roberta-multitask')
-    return _model
+# 모델 로드
+model = SentenceTransformer('jhgan/ko-sroberta-multitask')
 
 def get_embedding(text):
     """텍스트를 벡터로 변환"""
     try:
-        model = get_model()
         embedding = model.encode(text)
         return embedding.tolist()
     except Exception as e:
@@ -126,11 +106,28 @@ def process_kdst_questions(questions):
         if diary_embeddings is None:
             return {"success": False, "message": "일기 임베딩을 로드할 수 없습니다."}
         
+        print(f"총 {len(diary_embeddings)}개의 일기 임베딩을 로드했습니다.")
+        print()
+        
         results = []
         
-        for question in questions:
+        for i, question in enumerate(questions, 1):
+            print(f"문제 {i}: {question}")
+            print("-" * 50)
+            
             # 유사한 일기 검색
             similar_diaries = find_similar_diaries(question, diary_embeddings, diary_info, top_k=3)
+            
+            if similar_diaries:
+                print(f"상위 3개 유사 일기:")
+                for j, diary in enumerate(similar_diaries, 1):
+                    print(f"  {j}등: 유사도 {diary['similarity']:.4f}")
+                    print(f"     날짜: {diary['date']}")
+                    print(f"     내용: {diary['text'][:100]}...")
+                    print()
+            else:
+                print("유사한 일기를 찾을 수 없습니다.")
+                print()
             
             # 결과 저장
             result = {
@@ -148,6 +145,48 @@ def process_kdst_questions(questions):
     except Exception as e:
         return {"success": False, "message": f"KDST 문제 처리 실패: {str(e)}"}
 
+def main():
+    """메인 함수 - 테스트용"""
+    try:
+        # 테스트용 KDST 문제들
+        kdst_questions = [
+            "엎드린 자세에서 뒤집는다.",
+            "등을 대고 누운 자세에서 엎드린 자세로 뒤집는다(팔이 몸통에 깔려 있지 않아야 한다).",
+            "누워 있을 때 자기 발을 잡고 논다"
+        ]
+        
+        print("KDST 문제에 대한 RAG 기반 일기 검색을 시작합니다...")
+        print("=" * 60)
+        print()
+        
+        result = process_kdst_questions(kdst_questions)
+        
+        if result["success"]:
+            print("=" * 60)
+            print("최종 결과:")
+            print("=" * 60)
+            
+            for i, item in enumerate(result["results"], 1):
+                print(f"문제 {i}: {item['문제']}")
+                print("일기:")
+                
+                if item['일기']:
+                    for j, diary in enumerate(item['일기'], 1):
+                        print(f"  유사도 {j}등: {diary['text'][:80]}...")
+                else:
+                    print("  관련 일기를 찾을 수 없습니다.")
+                print()
+        else:
+            print(f"오류: {result['message']}")
+        
+        # JSON 결과도 출력
+        print("JSON 결과:")
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        
+    except Exception as e:
+        print(json.dumps({"success": False, "message": f"예상치 못한 오류: {str(e)}"}))
+
+# ReportAgent에서 사용할 수 있는 함수들
 def get_kdst_rag_result(questions):
     """KDST 문제들에 대한 RAG 결과를 반환 (ReportAgent용)"""
     return process_kdst_questions(questions)
@@ -194,111 +233,5 @@ def format_kdst_result_for_report(rag_result):
     
     return formatted_result
 
-def get_kdst_report_context(questions):
-    """ReportAgent에서 사용할 수 있는 KDST 보고서 컨텍스트 생성"""
-    try:
-        # RAG 검색 수행
-        rag_result = get_kdst_rag_result(questions)
-        
-        if not rag_result.get("success"):
-            return {
-                "success": False,
-                "message": "RAG 검색 실패",
-                "context": None
-            }
-        
-        # 보고서 작성용 컨텍스트 생성
-        context = {
-            "kdst_questions": questions,
-            "rag_results": rag_result["results"],
-            "analysis_summary": {
-                "total_questions": len(questions),
-                "questions_with_related_content": sum(1 for item in rag_result["results"] if item["일기"]),
-                "average_top_similarity": np.mean([
-                    item["일기"][0]["similarity"] if item["일기"] else 0 
-                    for item in rag_result["results"]
-                ])
-            }
-        }
-        
-        return {
-            "success": True,
-            "message": "KDST 보고서 컨텍스트 생성 완료",
-            "context": context
-        }
-        
-    except Exception as e:
-        return {
-            "success": False,
-            "message": f"컨텍스트 생성 실패: {str(e)}",
-            "context": None
-        }
-
-# 사용 예시 및 CLI 인터페이스
 if __name__ == "__main__":
-    try:
-        # stdin에서 입력 받기 (Node.js에서 호출될 때)
-        if not sys.stdin.isatty():
-            input_data = sys.stdin.read().strip()
-            if input_data:
-                # JSON 파싱
-                data = json.loads(input_data)
-                questions = data.get('questions', [])
-                
-                if questions:
-                    # RAG 검색 수행
-                    result = get_kdst_rag_result(questions)
-                    
-                    # 결과를 JSON으로 출력 (Node.js에서 받을 수 있도록)
-                    output = json.dumps(result, ensure_ascii=False, indent=None)
-                    print(output, flush=True)
-                else:
-                    error_output = json.dumps({
-                        "success": False,
-                        "message": "질문이 제공되지 않았습니다."
-                    }, ensure_ascii=False)
-                    print(error_output, flush=True)
-            else:
-                error_output = json.dumps({
-                    "success": False,
-                    "message": "입력 데이터가 없습니다."
-                }, ensure_ascii=False)
-                print(error_output, flush=True)
-        else:
-            # 터미널에서 직접 실행될 때 (테스트)
-            test_questions = [
-                "엎드린 자세에서 뒤집는다.",
-                "등을 대고 누운 자세에서 엎드린 자세로 뒤집는다(팔이 몸통에 깔려 있지 않아야 한다).",
-                "누워 있을 때 자기 발을 잡고 논다"
-            ]
-            
-            print("KDST RAG 모듈 테스트")
-            print("=" * 50)
-            
-            # RAG 검색
-            result = get_kdst_rag_result(test_questions)
-            print(f"RAG 검색 성공: {result['success']}")
-            
-            # 보고서 컨텍스트 생성
-            context = get_kdst_report_context(test_questions)
-            print(f"컨텍스트 생성 성공: {context['success']}")
-            
-            if context['success']:
-                print(f"총 문제 수: {context['context']['analysis_summary']['total_questions']}")
-                print(f"관련 일기가 있는 문제 수: {context['context']['analysis_summary']['questions_with_related_content']}")
-                print(f"평균 최고 유사도: {context['context']['analysis_summary']['average_top_similarity']:.4f}")
-                
-    except json.JSONDecodeError as e:
-        error_output = json.dumps({
-            "success": False,
-            "message": f"JSON 파싱 오류: {str(e)}"
-        }, ensure_ascii=False)
-        print(error_output, file=sys.stderr, flush=True)
-        sys.exit(1)
-    except Exception as e:
-        error_output = json.dumps({
-            "success": False,
-            "message": f"예상치 못한 오류: {str(e)}"
-        }, ensure_ascii=False)
-        print(error_output, file=sys.stderr, flush=True)
-        sys.exit(1)
+    main()
