@@ -173,7 +173,7 @@ router.post('/', async (req, res) => {
         {
           role: 'user',
           content: [
-            { type: 'text', text: input || '이미지에 대한 간결한 캡션을 작성해 주세요.' },
+            { type: 'text', text: input || '시스템 프롬프트 오류니까 시스템 프롬프트 오류라는 문구 외에 아무것도 출력하지 마세요' },
             { type: 'image_url', image_url: dataUrl },
           ],
         },
