@@ -340,57 +340,121 @@ router.post('/', upload.array('files', 10), (req, res) => {
   });
 });
 
-// 일기 수정
-router.put('/:diaryId', async (req, res) => {
+// 일기 수정 (파일 업로드 지원) - 간소화 버전
+router.put('/:diaryId', upload.array('files', 10), async (req, res) => {
   const { diaryId } = req.params;
   const { date, content, child_id } = req.body;
+
+  console.log('일기 수정 요청:', { diaryId, date, content, child_id });
 
   if (!date || !content) {
     return res.status(400).json({ success: false, message: '날짜와 내용은 필수입니다.' });
   }
 
-  const query = 'UPDATE diaries SET date = ?, content = ?, updated_at = NOW() WHERE id = ?';
-  
-  db.query(query, [date, content, diaryId], async (err, result) => {
-    if (err) {
-      console.error('일기 수정 DB 오류:', err);
-      return res
-        .status(500)
-        .json({ success: false, message: '일기 수정 중 서버 오류가 발생했습니다.' });
-    }
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ success: false, message: '일기를 찾을 수 없습니다.' });
-    }
+  try {
+    // 직접 업데이트 실행 (중복 체크는 MySQL UNIQUE 제약 조건에 의존)
+    const query = 'UPDATE diaries SET date = ?, content = ?, updated_at = NOW() WHERE id = ?';
     
-    // 벡터 임베딩 업데이트 (비동기, 실패해도 일기 수정은 성공으로 처리)
-    try {
-      const embeddingData = {
-        id: parseInt(diaryId),
-        content: content,
-        date: date,
-        child_id: child_id
-      };
-      
-      console.log('벡터 임베딩 업데이트 시작:', embeddingData);
-      const embeddingResult = await generateVectorEmbedding(embeddingData);
-      console.log('벡터 임베딩 업데이트 결과:', embeddingResult);
-      
-      if (embeddingResult.success) {
-        console.log('✅ 벡터 임베딩 업데이트 성공:', diaryId);
-      } else {
-        console.warn('⚠️ 벡터 임베딩 업데이트 실패:', embeddingResult.message);
+    db.query(query, [date, content, diaryId], async (err, result) => {
+      if (err) {
+        console.error('일기 수정 DB 오류:', err);
+        
+        // MySQL 에러 코드별 처리
+        if (err.code === 'ER_DUP_ENTRY') {
+          return res.status(409).json({ 
+            success: false, 
+            message: `${date} 날짜에 이미 일기가 존재합니다. 다른 날짜를 선택해주세요.` 
+          });
+        }
+        
+        return res.status(500).json({ 
+          success: false, 
+          message: '일기 수정 중 서버 오류가 발생했습니다.',
+          error: err.message 
+        });
       }
-    } catch (embeddingError) {
-      console.error('❌ 벡터 임베딩 업데이트 중 오류:', embeddingError.message);
-      // 벡터 임베딩 실패는 로그만 남기고 계속 진행
-    }
-    
-    res.json({ 
-      success: true, 
-      message: '일기가 성공적으로 수정되었습니다.'
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ success: false, message: '일기를 찾을 수 없습니다.' });
+      }
+
+      console.log('일기 수정 성공:', { diaryId, affectedRows: result.affectedRows });
+      
+      // 새로운 파일이 업로드된 경우 처리
+      const files = Array.isArray(req.files) ? req.files : [];
+      if (files.length > 0) {
+        console.log('새 파일 업로드 처리:', files.length);
+        
+        // 기존 파일들 삭제
+        db.query('DELETE FROM diary_files WHERE diary_id = ?', [diaryId], (delErr) => {
+          if (delErr) console.error('기존 파일 삭제 오류:', delErr);
+        });
+
+        // child_id로 부모 사용자 ID 조회
+        db.query('SELECT parent_id FROM children WHERE id = ? LIMIT 1', [child_id], (pErr, rows) => {
+          const parentId = !pErr && rows && rows[0] ? rows[0].parent_id : 'unknown';
+          const baseDir = path.join(__dirname, '..', 'uploads', 'diaries', 'users', String(parentId), 'children', String(child_id));
+          
+          try {
+            fs.mkdirSync(baseDir, { recursive: true });
+          } catch (_) {}
+
+          const uploadsBase = (process.env.FILE_BASE_URL && process.env.FILE_BASE_URL.replace(/\/$/, '')) || `${req.protocol}://${req.get('host')}/uploads`;
+          
+          const values = files.map((f) => {
+            let finalBasename = path.basename(f.path);
+            try {
+              const newPath = path.join(baseDir, finalBasename);
+              if (fs.existsSync(newPath)) {
+                const ext = path.extname(finalBasename);
+                const name = path.basename(finalBasename, ext);
+                finalBasename = `${name}_${Date.now()}${ext}`;
+              }
+              fs.renameSync(f.path, path.join(baseDir, finalBasename));
+            } catch (moveErr) {
+              console.error('파일 이동 오류:', moveErr);
+            }
+            const url = `${uploadsBase}/diaries/users/${parentId}/children/${child_id}/${finalBasename}`;
+            const type = f.mimetype && f.mimetype.startsWith('video/') ? 'video' : 'image';
+            return [diaryId, url, type];
+          });
+
+          if (values.length > 0) {
+            const insertFilesSql = 'INSERT INTO diary_files (diary_id, file_path, file_type) VALUES ?';
+            db.query(insertFilesSql, [values], (fErr) => {
+              if (fErr) console.error('새 파일 저장 DB 오류:', fErr);
+              sendResponse();
+            });
+          } else {
+            sendResponse();
+          }
+        });
+      } else {
+        sendResponse();
+      }
+
+      function sendResponse() {
+        // 벡터 임베딩 업데이트 (비동기)
+        (async () => {
+          try {
+            const embeddingData = { id: parseInt(diaryId), content, date, child_id };
+            console.log('벡터 임베딩 업데이트 시작:', embeddingData);
+            const embeddingResult = await generateVectorEmbedding(embeddingData);
+            if (embeddingResult.success) {
+              console.log('✅ 벡터 임베딩 업데이트 성공:', diaryId);
+            }
+          } catch (embeddingError) {
+            console.error('❌ 벡터 임베딩 업데이트 중 오류:', embeddingError.message);
+          }
+        })();
+        
+        res.json({ success: true, message: '일기가 성공적으로 수정되었습니다.' });
+      }
     });
-  });
+  } catch (error) {
+    console.error('일기 수정 중 예외 발생:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.', error: error.message });
+  }
 });
 
 // 벡터 임베딩 삭제 함수

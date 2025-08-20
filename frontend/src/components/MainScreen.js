@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import API_BASE, { questionsAPI } from '../utils/api';
 import '../App.css';
 
-import { FiChevronDown, FiBell, FiPlus, FiChevronRight } from 'react-icons/fi';
+import { FiChevronDown, FiBell, FiPlus, FiChevronRight, FiUserPlus } from 'react-icons/fi';
 import MessageInput from './MessageInput';
 import babyProfile from '../assets/baby_image.png';
 import { useNavigate } from 'react-router-dom';
@@ -76,19 +76,26 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
 
         // 현재 계정에서 선택된 자녀가 없다면 첫 번째 자녀로 초기화
         const storedChildId = localStorage.getItem('currentChildId');
-        const firstChildId =
+        const selectedChildId =
           storedChildId && childrenData.children.some((c) => String(c.id) === String(storedChildId))
             ? storedChildId
             : childrenData.children[0].id;
-        localStorage.setItem('currentChildId', firstChildId);
+        localStorage.setItem('currentChildId', selectedChildId);
 
-        console.log('첫 번째 자녀 ID:', firstChildId);
-        const firstChildObj = childrenData.children.find(
-          (c) => String(c.id) === String(firstChildId)
+        // 선택된 자녀의 인덱스를 찾아서 currentChildIndex 설정
+        const selectedChildIndex = childrenData.children.findIndex(
+          (c) => String(c.id) === String(selectedChildId)
         );
-        console.log('첫 번째 자녀 이름:', firstChildObj?.name || '(알 수 없음)');
+        setCurrentChildIndex(selectedChildIndex >= 0 ? selectedChildIndex : 0);
 
-        const diaryResponse = await fetch(`${API_BASE}/diaries/child/${firstChildId}`);
+        console.log('선택된 자녀 ID:', selectedChildId);
+        console.log('선택된 자녀 인덱스:', selectedChildIndex);
+        const selectedChildObj = childrenData.children.find(
+          (c) => String(c.id) === String(selectedChildId)
+        );
+        console.log('선택된 자녀 이름:', selectedChildObj?.name || '(알 수 없음)');
+
+        const diaryResponse = await fetch(`${API_BASE}/diaries/child/${selectedChildId}`);
         console.log('일지 조회 응답 상태:', diaryResponse.status);
 
         const diaryData = await diaryResponse.json();
@@ -641,14 +648,15 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                     onClick={handleEditChildClick}
                   />
                   <button
-                    className="main-screen__add-child-button"
+                    className="main-screen__add-child-button-new"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleAddChildClick();
                     }}
                     title="아이 추가하기"
                   >
-                    <FiPlus size={20} />
+                    <FiUserPlus size={16} />
+                    <span>아이 추가</span>
                   </button>
                 </div>
                 <div className="profile-hero__name">{children[currentChildIndex]?.name}</div>
