@@ -18,7 +18,6 @@ import VerifyCodePage from './pages/VerifyCodePage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import DiaryPage from './pages/DiaryPage'; // DiaryPage 임포트 추가
 import DiaryWritePage from './pages/DiaryWritePage';
-import DiaryEditPage from './pages/DiaryEditPage';
 import DiaryDetailPage from './pages/DiaryDetailPage'; // DiaryDetailPage 임포트 추가
 import ReportAgentTestPage from './pages/ReportAgentTestPage';
 import ReportDetailPage from './pages/ReportDetailPage';
@@ -324,10 +323,7 @@ function App() {
           path="/diary/write/:childId"
           element={isLoggedIn ? <DiaryWritePage /> : <Navigate to="/login" />}
         />
-        <Route
-          path="/diary/edit/:diaryId"
-          element={isLoggedIn ? <DiaryEditPage /> : <Navigate to="/login" />}
-        />
+        {/* 편집 페이지는 작성 페이지로 통합 (mode/date로 제어) */}
         {/* 일지 목록 경로 */}
 
         <Route path="/diary/list/:childId" element={isLoggedIn ? <DiaryPage /> : <Navigate to="/login" />} />

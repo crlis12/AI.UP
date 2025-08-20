@@ -19,6 +19,15 @@ function ReportDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // 현재 보고 있는 아동을 전역 선택값으로 고정
+  useEffect(() => {
+    if (childId) {
+      try {
+        localStorage.setItem('currentChildId', String(childId));
+      } catch (_) {}
+    }
+  }, [childId]);
+
   useEffect(() => {
     const fetchReportData = async () => {
       try {
@@ -191,9 +200,11 @@ function ReportDetailPage() {
 
   const titleStyle = { fontSize: '16px', color: '#000000', fontWeight: 'bold' };
 
+  const backToPath = `/main`;
+
   if (loading) {
     return (
-      <PageLayout title="리포트" titleStyle={titleStyle} showNavBar={true} backTo="/main">
+      <PageLayout title="리포트" titleStyle={titleStyle} showNavBar={true} backTo={backToPath}>
         <div className="loading-container">
           <div className="loading-text">리포트를 불러오는 중...</div>
         </div>
@@ -203,7 +214,7 @@ function ReportDetailPage() {
 
   if (error && !reportData) {
     return (
-      <PageLayout title="리포트" titleStyle={titleStyle} showNavBar={true} backTo="/main">
+      <PageLayout title="리포트" titleStyle={titleStyle} showNavBar={true} backTo={backToPath}>
         <div className="error-container">
           <div className="error-text">{error}</div>
         </div>
@@ -212,7 +223,7 @@ function ReportDetailPage() {
   }
 
   return (
-    <PageLayout title="리포트" titleStyle={titleStyle} showNavBar={true} backTo="/main">
+    <PageLayout title="리포트" titleStyle={titleStyle} showNavBar={true} backTo={backToPath}>
       <div className="report-detail__content">
         {/* 아동 정보 헤더 */}
         <div className="report-detail__header">

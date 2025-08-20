@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
+import API_BASE from '../utils/api';
 import { FiCalendar, FiChevronDown, FiPlus, FiX } from 'react-icons/fi';
 import '../App.css';
 
@@ -27,8 +28,8 @@ function DiaryWritePage() {
   const [files, setFiles] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
   const [hasExisting, setHasExisting] = useState(false);
-  const [existingMedia, setExistingMedia] = useState(null); // 서버 저장된 파일명
-  const existingMediaUrl = existingMedia ? `${API_BASE}/uploads/diaries/${existingMedia}` : null;
+  // 서버에 이미 저장된 첨부 목록 (diary_files 레코드)
+  const [serverFiles, setServerFiles] = useState([]); // [{id, file_path, file_type}]
 
   const handleFileChange = (event) => {
     const fileList = Array.from(event.target.files || []);
@@ -89,16 +90,27 @@ function DiaryWritePage() {
         if (data.success && Array.isArray(data.diaries) && data.diaries.length > 0) {
           const first = data.diaries[0];
           setContent(first.content || '');
-          setExistingMedia(first.children_img || null);
+          // children_img만 사용 (단일 첨부 정책)
+          if (first.children_img) {
+            const ext = String(first.children_img).split('.').pop()?.toLowerCase() || '';
+            const isVideo = ['mp4','webm','ogg'].includes(ext);
+            setServerFiles([
+              {
+                id: 'legacy',
+                file_path: `${API_BASE}/uploads/diaries/${first.children_img}`,
+                file_type: isVideo ? 'video' : 'image',
+              },
+            ]);
+          } else setServerFiles([]);
           setHasExisting(true);
         } else {
           setHasExisting(false);
           setContent('');
-          setExistingMedia(null);
+          setServerFiles([]);
         }
       } catch (_) {
         setHasExisting(false);
-        setExistingMedia(null);
+        setServerFiles([]);
       }
     };
     fetchExisting();
@@ -137,38 +149,41 @@ function DiaryWritePage() {
           <input type="file" accept="image/*,video/*" multiple onChange={handleFileChange} hidden />
         </label>
 
-        {/* 기존 서버 첨부 미리보기 */}
-        {existingMedia && files.length === 0 && (
+        {/* 기존 서버 첨부 미리보기 (여러 개) */}
+        {serverFiles.length > 0 && (
           <div className="diary-write__previews" style={{ marginTop: 12 }}>
-            <div className="diary-write__preview" style={{ width: 120, height: 120 }}>
-              {/\.(mp4|webm|ogg)$/i.test(existingMedia) ? (
-                <video src={existingMediaUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} controls />
-              ) : (
-                <img src={existingMediaUrl} alt="첨부" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              )}
-              <button
-                type="button"
-                className="diary-write__remove"
-                onClick={async () => {
-                  if (!window.confirm('기존 첨부를 삭제하시겠습니까?')) return;
-                  try {
-                    const findResp = await fetch(`${API_BASE}/diaries/child/${childId}?date=${dateValue}`);
-                    const findData = await findResp.json();
-                    const targetId = findData?.diaries?.[0]?.id;
-                    if (!targetId) throw new Error('일지를 찾을 수 없습니다.');
-                    const del = await fetch(`${API_BASE}/diaries/${targetId}/image`, { method: 'DELETE' });
-                    const delData = await del.json();
-                    if (!delData.success) throw new Error(delData.message || '삭제 실패');
-                    setExistingMedia(null);
-                  } catch (e) {
-                    alert('첨부 삭제 중 오류가 발생했습니다.');
-                  }
-                }}
-                aria-label="기존 첨부 삭제"
-              >
-                <FiX />
-              </button>
-            </div>
+            {serverFiles.map((sf) => (
+              <div className="diary-write__preview" key={sf.id} style={{ width: 120, height: 120 }}>
+                {sf.file_type === 'video' ? (
+                  <video src={sf.file_path} style={{ width: '100%', height: '100%', objectFit: 'cover' }} controls />
+                ) : (
+                  <img src={sf.file_path} alt="첨부" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                )}
+                <button
+                  type="button"
+                  className="diary-write__remove"
+                  onClick={async () => {
+                    if (!window.confirm('이 첨부를 삭제하시겠습니까?')) return;
+                    try {
+                      const findResp = await fetch(`${API_BASE}/diaries/child/${childId}?date=${dateValue}`);
+                      const findData = await findResp.json();
+                      const targetId = findData?.diaries?.[0]?.id;
+                      if (!targetId) throw new Error('일지를 찾을 수 없습니다.');
+                      // children_img만 사용하므로 레거시 경로로 삭제
+                      const del = await fetch(`${API_BASE}/diaries/${targetId}/image`, { method: 'DELETE' });
+                      const delData = await del.json();
+                      if (!delData.success) throw new Error(delData.message || '삭제 실패');
+                      setServerFiles((prev) => prev.filter((f) => f.id !== sf.id));
+                    } catch (e) {
+                      alert('첨부 삭제 중 오류가 발생했습니다.');
+                    }
+                  }}
+                  aria-label="기존 첨부 삭제"
+                >
+                  <FiX />
+                </button>
+              </div>
+            ))}
           </div>
         )}
 

@@ -82,6 +82,10 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
             : childrenData.children[0].id;
         localStorage.setItem('currentChildId', firstChildId);
 
+        // 메인 화면에서도 해당 자녀를 선택 상태로 반영
+        const indexToSelect = childrenData.children.findIndex((c) => String(c.id) === String(firstChildId));
+        setCurrentChildIndex(indexToSelect >= 0 ? indexToSelect : 0);
+
         console.log('첫 번째 자녀 ID:', firstChildId);
         const firstChildObj = childrenData.children.find(
           (c) => String(c.id) === String(firstChildId)

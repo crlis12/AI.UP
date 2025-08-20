@@ -110,6 +110,30 @@ router.get('/child/:childId', (req, res) => {
       console.error('일기 조회 DB 오류:', err);
       return res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
     }
+    // 날짜가 주어진 경우: 동일 날짜에 여러 행이 있을 수 있으므로, 파일이 있는 행을 우선 반환
+    if (date && results && results.length > 0) {
+      const ids = results.map((r) => r.id);
+      db.query(
+        'SELECT id, diary_id, file_path, file_type FROM diary_files WHERE diary_id IN (?) ORDER BY id ASC',
+        [ids],
+        (fErr, files) => {
+          if (fErr) {
+            console.error('일지 파일 조회 DB 오류:', fErr);
+            // 파일 조회 실패 시 첫 번째 결과만 반환
+            return res.json({ success: true, diaries: [results[0]] });
+          }
+          const map = new Map();
+          for (const f of files || []) {
+            if (!map.has(f.diary_id)) map.set(f.diary_id, []);
+            map.get(f.diary_id).push({ id: f.id, file_path: f.file_path, file_type: f.file_type });
+          }
+          let chosen = results.find((r) => (map.get(r.id) || []).length > 0) || results[0];
+          chosen = { ...chosen, files: map.get(chosen.id) || [] };
+          return res.json({ success: true, diaries: [chosen] });
+        }
+      );
+      return;
+    }
     res.json({ success: true, diaries: results });
   });
 });
@@ -174,6 +198,66 @@ router.delete('/:diaryId/image', (req, res) => {
       }
     );
   });
+});
+
+// 신규 구조: diary_files 테이블의 특정 첨부 삭제 (+ 디스크 파일 삭제)
+router.delete('/:diaryId/file/:fileId', (req, res) => {
+  const { diaryId, fileId } = req.params;
+
+  db.query(
+    'SELECT file_path FROM diary_files WHERE id = ? AND diary_id = ? LIMIT 1',
+    [fileId, diaryId],
+    (selErr, rows) => {
+      if (selErr) {
+        console.error('첨부 조회 DB 오류:', selErr);
+        return res.status(500).json({ success: false, message: '첨부 조회 중 오류가 발생했습니다.' });
+      }
+      if (!rows || rows.length === 0) {
+        return res.status(404).json({ success: false, message: '첨부를 찾을 수 없습니다.' });
+      }
+      const fileUrl = rows[0].file_path || '';
+
+      // URL 또는 경로에서 '/uploads/' 이후 상대경로를 추출하여 디스크 경로로 변환
+      let relativePath = '';
+      const uploadsKey = '/uploads/';
+      const idx = fileUrl.indexOf(uploadsKey);
+      if (idx >= 0) {
+        relativePath = fileUrl.slice(idx + uploadsKey.length);
+      } else if (fileUrl.startsWith('uploads/')) {
+        relativePath = fileUrl.replace(/^uploads\//, '');
+      }
+
+      if (relativePath) {
+        try {
+          const diskPath = path.join(__dirname, '..', 'uploads', relativePath.replace(/^\/?/, ''));
+          fs.unlink(diskPath, () => {});
+        } catch (_) {}
+      }
+
+      db.query('DELETE FROM diary_files WHERE id = ? LIMIT 1', [fileId], (delErr) => {
+        if (delErr) {
+          console.error('첨부 삭제 DB 오류:', delErr);
+          return res.status(500).json({ success: false, message: '첨부 삭제 중 오류가 발생했습니다.' });
+        }
+        // 삭제된 파일이 children_img라면 null 처리
+        try {
+          const uploadsKey = '/uploads/';
+          const idx2 = fileUrl.indexOf(uploadsKey);
+          let relative = '';
+          if (idx2 >= 0) relative = fileUrl.slice(idx2 + uploadsKey.length);
+          else if (fileUrl.startsWith('uploads/')) relative = fileUrl.replace(/^uploads\//, '');
+          // DB에는 'diaries/' 이후가 아닌 users/... 경로만 저장되어 있을 수 있으므로 정규화
+          relative = relative.replace(/^diaries\//, '').replace(/^\//, '');
+          db.query(
+            'UPDATE diaries SET children_img = NULL WHERE id = ? AND children_img = ? LIMIT 1',
+            [diaryId, relative],
+            () => {}
+          );
+        } catch (_) {}
+        return res.json({ success: true, message: '첨부가 삭제되었습니다.' });
+      });
+    }
+  );
 });
 
 // 일지 삭제
@@ -292,7 +376,8 @@ router.post('/', upload.array('files', 10), (req, res) => {
         const uploadsBase =
           (process.env.FILE_BASE_URL && process.env.FILE_BASE_URL.replace(/\/$/, '')) ||
           `${req.protocol}://${req.get('host')}/uploads`;
-        const values = files.map((f) => {
+        let firstRelativePath = null;
+        const values = files.map((f, index) => {
           let finalBasename = path.basename(f.path);
           try {
             const newPath = path.join(baseDir, finalBasename);
@@ -307,8 +392,12 @@ router.post('/', upload.array('files', 10), (req, res) => {
             console.error('파일 이동 오류:', moveErr);
             // 이동 실패 시 원래 위치 파일명을 사용
           }
-          const url = `${uploadsBase}/diaries/users/${parentId}/children/${child_id}/${finalBasename}`;
+          const relative = `diaries/users/${parentId}/children/${child_id}/${finalBasename}`.replace(/\\/g, '/');
+          const url = `${uploadsBase}/${relative}`;
           const type = f.mimetype && f.mimetype.startsWith('video/') ? 'video' : 'image';
+          if (index === 0) {
+            firstRelativePath = relative.replace(/^diaries\//, ''); // children_img에는 'diaries/' 이후 경로만 저장
+          }
           return [diaryId, url, type];
         });
 
@@ -317,6 +406,14 @@ router.post('/', upload.array('files', 10), (req, res) => {
           if (fErr) {
             console.error('첨부 저장 DB 오류:', fErr);
             // 파일 저장 오류가 있어도 일지 저장 자체는 성공으로 처리
+          }
+          // children_img 컬럼도 첫 파일 기준으로 동기화 (상대경로: users/.../filename)
+          if (firstRelativePath) {
+            db.query(
+              'UPDATE diaries SET children_img = ? WHERE id = ? LIMIT 1',
+              [firstRelativePath, diaryId],
+              () => {}
+            );
           }
           return res.status(201).json({
             success: true,

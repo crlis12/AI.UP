@@ -59,6 +59,20 @@ function DiaryDetailPage() {
     return d.toLocaleDateString('ko-KR', options);
   };
 
+  // 로컬 타임존 기준으로 YYYY-MM-DD를 생성 (UTC->KST 보정)
+  const toLocalDateOnly = (value) => {
+    if (!value) return '';
+    const d = new Date(value);
+    if (isNaN(d)) {
+      const s = String(value);
+      return s.length >= 10 ? s.slice(0, 10) : '';
+    }
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
   return (
     <div className="main-screen">
       <div className="main-screen__scroll-view">
@@ -120,7 +134,11 @@ function DiaryDetailPage() {
             <button
               className="diary-action-button"
               onClick={() => {
-                navigate(`/diary/edit/${diary.id}`);
+                const dateOnly = toLocalDateOnly(diary.date);
+                navigate(`/diary/write/${diary.child_id}`, {
+                  state: { mode: 'auto', date: dateOnly, childId: diary.child_id },
+                  replace: false,
+                });
               }}
             >
               수정하기

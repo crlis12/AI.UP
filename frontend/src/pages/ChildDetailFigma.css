@@ -281,8 +281,8 @@
 .child-info-page .text2 {
 	color: #44483E;
 	font-size: 15px;
-	margin-bottom: 28px;
-	margin-left: 149px;
+	margin-bottom: 8px;
+	margin-left: 0;
 }
 .child-info-page .text3 {
 	color: #1A1C19;
@@ -333,14 +333,14 @@
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	margin-bottom: 8px;
+	margin-bottom: 0;
 }
 .child-info-page .view2 {
 	align-self: stretch;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	margin-bottom: 2px;
+	margin-bottom: 0;
 }
 
 
