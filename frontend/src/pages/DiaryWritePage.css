@@ -121,7 +121,8 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 40px;
+  width: 90%;
+  /* padding: 40px; */
   border: 2px dashed #e1e5e9;
   border-radius: 12px;
   background: #f8f9fa;

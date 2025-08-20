@@ -10,8 +10,20 @@ function DiaryWritePage() {
   const navigate = useNavigate();
   const { childId } = useParams();
   const location = useLocation();
-  const mode = location.state?.mode || 'auto'; // 'create' | 'auto'
+  const mode = location.state?.mode || 'auto'; // 'create' | 'auto' | 'edit'
+  const diaryId = location.state?.diaryId;
+  const existingDiary = location.state?.existingDiary;
+  const isEditMode = mode === 'edit' && diaryId && existingDiary;
   const didInitDateRef = useRef(false);
+
+  // 디버깅용 로그
+  console.log('DiaryWritePage 초기화:', {
+    mode,
+    diaryId,
+    existingDiary,
+    isEditMode,
+    locationState: location.state
+  });
 
   const today = useMemo(() => {
     const d = new Date();
@@ -49,21 +61,47 @@ function DiaryWritePage() {
     }
     setIsSaving(true);
     try {
+      // 편집 모드와 새 작성 모드 모두 FormData 사용
       const form = new FormData();
       form.append('child_id', childId);
       form.append('content', content.trim());
       form.append('date', dateValue);
       files.forEach((f) => form.append('files', f));
-      const resp = await fetch(`${API_BASE}/diaries`, {
-        method: 'POST',
-        body: form,
-      });
+      
+      let resp;
+      if (isEditMode) {
+        // 편집 모드: FormData로 PUT 요청 (파일 업로드 지원)
+        resp = await fetch(`${API_BASE}/diaries/${diaryId}`, {
+          method: 'PUT',
+          body: form,
+        });
+      } else {
+        // 새 일지 작성: FormData로 POST 요청 (파일 업로드 지원)
+        resp = await fetch(`${API_BASE}/diaries`, {
+          method: 'POST',
+          body: form,
+        });
+      }
+      
       const data = await resp.json();
-      if (!data.success) throw new Error(data.message || '일지 저장 실패');
+      console.log('서버 응답:', data);
+      
+      if (!data.success) {
+        throw new Error(data.message || '일지 저장 실패');
+      }
+      
+      alert(isEditMode ? '일지가 성공적으로 수정되었습니다.' : '일지가 성공적으로 저장되었습니다.');
       navigate(`/diary/list/${childId}`, { replace: true });
     } catch (err) {
-      console.error(err);
-      alert('저장 중 오류가 발생했습니다.');
+      console.error('저장 오류:', err);
+      
+      // 에러 메시지 개선
+      let errorMessage = '저장 중 오류가 발생했습니다.';
+      if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      alert(errorMessage);
     } finally {
       setIsSaving(false);
     }
@@ -78,10 +116,45 @@ function DiaryWritePage() {
     }
   }, [location.state]);
 
+  // 편집 모드일 때 기존 일지 데이터로 초기화
+  useEffect(() => {
+    if (isEditMode && existingDiary) {
+      console.log('편집 모드 초기화:', existingDiary);
+      console.log('기존 일지 날짜:', existingDiary.date);
+      
+      // 날짜 형식 정규화 (YYYY-MM-DD)
+      const normalizeDate = (dateStr) => {
+        if (!dateStr) return today.value;
+        // 이미 YYYY-MM-DD 형식인 경우
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+        // Date 객체로 변환 후 YYYY-MM-DD 형식으로 변환
+        const d = new Date(dateStr);
+        if (isNaN(d)) return today.value;
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+      
+      const normalizedDate = normalizeDate(existingDiary.date);
+      console.log('정규화된 날짜:', normalizedDate);
+      
+      setDateValue(normalizedDate);
+      setContent(existingDiary.content || '');
+      setExistingMedia(existingDiary.children_img || null);
+      setHasExisting(true);
+      didInitDateRef.current = true; // 편집 모드에서도 플래그 설정
+    }
+  }, [isEditMode, existingDiary, today.value]);
+
   useEffect(() => {
     if (mode === 'create') {
       setHasExisting(false);
       setContent('');
+      return;
+    }
+    if (isEditMode) {
+      // 편집 모드일 때는 이미 기존 데이터로 초기화되었으므로 추가 조회 불필요
       return;
     }
     const fetchExisting = async () => {
@@ -105,10 +178,10 @@ function DiaryWritePage() {
     };
     fetchExisting();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [childId, dateValue, mode]);
+  }, [childId, dateValue, mode, isEditMode]);
 
   return (
-    <PageLayout title="육아 일기 작성" titleStyle={titleStyle} showNavBar={true}>
+    <PageLayout title={isEditMode ? "육아 일기 수정" : "육아 일기 작성"} titleStyle={titleStyle} showNavBar={true}>
       <div className="diary-write__container">
         {/* 날짜 선택 영역 */}
         <div className="diary-write__date-box">
@@ -139,8 +212,49 @@ function DiaryWritePage() {
           <input type="file" accept="image/*,video/*" multiple onChange={handleFileChange} hidden />
         </label>
 
+        {/* 편집 모드 안내 메시지 */}
+        {isEditMode && (
+          <div style={{ 
+            padding: '12px', 
+            backgroundColor: '#fff3cd', 
+            borderRadius: '8px', 
+            border: '1px solid #ffeaa7',
+            color: '#856404',
+            fontSize: '14px',
+            textAlign: 'center'
+          }}>
+            ⚠️ 편집 모드에서 새 파일을 첨부하면 기존 첨부 파일이 모두 교체됩니다.
+          </div>
+        )}
+
         {/* 기존 서버 첨부 미리보기 */}
-        {existingMedia && files.length === 0 && (
+        {isEditMode && existingDiary && existingDiary.files && existingDiary.files.length > 0 && files.length === 0 && (
+          <div className="diary-write__previews" style={{ marginTop: 12 }}>
+            <div style={{ marginBottom: '8px', fontSize: '14px', color: '#6c757d' }}>
+              현재 첨부된 파일들:
+            </div>
+            {existingDiary.files.map((file, index) => (
+              <div key={file.id || index} className="diary-write__preview" style={{ width: 120, height: 120 }}>
+                {file.file_type === 'video' ? (
+                  <video 
+                    src={file.file_path} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    controls 
+                  />
+                ) : (
+                  <img 
+                    src={file.file_path} 
+                    alt="첨부" 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 레거시 children_img 미리보기 (기존 호환성) */}
+        {existingMedia && files.length === 0 && !isEditMode && (
           <div className="diary-write__previews" style={{ marginTop: 12 }}>
             <div className="diary-write__preview" style={{ width: 120, height: 120 }}>
               {/\.(mp4|webm|ogg)$/i.test(existingMedia) ? (
@@ -201,11 +315,13 @@ function DiaryWritePage() {
         <button className="diary-write__save-button" onClick={handleSave} disabled={isSaving}>
           {isSaving
             ? '저장 중...'
-            : mode === 'create'
-              ? '저장하기'
-              : hasExisting
-                ? '수정하기'
-                : '저장하기'}
+            : isEditMode
+              ? '수정하기'
+              : mode === 'create'
+                ? '저장하기'
+                : hasExisting
+                  ? '수정하기'
+                  : '저장하기'}
         </button>
       </div>
     </PageLayout>
