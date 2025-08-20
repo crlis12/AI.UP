@@ -22,36 +22,13 @@ async function loadLangChain() {
 
 const { normalizeGeminiModel, getGeminiRestEndpoint } = require('../services/modelFactory');
 
+const { QUESTION_AGENT_DEFAULT_CONFIG, QUESTION_AGENT_PROMPT } = require('../services/questionAgent');
+
 function buildSystemPromptFromSpec({ systemPrompt, spec }) {
-  const base =
-    systemPrompt ||
-    (spec && typeof spec === 'object' && spec.default) ||
-    '당신은 아이의 육아일기와 최근 관찰 정보를 바탕으로 부모의 질문에 전문적이고 공감 있게 답변하는 상담 에이전트입니다. 안전, 발달, 정서, 양육 전략을 균형 있게 고려하세요. 불확실한 정보는 추측하지 말고 명확히 밝히세요.';
-  const lines = [base];
-  if (!spec || typeof spec !== 'object') return lines.join('\n');
-
-  for (const [key, value] of Object.entries(spec)) {
-    if (key === 'default') continue;
-    if (value == null) continue;
-    const keyLabel = String(key).trim();
-    if (Array.isArray(value)) {
-      if (value.length === 0) continue;
-      lines.push(`${keyLabel}:`);
-      for (const item of value) {
-        if (item == null || String(item).trim() === '') continue;
-        lines.push(`- ${typeof item === 'string' ? item : JSON.stringify(item)}`);
-      }
-      continue;
-    }
-    if (typeof value === 'object') {
-      lines.push(`${keyLabel}: ${JSON.stringify(value)}`);
-      continue;
-    }
-    const primitive = String(value).trim();
-    if (primitive !== '') lines.push(`${keyLabel}: ${primitive}`);
-  }
-
-  return lines.join('\n');
+  // 스펙을 더 이상 누적 병합하지 않고, 명시된 systemPrompt가 있으면 그것을,
+  // 없으면 백엔드 기본 questionAgent 프롬프트를 그대로 사용합니다.
+  if (systemPrompt && String(systemPrompt).trim() !== '') return String(systemPrompt);
+  return QUESTION_AGENT_PROMPT;
 }
 
 async function uploadToGeminiFiles({ fileBuffer, mimeType, displayName }) {
@@ -108,9 +85,9 @@ router.post('/', async (req, res) => {
     let mimeType = null;
     let input = '';
     let mode = 'auto';
-    let model = 'gemini-2.5-flash';
-    let temperature = 0.2;
-    let spec = {};
+    let model = QUESTION_AGENT_DEFAULT_CONFIG.model;
+    let temperature = QUESTION_AGENT_DEFAULT_CONFIG.temperature;
+    let spec = undefined; // 별도 스키마/스펙 비사용
 
     if ((req.headers['content-type'] || '').includes('multipart/form-data')) {
       const upload = getMulter().single('file');
@@ -135,17 +112,7 @@ router.post('/', async (req, res) => {
         if (cfg.model) model = cfg.model;
         if (typeof cfg.temperature === 'number') temperature = cfg.temperature;
       }
-      if (req.body?.spec) {
-        let sp = req.body.spec;
-        if (typeof sp === 'string') {
-          try {
-            sp = JSON.parse(sp);
-          } catch (_) {
-            sp = {};
-          }
-        }
-        spec = sp || {};
-      }
+      // spec은 더 이상 사용하지 않습니다 (무시)
     } else if (req.is('application/json')) {
       const body = req.body || {};
       input = body.input || '';
@@ -154,15 +121,13 @@ router.post('/', async (req, res) => {
         if (body.config.model) model = body.config.model;
         if (typeof body.config.temperature === 'number') temperature = body.config.temperature;
       }
-      if (body?.spec) {
-        spec = body.spec || {};
-      }
+      // spec은 더 이상 사용하지 않습니다 (무시)
     }
 
     const isImage = mimeType?.startsWith('image/');
     const isVideo = mimeType?.startsWith('video/');
 
-    // 텍스트 전용 입력 (system 메시지 사용)
+    // 텍스트 전용 입력 (시스템 프롬프트는 백엔드 상수 사용)
     if (!fileBuffer) {
       const { ChatGoogleGenerativeAI } = await loadLangChain();
       const chat = new ChatGoogleGenerativeAI({
