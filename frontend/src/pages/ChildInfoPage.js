@@ -81,6 +81,18 @@ function ChildInfoPage() {
     return `${str} ${unit}`; // 숫자와 단위 사이 공백
   };
 
+  // 성별 값을 한글로 표시하는 함수
+  const formatGender = (gender) => {
+    switch (gender) {
+      case 'M':
+        return '남';
+      case 'F':
+        return '여';
+      default:
+        return gender || '';
+    }
+  };
+
   return (
     <PageLayout title="아이 정보" showNavBar={true} noScroll={true} compactHeader={true}>
       <div className="child-info-page contain">
@@ -170,7 +182,7 @@ function ChildInfoPage() {
                 <div className="row-view2" onClick={() => openModal('gender')}>
                   <div className="column4">
                     <span className="text4">{'성별'}</span>
-                    <span className="text5">{childInfo.gender}</span>
+                    <span className="text5">{formatGender(childInfo.gender)}</span>
                   </div>
                   <img
                     src={
@@ -349,17 +361,17 @@ function ChildInfoPage() {
                     <div className="gender-segment">
                       <button
                         type="button"
-                        className={`gender-option${tempValue === '남' ? ' active' : ''}`}
-                        onClick={() => setTempValue('남')}
-                        aria-pressed={tempValue === '남'}
+                        className={`gender-option${tempValue === 'M' ? ' active' : ''}`}
+                        onClick={() => setTempValue('M')}
+                        aria-pressed={tempValue === 'M'}
                       >
                         남
                       </button>
                       <button
                         type="button"
-                        className={`gender-option${tempValue === '여' ? ' active' : ''}`}
-                        onClick={() => setTempValue('여')}
-                        aria-pressed={tempValue === '여'}
+                        className={`gender-option${tempValue === 'F' ? ' active' : ''}`}
+                        onClick={() => setTempValue('F')}
+                        aria-pressed={tempValue === 'F'}
                       >
                         여
                       </button>
