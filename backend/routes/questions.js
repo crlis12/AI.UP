@@ -72,13 +72,115 @@ router.get('/child/:childId', async (req, res) => {
       }
       ageInMonths = Math.max(0, ageInMonths);
 
-      // ±5개월 오차범위 계산
-      const minAge = Math.max(0, ageInMonths - 5); // 음수 방지, 최소 0개월
-      const maxAge = ageInMonths + 5;
+      // 4개월 미만인 경우 KDST 체크리스트 없음 알림
+      if (ageInMonths < 4) {
+        console.log('4개월 미만 아기 - KDST 체크리스트 없음');
+        console.log('  - 자녀 나이:', ageInMonths, '개월');
+        console.log('  - KDST는 4개월부터 시작됩니다.');
+        
+        return res.status(200).json({
+          success: false,
+          message: 'KDST 체크리스트는 4개월부터 시작됩니다.',
+          child: {
+            id: child.id,
+            name: child.name,
+            ageInMonths: ageInMonths,
+          },
+          questions: [],
+          noKDST: true,
+          reason: `현재 ${ageInMonths}개월로, KDST 체크리스트 대상이 아닙니다. (4개월부터 시작)`
+        });
+      }
 
+      // 정확한 개월 수에 해당하는 age_group만 조회
       console.log('자녀 나이 정보:');
       console.log('  - 실제 나이:', ageInMonths, '개월');
-      console.log('  - 검색 범위:', minAge, '~', maxAge, '개월');
+      console.log('  - 조회할 질문: 정확히', ageInMonths, '개월에 해당하는 age_group의 질문만');
+
+      // 하드코딩으로 age_group_id 결정
+      let ageGroupId;
+      let ageRangeText;
+
+      if (4 <= ageInMonths && ageInMonths <= 5) {
+        ageGroupId = 1;
+        ageRangeText = "4~5개월용";
+      } else if (6 <= ageInMonths && ageInMonths <= 7) {
+        ageGroupId = 2;
+        ageRangeText = "6~7개월용";
+      } else if (8 <= ageInMonths && ageInMonths <= 9) {
+        ageGroupId = 3;
+        ageRangeText = "8~9개월용";
+      } else if (10 <= ageInMonths && ageInMonths <= 11) {
+        ageGroupId = 4;
+        ageRangeText = "10~11개월용";
+      } else if (12 <= ageInMonths && ageInMonths <= 13) {
+        ageGroupId = 5;
+        ageRangeText = "12~13개월용";
+      } else if (14 <= ageInMonths && ageInMonths <= 15) {
+        ageGroupId = 6;
+        ageRangeText = "14~15개월용";
+      } else if (16 <= ageInMonths && ageInMonths <= 17) {
+        ageGroupId = 7;
+        ageRangeText = "16~17개월용";
+      } else if (18 <= ageInMonths && ageInMonths <= 19) {
+        ageGroupId = 8;
+        ageRangeText = "18~19개월용";
+      } else if (20 <= ageInMonths && ageInMonths <= 21) {
+        ageGroupId = 9;
+        ageRangeText = "20~21개월용";
+      } else if (22 <= ageInMonths && ageInMonths <= 23) {
+        ageGroupId = 10;
+        ageRangeText = "22~23개월용";
+      } else if (24 <= ageInMonths && ageInMonths <= 26) {
+        ageGroupId = 11;
+        ageRangeText = "24~26개월용";
+      } else if (27 <= ageInMonths && ageInMonths <= 29) {
+        ageGroupId = 12;
+        ageRangeText = "27~29개월용";
+      } else if (30 <= ageInMonths && ageInMonths <= 32) {
+        ageGroupId = 13;
+        ageRangeText = "30~32개월용";
+      } else if (33 <= ageInMonths && ageInMonths <= 35) {
+        ageGroupId = 14;
+        ageRangeText = "33~35개월용";
+      } else if (36 <= ageInMonths && ageInMonths <= 41) {
+        ageGroupId = 15;
+        ageRangeText = "36~41개월용";
+      } else if (42 <= ageInMonths && ageInMonths <= 47) {
+        ageGroupId = 16;
+        ageRangeText = "42~47개월용";
+      } else if (48 <= ageInMonths && ageInMonths <= 53) {
+        ageGroupId = 17;
+        ageRangeText = "48~53개월용";
+      } else if (54 <= ageInMonths && ageInMonths <= 59) {
+        ageGroupId = 18;
+        ageRangeText = "54~59개월용";
+      } else if (60 <= ageInMonths && ageInMonths <= 65) {
+        ageGroupId = 19;
+        ageRangeText = "60~65개월용";
+      } else if (66 <= ageInMonths && ageInMonths <= 71) {
+        ageGroupId = 20;
+        ageRangeText = "66~71개월용";
+      } else {
+        // 지원하지 않는 연령대
+        console.log('지원하지 않는 연령대:', ageInMonths, '개월');
+        return res.status(200).json({
+          success: false,
+          message: '지원하지 않는 연령대입니다.',
+          child: {
+            id: child.id,
+            name: child.name,
+            ageInMonths: ageInMonths,
+          },
+          questions: [],
+          noKDST: true,
+          reason: `${ageInMonths}개월은 KDST 체크리스트 지원 범위를 벗어났습니다.`
+        });
+      }
+
+      console.log('결정된 age_group 정보:');
+      console.log('  - age_group_id:', ageGroupId);
+      console.log('  - age_range_text:', ageRangeText);
 
       // 먼저 테이블 존재 여부 확인
       console.log('데이터베이스 테이블 확인 중...');
@@ -101,8 +203,7 @@ router.get('/child/:childId', async (req, res) => {
         }
       });
 
-      // 오차범위를 고려한 질문들 조회
-      // 로직: 자녀의 나이 범위(minAge ~ maxAge)와 겹치는 모든 연령대의 질문을 가져옴
+      // 정확한 age_group_id로 질문들만 조회
       const questionsQuery = `
         SELECT 
           q.question_id,
@@ -117,19 +218,20 @@ router.get('/child/:childId', async (req, res) => {
           ag.max_months
         FROM Questions q
         JOIN AgeGroups ag ON q.age_group_id = ag.age_group_id
-        JOIN Domains d ON q.domain_id = d.domain_index
-        WHERE ag.min_months <= ? AND ag.max_months >= ?
+        JOIN Domains d ON q.domain_id = d.domain_id
+        WHERE q.age_group_id = ?
         ORDER BY d.domain_id, q.question_number
       `;
 
-      console.log('질문 조회 쿼리 실행 (±5개월 오차범위 적용)');
+      console.log('질문 조회 쿼리 실행 (정확한 age_group_id로 조회)');
       console.log('검색 조건:');
-      console.log('  - 자녀 최소 나이:', minAge, '개월');
-      console.log('  - 자녀 최대 나이:', maxAge, '개월');
-      console.log('  - 실제 쿼리: WHERE ag.min_months <=', maxAge, 'AND ag.max_months >=', minAge);
+      console.log('  - 자녀 나이:', ageInMonths, '개월');
+      console.log('  - age_group_id:', ageGroupId);
+      console.log('  - age_range_text:', ageRangeText);
+      console.log('  - 실제 쿼리: WHERE q.age_group_id =', ageGroupId);
 
-      // 범위 겹침 체크: ag.min_months <= maxAge AND ag.max_months >= minAge
-      db.query(questionsQuery, [maxAge, minAge], (questionsErr, questionRows) => {
+      // 정확한 age_group_id로 질문만 조회
+      db.query(questionsQuery, [ageGroupId], (questionsErr, questionRows) => {
         if (questionsErr) {
           console.error('질문 조회 오류:', questionsErr);
           return res.status(500).json({
@@ -137,6 +239,12 @@ router.get('/child/:childId', async (req, res) => {
             message: '질문 조회 중 오류가 발생했습니다.',
           });
         }
+
+        console.log('조회 결과:');
+        console.log('  - 자녀 나이:', ageInMonths, '개월');
+        console.log('  - age_group_id:', ageGroupId);
+        console.log('  - age_range_text:', ageRangeText);
+        console.log('  - 조회된 질문 수:', questionRows.length);
 
         return res.status(200).json({
           success: true,
