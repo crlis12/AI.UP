@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   FiTrendingUp,
   FiAlertTriangle,
@@ -13,6 +13,7 @@ import PageLayout from '../components/PageLayout';
 
 function ReportDetailPage() {
   const { childId } = useParams();
+  const navigate = useNavigate();
   const [childInfo, setChildInfo] = useState(null);
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -308,7 +309,7 @@ function ReportDetailPage() {
             <button
               type="button"
               className="checklist-more-link"
-              onClick={() => alert('K-DST 체크리스트는 준비 중입니다.')}
+              onClick={() => navigate('/kdst-checklist', { state: { childId } })}
             >
               K-DST 발달 체크리스트 더보기
             </button>

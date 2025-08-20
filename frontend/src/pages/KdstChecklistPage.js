@@ -1,11 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { FiUsers } from 'react-icons/fi';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import '../App.css';
 
 function KdstChecklistPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const childId = location.state?.childId || localStorage.getItem('currentChildId');
 
   const questions = useMemo(
     () => Array(10).fill(''),
@@ -29,13 +31,14 @@ function KdstChecklistPage() {
 
   const handleSave = () => {
     alert('체크리스트가 저장되었습니다.');
-    navigate(-1);
+    if (childId) navigate(`/report/${childId}`);
+    else navigate('/main');
   };
 
   const titleStyle = { fontSize: '16px', color: '#000000', fontWeight: 'bold' };
 
   return (
-    <PageLayout title="K-DST 체크리스트" titleStyle={titleStyle} showNavBar={true} backTo="/ai-analysis">
+    <PageLayout title="K-DST 체크리스트" titleStyle={titleStyle} showNavBar={true} backTo={childId ? `/report/${childId}` : '/main'}>
       <div className="kdst-page">
         <p className="kdst-subtitle">이번 주, 아이의 발달 상황을 간단히 확인해보세요.</p>
 

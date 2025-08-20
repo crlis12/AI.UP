@@ -11,15 +11,15 @@ import SigninPage from './pages/SigninPage';
 import SignupPage from './pages/SignupPage';
 import ChildInfoPage from './pages/ChildInfoPage';
 import ChildDetailPage from './pages/ChildDetailPage';
-import AIAnalysisPage from './pages/AIAnalysisPage';
+// import AIAnalysisPage from './pages/AIAnalysisPage';
 import KdstChecklistPage from './pages/KdstChecklistPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage'; // 이름 복구
 import VerifyCodePage from './pages/VerifyCodePage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import DiaryPage from './pages/DiaryPage'; // DiaryPage 임포트 추가
 import DiaryWritePage from './pages/DiaryWritePage';
+import DiaryEditPage from './pages/DiaryEditPage';
 import DiaryDetailPage from './pages/DiaryDetailPage'; // DiaryDetailPage 임포트 추가
-
 import ReportAgentTestPage from './pages/ReportAgentTestPage';
 import ReportDetailPage from './pages/ReportDetailPage';
 import CounselorMatchingPage from './pages/CounselorMatchingPage';
@@ -320,11 +320,20 @@ function App() {
           path="/diary/:childId"
           element={isLoggedIn ? <DiaryWritePage /> : <Navigate to="/login" />}
         />
+        <Route
+          path="/diary/write/:childId"
+          element={isLoggedIn ? <DiaryWritePage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/diary/edit/:diaryId"
+          element={isLoggedIn ? <DiaryEditPage /> : <Navigate to="/login" />}
+        />
         {/* 일지 목록 경로 */}
+
         <Route path="/diary/list/:childId" element={isLoggedIn ? <DiaryPage /> : <Navigate to="/login" />} />
         <Route path="/diary/detail/:diaryId" element={isLoggedIn ? <DiaryDetailPage /> : <Navigate to="/login" />} /> {/* DiaryDetailPage 라우트 추가 */}
 
-        <Route path="/ai-analysis" element={isLoggedIn ? <AIAnalysisPage /> : <Navigate to="/login" />} />
+        {/* /ai-analysis는 더 이상 사용하지 않음 */}
         <Route path="/kdst-checklist" element={isLoggedIn ? <KdstChecklistPage /> : <Navigate to="/login" />} />
 
         {/* 리포트 에이전트 테스트 라우트 */}

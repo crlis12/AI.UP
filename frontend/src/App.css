@@ -2594,6 +2594,26 @@ html { overflow-y: auto; }
 .debug-borders * { outline: 0; }
 
 
+/* --- K-DST Checklist (KdstChecklistPage) --- */
+.kdst-page { display: flex; flex-direction: column; gap: 16px; padding: 8px 16px 20px 16px; }
+.kdst-subtitle { margin: 0; color: #414942; font-size: 14px; line-height: 1.5; }
+
+.kdst-progress { display: flex; align-items: center; gap: 10px; }
+.kdst-progress__label { font-size: 14px; color: #6B7280; min-width: 80px; }
+.kdst-progress__track { position: relative; flex: 1; height: 10px; background: #f0f2f5; border-radius: 9999px; overflow: hidden; }
+.kdst-progress__bar { position: absolute; left: 0; top: 0; bottom: 0; background: #056125; border-radius: 9999px; transition: width 0.25s ease; }
+
+.kdst-list { display: grid; grid-template-columns: 1fr; gap: 8px; }
+
+.kdst-item { display: flex; align-items: center; gap: 10px; padding: 12px; background: #FFFFFF; border: 1px solid #e9e9e9; border-radius: 12px; cursor: pointer; color: #111827; font-size: 14px; }
+.kdst-item:active { transform: scale(0.99); }
+.kdst-item--selected { background: #eaf3ea; border-color: #cfe2cf; }
+.kdst-item__icon { width: 28px; height: 28px; border-radius: 9999px; background: #f0f7f2; color: #056125; display: inline-flex; align-items: center; justify-content: center; }
+.kdst-item__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.kdst-save-button { width: 100%; background: #056125; color: #FFFFFF; border: none; border-radius: 12px; padding: 14px; font-weight: 800; cursor: pointer; }
+.kdst-save-button:active { transform: translateY(1px); }
+
 /* 공통 버튼 스타일 확장: 위험/삭제 버튼 (저장 버튼과 동일한 형태) */
 .modal-btn.danger {
 	background: #dc2626;
