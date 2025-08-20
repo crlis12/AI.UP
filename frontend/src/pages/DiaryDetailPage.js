@@ -120,7 +120,13 @@ function DiaryDetailPage() {
             <button
               className="diary-action-button"
               onClick={() => {
-                navigate(`/diary/edit/${diary.id}`);
+                navigate(`/diary/${diary.child_id}`, {
+                  state: {
+                    mode: 'edit',
+                    diaryId: diary.id,
+                    existingDiary: diary
+                  }
+                });
               }}
             >
               수정하기

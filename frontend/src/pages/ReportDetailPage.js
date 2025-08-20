@@ -39,10 +39,12 @@ function ReportDetailPage() {
         } else {
           console.error('자녀 정보 조회 실패:', childData.message);
           // 자녀 정보가 없어도 기본값으로 설정하여 리포트는 표시
+          const currentDate = new Date();
+          const defaultBirthDate = new Date(currentDate.getFullYear() - 2, 0, 1).toISOString().split('T')[0]; // 2년 전
           setChildInfo({
             id: childId,
             name: '자녀',
-            birth_date: '2022-01-01',
+            birth_date: defaultBirthDate,
           });
         }
 
@@ -136,6 +138,39 @@ function ReportDetailPage() {
     return years > 0 ? `${years}세 ${months}개월` : `${months}개월`;
   };
 
+  // 생년월일로부터 나이 계산 함수
+  const calculateAgeFromBirthDate = (birthDate) => {
+    if (!birthDate) return '나이 정보 없음';
+    
+    const birth = new Date(birthDate);
+    const today = new Date();
+    
+    let years = today.getFullYear() - birth.getFullYear();
+    let months = today.getMonth() - birth.getMonth();
+    
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+    
+    // 일까지 고려하여 정확한 개월 수 계산
+    if (today.getDate() < birth.getDate()) {
+      months--;
+      if (months < 0) {
+        years--;
+        months += 12;
+      }
+    }
+    
+    return years > 0 ? `${years}세 ${months}개월` : `${months}개월`;
+  };
+
+  // 현재 날짜를 평가일로 사용
+  const getCurrentDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0]; // YYYY-MM-DD 형식
+  };
+
   // 체크리스트 항목 생성 (영역 상태 기반 간단 추천)
   const buildChecklistItems = (scores) => {
     const defaultItems = [
@@ -225,11 +260,11 @@ function ReportDetailPage() {
               </div>
               <div className="child-info-item">
                 <FiCalendar className="info-icon" />
-                <span>{calculateAge(reportData?.ageInMonths || 24)}</span>
+                <span>{calculateAgeFromBirthDate(childInfo?.birth_date)}</span>
               </div>
               <div className="child-info-item">
                 <FiBarChart2 className="info-icon" />
-                <span>평가일: {reportData?.assessmentDate}</span>
+                <span>평가일: {getCurrentDate()}</span>
               </div>
             </div>
           </div>
@@ -322,7 +357,12 @@ function ReportDetailPage() {
           <button
             type="button"
             className="connect-counselor-button"
-            onClick={() => alert('상담사 연결 기능은 준비 중입니다.')}
+            onClick={() => navigate('/counselor-matching', { 
+              state: { 
+                childId: childId, 
+                childName: childInfo?.name || '자녀' 
+              } 
+            })}
           >
             상담사 연결하기
           </button>

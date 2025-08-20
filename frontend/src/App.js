@@ -21,6 +21,7 @@ import DiaryDetailPage from './pages/DiaryDetailPage'; // DiaryDetailPage 임포
 import ReportAgentTestPage from './pages/ReportAgentTestPage';
 import ReportDetailPage from './pages/ReportDetailPage';
 import CounselorMatchingPage from './pages/CounselorMatchingPage';
+import KdstChecklistPage from './pages/KdstChecklistPage';
 
 // 컴포넌트 임포트 (src/components 폴더에 있다고 가정)
 import MainScreen from './components/MainScreen';
@@ -333,6 +334,9 @@ function App() {
         
         {/* 상담사 매칭 라우트 */}
         <Route path="/counselor-matching" element={isLoggedIn ? <CounselorMatchingPage /> : <Navigate to="/login" />} />
+        
+        {/* KDST 체크리스트 라우트 */}
+        <Route path="/kdst-checklist" element={isLoggedIn ? <KdstChecklistPage /> : <Navigate to="/login" />} />
       </Routes>
     </div>
   );
