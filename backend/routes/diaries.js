@@ -6,6 +6,9 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
+const axios = require('axios');
+const { normalizeGeminiModel, getGeminiRestEndpoint } = require('../services/modelFactory');
+const { MULTIMODAL_AGENT_DEFAULT_CONFIG, MULTIMODAL_AGENT_PROMPT } = require('../services/multimodalAgent');
 
 // multer 설정: uploads/diaries 폴더에 저장
 const storage = multer.diskStorage({
@@ -87,6 +90,125 @@ async function generateVectorEmbedding(diaryData) {
     pythonProcess.stdin.write(inputData, 'utf8');
     pythonProcess.stdin.end();
   });
+}
+
+async function loadLangChain() {
+  const [googleGenAI] = await Promise.all([import('@langchain/google-genai')]);
+  const { ChatGoogleGenerativeAI } = googleGenAI;
+  return { ChatGoogleGenerativeAI };
+}
+
+async function uploadToGeminiFiles({ fileBuffer, mimeType, displayName }) {
+  const boundary = '----LangChainGeminiUpload' + Math.random().toString(16).slice(2);
+  const delimiter = `--${boundary}`;
+  const closeDelimiter = `--${boundary}--`;
+
+  const meta = Buffer.from(
+    `${delimiter}\r\n` +
+      'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+      JSON.stringify({ file: { displayName: displayName || 'uploaded-file' } }) +
+      '\r\n'
+  );
+
+  const mediaHeader = Buffer.from(`${delimiter}\r\n` + `Content-Type: ${mimeType}\r\n\r\n`);
+
+  const closing = Buffer.from(`\r\n${closeDelimiter}\r\n`);
+
+  const multipartBody = Buffer.concat([meta, mediaHeader, fileBuffer, closing]);
+
+  const url = `https://generativelanguage.googleapis.com/upload/v1beta/files?upload_type=multipart&key=${process.env.GEMINI_API_KEY}`;
+  const response = await axios.post(url, multipartBody, {
+    headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
+    maxBodyLength: Infinity,
+  });
+
+  const fileUri = response?.data?.file?.uri;
+  if (!fileUri) throw new Error('파일 업로드 실패: file.uri 응답 누락');
+  return fileUri;
+}
+
+async function waitForGeminiFileActive(fileUri, options = {}) {
+  const { timeoutMs = 120000, intervalMs = 2000 } = options;
+  const deadline = Date.now() + timeoutMs;
+  const url = `${fileUri}?key=${process.env.GEMINI_API_KEY}`;
+  while (Date.now() < deadline) {
+    try {
+      const resp = await axios.get(url);
+      const data = resp?.data || {};
+      const state = data?.state || data?.file?.state;
+      if (state === 'ACTIVE') return;
+      if (state === 'FAILED') throw new Error('파일 처리 실패(FAILED)');
+    } catch (e) {}
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+  throw new Error('파일이 ACTIVE 상태가 되기 전에 시간 초과되었습니다.');
+}
+
+function inferMimeTypeFromExt(filename, fallbackType) {
+  const ext = String(path.extname(filename) || '').toLowerCase();
+  if (ext === '.jpg' || ext === '.jpeg') return 'image/jpeg';
+  if (ext === '.png') return 'image/png';
+  if (ext === '.gif') return 'image/gif';
+  if (ext === '.webp') return 'image/webp';
+  if (ext === '.mp4') return 'video/mp4';
+  if (ext === '.mov') return 'video/quicktime';
+  if (ext === '.webm') return 'video/webm';
+  return fallbackType || 'application/octet-stream';
+}
+
+async function generateMediaCaptions({ baseDir, entries }) {
+  const captions = [];
+  const instructionText = '아래 콘텐츠를 육아일기 RAG 검색용으로, 사실 기반의 한두 문장 핵심 캡션만 생성하세요. 추측 금지, 마크다운 금지.';
+  const { ChatGoogleGenerativeAI } = await loadLangChain();
+  const modelName = normalizeGeminiModel(
+    (MULTIMODAL_AGENT_DEFAULT_CONFIG && MULTIMODAL_AGENT_DEFAULT_CONFIG.model) || 'gemini-2.5-flash'
+  );
+  const chat = new ChatGoogleGenerativeAI({
+    apiKey: process.env.GEMINI_API_KEY,
+    model: modelName,
+    temperature: (MULTIMODAL_AGENT_DEFAULT_CONFIG && MULTIMODAL_AGENT_DEFAULT_CONFIG.temperature) || 0,
+  });
+
+  for (const entry of entries) {
+    try {
+      const filename = path.basename(entry.url || '');
+      if (!filename) continue;
+      const localPath = path.join(baseDir, filename);
+      const mimeType = inferMimeTypeFromExt(filename, entry.type === 'video' ? 'video/mp4' : 'image/png');
+      if (entry.type === 'image') {
+        const fileBuffer = fs.readFileSync(localPath);
+        const base64 = fileBuffer.toString('base64');
+        const dataUrl = `data:${mimeType};base64,${base64}`;
+        const sys = MULTIMODAL_AGENT_PROMPT;
+        const response = await chat.invoke([
+          { role: 'system', content: sys },
+          { role: 'user', content: [ { type: 'text', text: instructionText }, { type: 'image_url', image_url: dataUrl } ] }
+        ]);
+        const content = Array.isArray(response?.content)
+          ? response.content.map((p) => p?.text || '').join('\n')
+          : (typeof response?.content === 'string' ? response.content : String(response?.content ?? ''));
+        const cap = String(content || '').trim();
+        if (cap) captions.push(cap);
+      } else if (entry.type === 'video') {
+        const fileBuffer = fs.readFileSync(localPath);
+        const fileUri = await uploadToGeminiFiles({ fileBuffer, mimeType, displayName: filename });
+        await waitForGeminiFileActive(fileUri);
+        const sys = MULTIMODAL_AGENT_PROMPT;
+        const contents = [
+          { role: 'user', parts: [ { text: instructionText }, { fileData: { fileUri, mimeType } } ] }
+        ];
+        const endpoint = getGeminiRestEndpoint(modelName, process.env.GEMINI_API_KEY);
+        const resp = await axios.post(endpoint, {
+          contents,
+          systemInstruction: { role: 'system', parts: [{ text: sys }] },
+        });
+        const candidateParts = resp?.data?.candidates?.[0]?.content?.parts || [];
+        const cap = candidateParts.map((p) => p?.text || '').filter(Boolean).join('\n').trim();
+        if (cap) captions.push(cap);
+      }
+    } catch (_) {}
+  }
+  return captions;
 }
 
 // 특정 아동의 모든 일지 조회 (새 스키마: date, content)
@@ -241,62 +363,33 @@ router.post('/', upload.array('files', 10), (req, res) => {
     // 업서트 후 diary id 확보
     const maybeId = result.insertId;
     const fetchIdAndHandleFiles = async (diaryId) => {
-      // 벡터 임베딩 생성 (비동기, 실패해도 일기 저장은 성공으로 처리)
-      try {
-        const embeddingData = {
-          id: diaryId,
-          content: content,
-          date: dateOnly,
-          child_id: child_id
-        };
-        
-        console.log('벡터 임베딩 생성 시작:', embeddingData);
-        const embeddingResult = await generateVectorEmbedding(embeddingData);
-        console.log('벡터 임베딩 생성 결과:', embeddingResult);
-        
-        if (embeddingResult.success) {
-          console.log('✅ 벡터 임베딩 생성 성공:', diaryId);
-        } else {
-          console.warn('⚠️ 벡터 임베딩 생성 실패:', embeddingResult.message);
-        }
-      } catch (embeddingError) {
-        console.error('❌ 벡터 임베딩 생성 중 오류:', embeddingError.message);
-        // 벡터 임베딩 실패는 로그만 남기고 계속 진행
-      }
-      
       const files = Array.isArray(req.files) ? req.files : [];
       if (files.length === 0) {
-        return res.status(201).json({
-          success: true,
-          message: '일지가 저장되었습니다.',
-          diary: { id: diaryId || null, child_id, date: dateOnly, content },
-        });
+        // 파일이 없으면 캡션 없이 임베딩만
+        try {
+          const embeddingData = { id: diaryId, content, date: dateOnly, child_id, captions: [] };
+          console.log('벡터 임베딩 생성 시작(파일 없음):', { id: diaryId, date: dateOnly });
+          const embeddingResult = await generateVectorEmbedding(embeddingData);
+          console.log('벡터 임베딩 생성 결과:', embeddingResult);
+          if (embeddingResult.success) console.log('✅ 벡터 임베딩 생성 성공:', diaryId);
+          else console.warn('⚠️ 벡터 임베딩 생성 실패:', embeddingResult.message);
+        } catch (embeddingError) {
+          console.error('❌ 벡터 임베딩 생성 중 오류:', embeddingError.message);
+        }
+        return res.status(201).json({ success: true, message: '일지가 저장되었습니다.', diary: { id: diaryId || null, child_id, date: dateOnly, content } });
       }
-      // child_id로 부모 사용자 ID 조회 후 사용자/아동별 폴더로 이동
+
+      // child_id로 부모 사용자 ID 조회 후 사용자/아동별 폴더로 이동, 저장 후 캡션 생성 → 임베딩
       db.query('SELECT parent_id FROM children WHERE id = ? LIMIT 1', [child_id], (pErr, rows) => {
         const parentId = !pErr && rows && rows[0] ? rows[0].parent_id : 'unknown';
-        const baseDir = path.join(
-          __dirname,
-          '..',
-          'uploads',
-          'diaries',
-          'users',
-          String(parentId),
-          'children',
-          String(child_id)
-        );
-        try {
-          fs.mkdirSync(baseDir, { recursive: true });
-        } catch (_) {}
+        const baseDir = path.join(__dirname, '..', 'uploads', 'diaries', 'users', String(parentId), 'children', String(child_id));
+        try { fs.mkdirSync(baseDir, { recursive: true }); } catch (_) {}
 
-        const uploadsBase =
-          (process.env.FILE_BASE_URL && process.env.FILE_BASE_URL.replace(/\/$/, '')) ||
-          `${req.protocol}://${req.get('host')}/uploads`;
+        const uploadsBase = (process.env.FILE_BASE_URL && process.env.FILE_BASE_URL.replace(/\/$/, '')) || `${req.protocol}://${req.get('host')}/uploads`;
         const values = files.map((f) => {
           let finalBasename = path.basename(f.path);
           try {
             const newPath = path.join(baseDir, finalBasename);
-            // 동일 파일명이 있을 수 있으므로 충돌 시 접미사 추가
             if (fs.existsSync(newPath)) {
               const ext = path.extname(finalBasename);
               const name = path.basename(finalBasename, ext);
@@ -305,7 +398,6 @@ router.post('/', upload.array('files', 10), (req, res) => {
             fs.renameSync(f.path, path.join(baseDir, finalBasename));
           } catch (moveErr) {
             console.error('파일 이동 오류:', moveErr);
-            // 이동 실패 시 원래 위치 파일명을 사용
           }
           const url = `${uploadsBase}/diaries/users/${parentId}/children/${child_id}/${finalBasename}`;
           const type = f.mimetype && f.mimetype.startsWith('video/') ? 'video' : 'image';
@@ -313,16 +405,29 @@ router.post('/', upload.array('files', 10), (req, res) => {
         });
 
         const insertFilesSql = 'INSERT INTO diary_files (diary_id, file_path, file_type) VALUES ?';
-        db.query(insertFilesSql, [values], (fErr) => {
-          if (fErr) {
-            console.error('첨부 저장 DB 오류:', fErr);
-            // 파일 저장 오류가 있어도 일지 저장 자체는 성공으로 처리
+        db.query(insertFilesSql, [values], async (fErr) => {
+          if (fErr) console.error('첨부 저장 DB 오류:', fErr);
+          // 캡션 생성 시도
+          let captions = [];
+          try {
+            const entries = values.map(([, url, type]) => ({ url, type }));
+            captions = await generateMediaCaptions({ baseDir, entries });
+          } catch (capErr) {
+            console.warn('멀티모달 캡션 생성 실패:', capErr?.message || capErr);
+            captions = [];
           }
-          return res.status(201).json({
-            success: true,
-            message: '일지가 저장되었습니다.',
-            diary: { id: diaryId || null, child_id, date: dateOnly, content },
-          });
+
+          // 임베딩 생성 (캡션 포함하되 UI에는 노출하지 않음)
+          try {
+            const embeddingData = { id: diaryId, content, date: dateOnly, child_id, captions };
+            console.log('벡터 임베딩 생성 시작:', { id: diaryId, date: dateOnly, captions_len: captions.length });
+            const embeddingResult = await generateVectorEmbedding(embeddingData);
+            console.log('벡터 임베딩 생성 결과:', embeddingResult);
+          } catch (embeddingError) {
+            console.error('❌ 벡터 임베딩 생성 중 오류:', embeddingError.message);
+          }
+
+          return res.status(201).json({ success: true, message: '일지가 저장되었습니다.', diary: { id: diaryId || null, child_id, date: dateOnly, content } });
         });
       });
     };
@@ -340,121 +445,88 @@ router.post('/', upload.array('files', 10), (req, res) => {
   });
 });
 
-// 일기 수정 (파일 업로드 지원) - 간소화 버전
-router.put('/:diaryId', upload.array('files', 10), async (req, res) => {
+// 일기 수정
+router.put('/:diaryId', async (req, res) => {
   const { diaryId } = req.params;
   const { date, content, child_id } = req.body;
-
-  console.log('일기 수정 요청:', { diaryId, date, content, child_id });
 
   if (!date || !content) {
     return res.status(400).json({ success: false, message: '날짜와 내용은 필수입니다.' });
   }
 
-  try {
-    // 직접 업데이트 실행 (중복 체크는 MySQL UNIQUE 제약 조건에 의존)
-    const query = 'UPDATE diaries SET date = ?, content = ?, updated_at = NOW() WHERE id = ?';
+  const query = 'UPDATE diaries SET date = ?, content = ?, updated_at = NOW() WHERE id = ?';
+  
+  db.query(query, [date, content, diaryId], async (err, result) => {
+    if (err) {
+      console.error('일기 수정 DB 오류:', err);
+      return res
+        .status(500)
+        .json({ success: false, message: '일기 수정 중 서버 오류가 발생했습니다.' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: '일기를 찾을 수 없습니다.' });
+    }
     
-    db.query(query, [date, content, diaryId], async (err, result) => {
-      if (err) {
-        console.error('일기 수정 DB 오류:', err);
-        
-        // MySQL 에러 코드별 처리
-        if (err.code === 'ER_DUP_ENTRY') {
-          return res.status(409).json({ 
-            success: false, 
-            message: `${date} 날짜에 이미 일기가 존재합니다. 다른 날짜를 선택해주세요.` 
-          });
-        }
-        
-        return res.status(500).json({ 
-          success: false, 
-          message: '일기 수정 중 서버 오류가 발생했습니다.',
-          error: err.message 
-        });
-      }
-
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ success: false, message: '일기를 찾을 수 없습니다.' });
-      }
-
-      console.log('일기 수정 성공:', { diaryId, affectedRows: result.affectedRows });
-      
-      // 새로운 파일이 업로드된 경우 처리
-      const files = Array.isArray(req.files) ? req.files : [];
-      if (files.length > 0) {
-        console.log('새 파일 업로드 처리:', files.length);
-        
-        // 기존 파일들 삭제
-        db.query('DELETE FROM diary_files WHERE diary_id = ?', [diaryId], (delErr) => {
-          if (delErr) console.error('기존 파일 삭제 오류:', delErr);
-        });
-
-        // child_id로 부모 사용자 ID 조회
-        db.query('SELECT parent_id FROM children WHERE id = ? LIMIT 1', [child_id], (pErr, rows) => {
-          const parentId = !pErr && rows && rows[0] ? rows[0].parent_id : 'unknown';
-          const baseDir = path.join(__dirname, '..', 'uploads', 'diaries', 'users', String(parentId), 'children', String(child_id));
-          
-          try {
-            fs.mkdirSync(baseDir, { recursive: true });
-          } catch (_) {}
-
-          const uploadsBase = (process.env.FILE_BASE_URL && process.env.FILE_BASE_URL.replace(/\/$/, '')) || `${req.protocol}://${req.get('host')}/uploads`;
-          
-          const values = files.map((f) => {
-            let finalBasename = path.basename(f.path);
-            try {
-              const newPath = path.join(baseDir, finalBasename);
-              if (fs.existsSync(newPath)) {
-                const ext = path.extname(finalBasename);
-                const name = path.basename(finalBasename, ext);
-                finalBasename = `${name}_${Date.now()}${ext}`;
-              }
-              fs.renameSync(f.path, path.join(baseDir, finalBasename));
-            } catch (moveErr) {
-              console.error('파일 이동 오류:', moveErr);
-            }
-            const url = `${uploadsBase}/diaries/users/${parentId}/children/${child_id}/${finalBasename}`;
-            const type = f.mimetype && f.mimetype.startsWith('video/') ? 'video' : 'image';
-            return [diaryId, url, type];
-          });
-
-          if (values.length > 0) {
-            const insertFilesSql = 'INSERT INTO diary_files (diary_id, file_path, file_type) VALUES ?';
-            db.query(insertFilesSql, [values], (fErr) => {
-              if (fErr) console.error('새 파일 저장 DB 오류:', fErr);
-              sendResponse();
-            });
-          } else {
-            sendResponse();
-          }
-        });
-      } else {
-        sendResponse();
-      }
-
-      function sendResponse() {
-        // 벡터 임베딩 업데이트 (비동기)
-        (async () => {
-          try {
-            const embeddingData = { id: parseInt(diaryId), content, date, child_id };
-            console.log('벡터 임베딩 업데이트 시작:', embeddingData);
+    // 벡터 임베딩 업데이트 (비동기)
+    try {
+      const idNum = parseInt(diaryId);
+      // 현재 일기의 첨부 목록 조회
+      db.query('SELECT file_path, file_type FROM diary_files WHERE diary_id = ? ORDER BY id ASC', [idNum], (fErr, rows) => {
+        if (fErr) {
+          console.warn('일기 파일 조회 실패(캡션 생략):', fErr?.message || fErr);
+          (async () => {
+            const embeddingData = { id: idNum, content, date, child_id, captions: [] };
             const embeddingResult = await generateVectorEmbedding(embeddingData);
-            if (embeddingResult.success) {
-              console.log('✅ 벡터 임베딩 업데이트 성공:', diaryId);
-            }
-          } catch (embeddingError) {
-            console.error('❌ 벡터 임베딩 업데이트 중 오류:', embeddingError.message);
+            console.log('벡터 임베딩 업데이트 결과(텍스트만):', embeddingResult);
+          })();
+          return;
+        }
+
+        if (!rows || rows.length === 0) {
+          (async () => {
+            const embeddingData = { id: idNum, content, date, child_id, captions: [] };
+            const embeddingResult = await generateVectorEmbedding(embeddingData);
+            console.log('벡터 임베딩 업데이트 결과(파일 없음):', embeddingResult);
+          })();
+          return;
+        }
+
+        // parent_id 조회 후 baseDir 계산 → 캡션 생성 → 임베딩 업데이트
+        db.query('SELECT parent_id FROM children WHERE id = ? LIMIT 1', [child_id], async (pErr, cRows) => {
+          const parentId = !pErr && cRows && cRows[0] ? cRows[0].parent_id : 'unknown';
+          const baseDir = path.join(
+            __dirname,
+            '..',
+            'uploads',
+            'diaries',
+            'users',
+            String(parentId),
+            'children',
+            String(child_id)
+          );
+          const entries = rows.map((r) => ({ url: r.file_path, type: r.file_type }));
+          let captions = [];
+          try {
+            captions = await generateMediaCaptions({ baseDir, entries });
+          } catch (capErr) {
+            console.warn('멀티모달 캡션 생성 실패(업데이트):', capErr?.message || capErr);
+            captions = [];
           }
-        })();
-        
-        res.json({ success: true, message: '일기가 성공적으로 수정되었습니다.' });
-      }
+          const embeddingData = { id: idNum, content, date, child_id, captions };
+          const embeddingResult = await generateVectorEmbedding(embeddingData);
+          console.log('벡터 임베딩 업데이트 결과(캡션 포함):', embeddingResult);
+        });
+      });
+    } catch (embeddingError) {
+      console.error('❌ 벡터 임베딩 업데이트 중 오류:', embeddingError.message);
+    }
+    
+    res.json({ 
+      success: true, 
+      message: '일기가 성공적으로 수정되었습니다.'
     });
-  } catch (error) {
-    console.error('일기 수정 중 예외 발생:', error);
-    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.', error: error.message });
-  }
+  });
 });
 
 // 벡터 임베딩 삭제 함수

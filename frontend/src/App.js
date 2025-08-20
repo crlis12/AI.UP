@@ -298,13 +298,13 @@ function App() {
         {/* 메인 화면 라우트 (이제 '/main' 경로로 접근) */}
         <Route
           path="/main"
-          element={isLoggedIn ? <MainScreen onSendMessage={handleSendReportMessage} currentUser={currentUser} onLogout={handleLogout} /> : <Navigate to="/login" />}
+          element={isLoggedIn ? <MainScreen onSendMessage={handleSendMessage} currentUser={currentUser} onLogout={handleLogout} /> : <Navigate to="/login" />}
         />
         
-        {/* 기본 채팅을 리포트 에이전트로 연결 */}
+        {/* 기본 채팅을 질문 에이전트(questionAgent)로 연결 */}
         <Route 
           path="/chat/:childId" 
-          element={isLoggedIn ? <ChatWindow messages={messages} onSendMessage={handleSendReportMessage} isLoading={isLoading} /> : <Navigate to="/login" />} 
+          element={isLoggedIn ? <ChatWindow messages={messages} onSendMessage={handleSendMessage} isLoading={isLoading} /> : <Navigate to="/login" />} 
         />
         {/* 기타 보호된 라우트 */}
         <Route
