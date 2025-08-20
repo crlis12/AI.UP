@@ -91,8 +91,8 @@ function BottomNavBar() {
         <span className="nav-text">홈</span>
       </button>
       <button
-        className={`nav-item ${getActiveClass('/ai-analysis')}`}
-        onClick={() => navigate('/ai-analysis')}
+        className={`nav-item ${getActiveClass('/report')}`}
+        onClick={() => handleNavigate('report')}
       >
         <FiBarChart2 className="nav-icon" />
         <span className="nav-text">리포트</span>

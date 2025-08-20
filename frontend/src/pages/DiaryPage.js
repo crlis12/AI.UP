@@ -82,7 +82,7 @@ function DiaryPage() {
 
   const rightNode = (
     <button
-      onClick={() => navigate(`/diary/${childId}`, { state: { mode: 'create' } })}
+      onClick={() => navigate(`/diary/${childId}`)}
       aria-label="새 일기 작성"
       className="header-action-button"
       title="새 일기"

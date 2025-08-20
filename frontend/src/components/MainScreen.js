@@ -665,9 +665,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                     <div className="card__title">아이 정보</div>
                     <button
                       className="card__action"
-                      onClick={() =>
-                        navigate(`/child-detail/${children[currentChildIndex]?.id || ''}`)
-                      }
+                      onClick={handleEditChildClick}
                     >
                       전체보기
                     </button>
@@ -721,13 +719,9 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                     <button
                       className="main-screen__report-button"
                       onClick={() => {
-                        if (children[currentChildIndex]) {
-                          navigate('/ai-analysis', {
-                            state: {
-                              childId: children[currentChildIndex].id,
-                              childName: children[currentChildIndex].name
-                            }
-                          });
+                        const child = children[currentChildIndex];
+                        if (child && child.id) {
+                          navigate(`/report/${child.id}`);
                         } else {
                           alert('자녀 정보를 찾을 수 없습니다.');
                         }

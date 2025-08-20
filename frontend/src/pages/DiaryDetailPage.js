@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { FiChevronLeft } from 'react-icons/fi';
+
 import API_BASE from '../utils/api'; // API_BASE import 추가
 
 function DiaryDetailPage() {
@@ -119,10 +120,7 @@ function DiaryDetailPage() {
             <button
               className="diary-action-button"
               onClick={() => {
-                const targetChildId = childIdFromState || diary.child_id;
-                navigate(`/diary/${targetChildId}`, {
-                  state: { mode: 'edit', date: diary.date },
-                });
+                navigate(`/diary/edit/${diary.id}`);
               }}
             >
               수정하기

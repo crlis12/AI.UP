@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import '../App.css';
-import TrendChart from '../components/TrendChart';
 
 function AIAnalysisPage() {
   const navigate = useNavigate();
@@ -28,265 +27,330 @@ function AIAnalysisPage() {
 
   return (
     <PageLayout title="리포트" titleStyle={titleStyle} showNavBar={true} backTo="/main">
-      <div className="analysis-page">
-        <div className="contain">
-          <div className="scroll-view">
-            <div className="row-view"></div>
-
-            {/* 상단 중복 블록 제거 */}
-
-            <span className="text2">{'종합 발달 점수 추이'}</span>
-
-            {/* 인터랙티브 SVG 그래프 */}
-            <div className="graph-container">
-              <div className="graph-row-top">
-                <span className="graph-title">{'8월 2주차'}</span>
-              </div>
-              <div className="graph-box">
-                <TrendChart
-                  labels={["7월 2주", "7월 3주", "7월 4주", "8월 1주", "8월 2주"]}
-                  values={[72, 81, 78, 74, 86]}
-                  height={180}
-                />
-              </div>
-            </div>
-
+      <div className="child-info-page contain">
+        <div className="scroll-view">
+          <div className="column">
+            {/* 상단 헤더 */}
             <div className="view">
-              <span className="text6">{'이번 주 언어 영역이 상승했어요.'}</span>
-            </div>
-
-            <div className="column2">
-              <div className="row-view4">
-                <img
-                  src={
-                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/q31szwcd_expires_30_days.png'
-                  }
-                  className="image4"
-                  alt="muscle"
-                />
-                <span className="text7 metric-label">{'대근육'}</span>
-                <img
-                  src={
-                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/pvc0iwf6_expires_30_days.png'
-                  }
-                  className="image5"
-                  alt="up"
-                />
-                <span className="text8 metric-score">{'+2.1'}</span>
-                <img
-                  src={
-                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/q96vh959_expires_30_days.png'
-                  }
-                  className="image4"
-                  alt="fine"
-                />
-                <span className="text9 metric-label">{'소근육'}</span>
-                <img
-                  src={
-                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/enuvfi0x_expires_30_days.png'
-                  }
-                  className="image5"
-                  alt="down"
-                />
-                <span className="text10 metric-score">{'-0.8'}</span>
-              </div>
-
-              <div className="row-view4">
-                <img
-                  src={
-                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/ivkhvlvy_expires_30_days.png'
-                  }
-                  className="image4"
-                  alt="cognitive"
-                />
-                <span className="text9 metric-label">{'인지'}</span>
-                <img
-                  src={
-                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/hy1mf4sa_expires_30_days.png'
-                  }
-                  className="image5"
-                  alt="up"
-                />
-                <span className="text11 metric-score">{'+1.5'}</span>
-                <img
-                  src={
-                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/ywabn5j0_expires_30_days.png'
-                  }
-                  className="image4"
-                  alt="language"
-                />
-                <span className="text12 metric-label">{'언어'}</span>
-                <img
-                  src={
-                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/i7n0o1z3_expires_30_days.png'
-                  }
-                  className="image5"
-                  alt="up"
-                />
-                <span className="text10 metric-score">{'+3.5'}</span>
-              </div>
-
-              <div className="row-view4">
-                <img
-                  src={
-                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/3hvvj451_expires_30_days.png'
-                  }
-                  className="image4"
-                  alt="social"
-                />
-                <span className="text13 metric-label">{'사회성'}</span>
-                <img
-                  src={
-                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/vur6ovz5_expires_30_days.png'
-                  }
-                  className="image5"
-                  alt="down"
-                />
-                <span className="text8 metric-score">{'-1.2'}</span>
-                <img
-                  src={
-                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/h2zr3eqi_expires_30_days.png'
-                  }
-                  className="image4"
-                  alt="selfcare"
-                />
-                <span className="text9 metric-label">{'자조'}</span>
-                <img
-                  src={
-                    'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/hbXC9Bjksi/cbo00il9_expires_30_days.png'
-                  }
-                  className="image5"
-                  alt="down"
-                />
-                <span className="text10 metric-score">{'-0.5'}</span>
+              <div className="column2">
+                <span className="text">{childName || '자녀'}의 발달 분석</span>
               </div>
             </div>
 
+            {/* 발달 점수 섹션 */}
+            <div className="view2">
+              <span className="text2">종합 발달 점수</span>
+              <div className="circular-score">
+                <div className="score-circle">
+                  <span className="score-number">90</span>
+                  <span className="score-label">점</span>
+                </div>
+                <span className="score-description">상위 10%</span>
+              </div>
+            </div>
+
+            {/* 영역별 발달 현황 */}
             <div className="column3">
-              <span className="text14">{'영역별 발달 비교'}</span>
-              <div className="column4">
-                <div className="metric-group">
-                  <span className="text15">{'대근육'}</span>
-                  <div className="row-view5">
-                    <span className="text16">{'내 아이'}</span>
-                    <div className="view2">
-                      <div className="box2" />
-                    </div>
-                    <span className="text17">{'80'}</span>
-                  </div>
-                  <div className="row-view6">
-                    <span className="text18">{'또래 평균'}</span>
-                    <div className="view3">
-                      <div className="box3" />
-                    </div>
-                    <span className="text17">{'75'}</span>
-                  </div>
+              <span className="text3">영역별 발달 현황</span>
+              
+              {/* 언어발달 */}
+              <div className="development-item">
+                <div className="development-header">
+                  <span className="development-title">언어발달</span>
+                  <span className="development-score">85점</span>
                 </div>
-
-                <div className="metric-group">
-                  <span className="text15">{'소근육'}</span>
-                  <div className="row-view5">
-                    <span className="text16">{'내 아이'}</span>
-                    <div className="view4">
-                      <div className="box4" />
-                    </div>
-                    <span className="text17">{'65'}</span>
-                  </div>
-                  <div className="row-view6">
-                    <span className="text18">{'또래 평균'}</span>
-                    <div className="view3">
-                      <div className="box5" />
-                    </div>
-                    <span className="text17">{'72'}</span>
-                  </div>
+                <div className="progress-bar">
+                  <div className="progress-fill" style={{ width: '85%' }}></div>
                 </div>
+                <span className="development-status">양호</span>
+              </div>
 
-                <div className="metric-group">
-                  <span className="text15">{'인지'}</span>
-                  <div className="row-view5">
-                    <span className="text16">{'내 아이'}</span>
-                    <div className="view5">
-                      <div className="box6" />
-                    </div>
-                    <span className="text17">{'88'}</span>
-                  </div>
-                  <div className="row-view6">
-                    <span className="text18">{'또래 평균'}</span>
-                    <div className="view3">
-                      <div className="box7" />
-                    </div>
-                    <span className="text17">{'80'}</span>
-                  </div>
+              {/* 사회성발달 */}
+              <div className="development-item">
+                <div className="development-header">
+                  <span className="development-title">사회성발달</span>
+                  <span className="development-score">70점</span>
                 </div>
-
-                <div className="metric-group">
-                  <span className="text15">{'언어'}</span>
-                  <div className="row-view5">
-                    <span className="text16">{'내 아이'}</span>
-                    <div className="view6">
-                      <div className="box8" />
-                    </div>
-                    <span className="text17">{'90'}</span>
-                  </div>
-                  <div className="row-view6">
-                    <span className="text18">{'또래 평균'}</span>
-                    <div className="view3">
-                      <div className="box9" />
-                    </div>
-                    <span className="text17">{'82'}</span>
-                  </div>
+                <div className="progress-bar">
+                  <div className="progress-fill" style={{ width: '70%' }}></div>
                 </div>
+                <span className="development-status attention">주의 필요</span>
+              </div>
 
-                <div className="metric-group">
-                  <span className="text15">{'사회성'}</span>
-                  <div className="row-view5">
-                    <span className="text16">{'내 아이'}</span>
-                    <div className="view7">
-                      <div className="box10" />
-                    </div>
-                    <span className="text17">{'40'}</span>
-                  </div>
-                  <div className="row-view6">
-                    <span className="text18">{'또래 평균'}</span>
-                    <div className="view3">
-                      <div className="box11" />
-                    </div>
-                    <span className="text17">{'78'}</span>
-                  </div>
+              {/* 인지발달 */}
+              <div className="development-item">
+                <div className="development-header">
+                  <span className="development-title">인지발달</span>
+                  <span className="development-score">92점</span>
                 </div>
+                <div className="progress-bar">
+                  <div className="progress-fill" style={{ width: '92%' }}></div>
+                </div>
+                <span className="development-status">우수</span>
+              </div>
 
-                <div className="metric-group">
-                  <span className="text15">{'자조'}</span>
-                  <div className="row-view5">
-                    <span className="text16">{'내 아이'}</span>
-                    <div className="view8">
-                      <div className="box12" />
-                    </div>
-                    <span className="text17">{'60'}</span>
+              {/* 운동발달 */}
+              <div className="development-item">
+                <div className="development-header">
+                  <span className="development-title">운동발달</span>
+                  <span className="development-score">88점</span>
+                </div>
+                <div className="progress-bar">
+                  <div className="progress-fill" style={{ width: '88%' }}></div>
+                </div>
+                <span className="development-status">양호</span>
+              </div>
+
+              {/* 정서발달 */}
+              <div className="development-item">
+                <div className="development-header">
+                  <span className="development-title">정서발달</span>
+                  <span className="development-score">78점</span>
+                </div>
+                <div className="progress-bar">
+                  <div className="progress-fill" style={{ width: '78%' }}></div>
+                </div>
+                <span className="development-status">보통</span>
+              </div>
+            </div>
+
+            {/* 또래 평균 비교 */}
+            <div className="comparison-section">
+              <span className="text18">또래 평균 비교</span>
+              <div className="comparison-chart">
+                <div className="comparison-item">
+                  <span className="comparison-label">우리 아이</span>
+                  <div className="comparison-bar my-child">
+                    <div className="bar-fill" style={{ width: '90%' }}></div>
                   </div>
-                  <div className="row-view6">
-                    <span className="text18">{'또래 평균'}</span>
-                    <div className="view3">
-                      <div className="box13" />
-                    </div>
-                    <span className="text17">{'70'}</span>
+                  <span className="comparison-score">90</span>
+                </div>
+                <div className="comparison-item">
+                  <span className="comparison-label">또래 평균</span>
+                  <div className="comparison-bar average">
+                    <div className="bar-fill" style={{ width: '70%' }}></div>
                   </div>
+                  <span className="comparison-score">70</span>
                 </div>
               </div>
             </div>
 
-            <span className="text19">{'이 부분은 특별히 봐주세요!'}</span>
-            <div className="view9">
-              <span className="text20">
-                {'사회성 영역에서 또래보다 발달이 느려요. \n전문가와 상담을 받아보는 건 어떨까요?'}
-              </span>
-            </div>
-            <div className="view10" onClick={handleCounselorMatching} style={{ cursor: 'pointer' }}>
-              <span className="text21">{'상담사 연결하기'}</span>
+            {/* 특별 주의사항 */}
+            <div className="attention-section">
+              <span className="text19">이 부분은 특별히 봐주세요!</span>
+              <div className="attention-box">
+                <span className="attention-text">
+                  사회성 영역에서 또래보다 발달이 느려요. 
+                  {'\n'}전문가와 상담을 받아보는 건 어떨까요?
+                </span>
+              </div>
+              
+              {/* 상담사 연결하기 버튼 */}
+              <div className="counselor-button" onClick={handleCounselorMatching} style={{ cursor: 'pointer' }}>
+                <span className="counselor-button-text">상담사 연결하기</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .circular-score {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin: 20px 0;
+        }
+
+        .score-circle {
+          width: 120px;
+          height: 120px;
+          border: 8px solid #4CAF50;
+          border-radius: 50%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 10px;
+        }
+
+        .score-number {
+          font-size: 36px;
+          font-weight: bold;
+          color: #4CAF50;
+        }
+
+        .score-label {
+          font-size: 14px;
+          color: #666;
+        }
+
+        .score-description {
+          font-size: 16px;
+          color: #4CAF50;
+          font-weight: bold;
+        }
+
+        .development-item {
+          margin-bottom: 20px;
+          padding: 15px;
+          background: #f9f9f9;
+          border-radius: 10px;
+        }
+
+        .development-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+        }
+
+        .development-title {
+          font-size: 16px;
+          font-weight: bold;
+          color: #333;
+        }
+
+        .development-score {
+          font-size: 16px;
+          font-weight: bold;
+          color: #4CAF50;
+        }
+
+        .progress-bar {
+          width: 100%;
+          height: 8px;
+          background: #e0e0e0;
+          border-radius: 4px;
+          margin-bottom: 8px;
+          overflow: hidden;
+        }
+
+        .progress-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #4CAF50, #8BC34A);
+          border-radius: 4px;
+          transition: width 0.3s ease;
+        }
+
+        .development-status {
+          font-size: 14px;
+          padding: 4px 8px;
+          border-radius: 12px;
+          background: #4CAF50;
+          color: white;
+          display: inline-block;
+        }
+
+        .development-status.attention {
+          background: #FF9800;
+        }
+
+        .comparison-section {
+          margin: 30px 0;
+          padding: 20px;
+          background: #f5f5f5;
+          border-radius: 10px;
+        }
+
+        .comparison-chart {
+          margin-top: 15px;
+        }
+
+        .comparison-item {
+          display: flex;
+          align-items: center;
+          margin-bottom: 15px;
+        }
+
+        .comparison-label {
+          width: 80px;
+          font-size: 14px;
+          color: #666;
+        }
+
+        .comparison-bar {
+          flex: 1;
+          height: 20px;
+          background: #e0e0e0;
+          border-radius: 10px;
+          margin: 0 10px;
+          overflow: hidden;
+        }
+
+        .comparison-bar.my-child .bar-fill {
+          background: #4CAF50;
+        }
+
+        .comparison-bar.average .bar-fill {
+          background: #9E9E9E;
+        }
+
+        .bar-fill {
+          height: 100%;
+          transition: width 0.3s ease;
+        }
+
+        .comparison-score {
+          width: 30px;
+          text-align: right;
+          font-weight: bold;
+          color: #333;
+        }
+
+        .attention-section {
+          margin: 30px 0;
+        }
+
+        .text19 {
+          font-size: 18px;
+          font-weight: bold;
+          color: #333;
+          margin-bottom: 15px;
+          display: block;
+        }
+
+        .attention-box {
+          background: #FFF3E0;
+          border: 1px solid #FFB74D;
+          border-radius: 10px;
+          padding: 20px;
+          margin-bottom: 20px;
+        }
+
+        .attention-text {
+          font-size: 16px;
+          color: #E65100;
+          line-height: 1.5;
+          white-space: pre-line;
+        }
+
+        .counselor-button {
+          background: #2196F3;
+          color: white;
+          padding: 15px 30px;
+          border-radius: 25px;
+          text-align: center;
+          transition: background 0.3s ease;
+        }
+
+        .counselor-button:hover {
+          background: #1976D2;
+        }
+
+        .counselor-button-text {
+          font-size: 16px;
+          font-weight: bold;
+        }
+
+        .text, .text2, .text3 {
+          font-size: 20px;
+          font-weight: bold;
+          color: #333;
+          margin-bottom: 20px;
+          display: block;
+        }
+      `}</style>
     </PageLayout>
   );
 }
