@@ -85,30 +85,41 @@ function ReportDetailPage() {
       };
 
       const scoresByKey = {};
-      let totalSum = 0;
-      let totalDenom = 0;
+      let totalClampedSum = 0; // 각 도메인별 합계를 24로 클램핑한 후의 합
+      let domainCount = 0;     // 유효 도메인 개수 (추가질문 제외)
 
+      let extraQuestionsScore = 0; // domain_id 6 합계
       for (const d of domains) {
         const key = mapDomainNameToKey(d?.domain_name);
-        if (!key) continue; // UI에 없는 도메인은 스킵
         const questions = Array.isArray(d?.questions) ? d.questions : [];
-        const sum = questions.reduce((acc, q) => acc + (q?.score == null ? 0 : Number(q.score)), 0);
-        const denom = (questions.length || 0) * 3;
-        const percent = denom > 0 ? Math.round((sum / denom) * 100) : 0;
+
+        // 추가질문: domain_id 6 처리 (점수 표기로는 사용하지 않음)
+        if (Number(d?.domain_id) === 6) {
+          extraQuestionsScore = questions.reduce((acc, q) => acc + (q?.score == null ? 0 : Number(q.score)), 0);
+          continue;
+        }
+
+        if (!key) continue; // UI에 없는 도메인은 스킵
+        const rawSum = questions.reduce((acc, q) => acc + (q?.score == null ? 0 : Number(q.score)), 0);
+        const scoreOutOf = 24;
+        const clamped = Math.max(0, Math.min(rawSum, scoreOutOf));
+        const percent = Math.round((clamped / scoreOutOf) * 100);
         const status = percent < 60 ? '위험' : percent < 80 ? '주의' : '정상';
 
         scoresByKey[key] = {
-          score: percent,
+          score24: clamped,
+          percent,
           status,
           description: d?.domain_name || ''
         };
 
-        totalSum += sum;
-        totalDenom += denom;
+        totalClampedSum += clamped;
+        domainCount += 1;
       }
 
-      const totalScore = totalDenom > 0 ? Math.round((totalSum / totalDenom) * 100) : 0;
-      const overallStatus = totalScore < 60 ? '위험' : totalScore < 80 ? '주의' : '정상';
+      const totalSumOutOf24 = totalClampedSum; // 추가질문 제외 5개 도메인 합산 점수 (최대 24*N)
+      const overallPercent = domainCount > 0 ? Math.round((totalClampedSum / (domainCount * 24)) * 100) : 0;
+      const overallStatus = overallPercent < 60 ? '위험' : overallPercent < 80 ? '주의' : '정상';
 
       // 권장사항: opinion_text + requirements
       const opinionText = agentReport?.final_opinion?.opinion_text || '';
@@ -125,12 +136,16 @@ function ReportDetailPage() {
         assessmentDate: getCurrentDate(),
         ageInMonths: agentReport?.child_age_month || '정보 없음',
         scores: scoresByKey,
-        totalScore,
+        totalScore: totalSumOutOf24,
         overallStatus,
         recommendations,
         nextAssessment,
         finalOpinionText: opinionText,
         finalIsWarning: agentReport?.final_opinion?.isWarning ?? null,
+        extraQuestions: {
+          status: extraQuestionsScore > 0 ? '경고' : '문제없음',
+          total: extraQuestionsScore
+        }
       };
     } catch (e) {
       console.error('ReportAgent 결과 변환 오류:', e);
@@ -234,6 +249,10 @@ function ReportDetailPage() {
         return '#ffc107';
       case '위험':
         return '#dc3545';
+      case '문제없음':
+        return '#28a745';
+      case '경고':
+        return '#dc3545';
       default:
         return '#6c757d';
     }
@@ -246,6 +265,10 @@ function ReportDetailPage() {
       case '주의':
         return <FiAlertTriangle />;
       case '위험':
+        return <FiAlertTriangle />;
+      case '문제없음':
+        return <FiCheckCircle />;
+      case '경고':
         return <FiAlertTriangle />;
       default:
         return <FiBarChart2 />;
@@ -348,12 +371,12 @@ function ReportDetailPage() {
 
   // 점수 카드 표시 순서 및 타이틀을 하드코딩
   const fixedDomains = [
-    { title: '대근육운동', key: 'grossMotor' },
-    { title: '소근육운동', key: 'fineMotor' },
-    { title: '인지', key: 'problemSolving' },
-    { title: '언어', key: 'communication' },
-    { title: '사회성', key: 'personalSocial' },
-    { title: '추가질문', key: null },
+    { title: '대근육운동', key: 'grossMotor', type: 'score' },
+    { title: '소근육운동', key: 'fineMotor', type: 'score' },
+    { title: '인지', key: 'problemSolving', type: 'score' },
+    { title: '언어', key: 'communication', type: 'score' },
+    { title: '사회성', key: 'personalSocial', type: 'score' },
+    { title: '추가질문', key: 'extraQuestions', type: 'flag' },
   ];
 
   if (loading) {
@@ -526,9 +549,35 @@ function ReportDetailPage() {
             영역별 발달 점수
           </h2>
           <div className="scores-grid">
-            {fixedDomains.map(({ title, key }) => {
+            {fixedDomains.map(({ title, key, type }) => {
+              if (type === 'flag') {
+                const extra = reportData?.extraQuestions;
+                const flagStatus = extra?.status || '문제없음';
+                return (
+                  <div key={title} className="score-card">
+                    <div className="score-card-header">
+                      <h3 className="score-domain">{title}</h3>
+                      <div className="score-status" style={{ color: getStatusColor(flagStatus) }}>
+                        {getStatusIcon(flagStatus)}
+                        <span>{flagStatus}</span>
+                      </div>
+                    </div>
+                    <div className="score-value">
+                      <span className="score-number">{flagStatus}</span>
+                    </div>
+                    <div className="score-progress">
+                      <div
+                        className="progress-bar"
+                        style={{ width: '100%', backgroundColor: getStatusColor(flagStatus) }}
+                      ></div>
+                    </div>
+                  </div>
+                );
+              }
+
               const data = key ? reportData?.scores?.[key] : null;
-              const score = typeof data?.score === 'number' ? data.score : null;
+              const score24 = typeof data?.score24 === 'number' ? data.score24 : null;
+              const percent = typeof data?.percent === 'number' ? data.percent : (score24 != null ? Math.round((score24 / 24) * 100) : null);
               const status = data?.status || '정보없음';
               return (
                 <div key={title} className="score-card">
@@ -540,14 +589,14 @@ function ReportDetailPage() {
                     </div>
                   </div>
                   <div className="score-value">
-                    <span className="score-number">{score != null ? score : '-'}</span>
-                    <span className="score-max">{score != null ? '/100' : ''}</span>
+                    <span className="score-number">{score24 != null ? score24 : '-'}</span>
+                    <span className="score-max">{score24 != null ? '/24' : ''}</span>
                   </div>
                   <div className="score-progress">
                     <div
                       className="progress-bar"
                       style={{
-                        width: `${score != null ? score : 0}%`,
+                        width: `${percent != null ? percent : 0}%`,
                         backgroundColor: getStatusColor(status),
                       }}
                     ></div>
