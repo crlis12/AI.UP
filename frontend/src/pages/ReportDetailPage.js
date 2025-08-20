@@ -252,7 +252,54 @@ function ReportDetailPage() {
         {/* 아동 정보 헤더 */}
         <div className="report-detail__header">
           <div className="report-header-info">
-            <h1 className="report-detail__title">발달 평가 리포트</h1>
+            <div className="report-header-top">
+              <h1 className="report-detail__title">발달 평가 리포트</h1>
+              <button
+                type="button"
+                className="report-generate-button"
+                onClick={async () => {
+                  try {
+                    if (!childId) return;
+                    const qRes = await fetch(`${API_BASE}/questions/child/${childId}`);
+                    const qData = await qRes.json();
+                    const questions = Array.isArray(qData?.questions)
+                      ? qData.questions.map((q) => q?.question_text).filter(Boolean)
+                      : [];
+                    if (questions.length === 0) {
+                      alert('생성할 KDST 문항을 찾지 못했습니다.');
+                      return;
+                    }
+                    const resp = await fetch(`${API_BASE}/report/kdst-generate-report`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ questions })
+                    });
+                    const data = await resp.json();
+                    if (!data?.success) {
+                      throw new Error(data?.message || '리포트 생성 실패');
+                    }
+                    alert('리포트 생성이 완료되었습니다.');
+                    console.group('[Report] 생성 결과');
+                    console.log('원본 응답 객체:', data);
+                    console.log('LLM 응답 본문 (report.content):', data?.report?.content);
+                    try {
+                      const parsed = data?.report?.content ? JSON.parse(data.report.content) : null;
+                      if (parsed) {
+                        console.log('LLM 응답 JSON 파싱 결과:', parsed);
+                      }
+                    } catch (e) {
+                      console.log('LLM 응답은 JSON이 아니거나 파싱 불가:', e?.message);
+                    }
+                    console.groupEnd();
+                  } catch (e) {
+                    console.error('리포트 생성 오류:', e);
+                    alert(e?.message || '리포트 생성 중 오류가 발생했습니다.');
+                  }
+                }}
+              >
+                리포트 생성
+              </button>
+            </div>
             <div className="report-child-info">
               <div className="child-info-item">
                 <FiUser className="info-icon" />
