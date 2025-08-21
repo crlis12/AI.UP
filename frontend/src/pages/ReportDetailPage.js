@@ -81,12 +81,13 @@ function ReportDetailPage() {
         if (normalized.includes('인지')) return 'problemSolving';
         if (normalized.includes('언어')) return 'communication';
         if (normalized.includes('사회')) return 'personalSocial';
+        if (normalized.includes('자조')) return 'selfCare';
         return null;
       };
 
       const scoresByKey = {};
-      let totalClampedSum = 0; // 각 도메인별 합계를 24로 클램핑한 후의 합
-      let domainCount = 0;     // 유효 도메인 개수 (추가질문 제외)
+      let totalNumerator = 0;   // 각 도메인 합산 점수 (null은 0)
+      let totalDenominator = 0; // 각 도메인 분모 합 (null이 아닌 항목 수 * 3)
 
       let extraQuestionsScore = 0; // domain_id 6 합계
       for (const d of domains) {
@@ -101,27 +102,38 @@ function ReportDetailPage() {
 
         if (!key) continue; // UI에 없는 도메인은 스킵
         const rawSum = questions.reduce((acc, q) => acc + (q?.score == null ? 0 : Number(q.score)), 0);
-        const scoreOutOf = 24;
-        const clamped = Math.max(0, Math.min(rawSum, scoreOutOf));
-        const percent = Math.round((clamped / scoreOutOf) * 100);
-        const status = percent < 60 ? '위험' : percent < 80 ? '주의' : '정상';
+        const denom = questions.reduce((acc, q) => acc + (q?.score == null ? 0 : 3), 0); // non-null 개수 * 3
+        const percent = denom > 0 ? Math.round((rawSum / denom) * 100) : 0;
+        const status = denom === 0 ? '정보없음' : percent < 60 ? '위험' : percent < 80 ? '주의' : '정상';
 
         scoresByKey[key] = {
-          score24: clamped,
+          score24: rawSum,
           percent,
           status,
-          description: d?.domain_name || ''
+          description: d?.domain_name || '',
+          outOf: denom
         };
 
-        totalClampedSum += clamped;
-        domainCount += 1;
+        totalNumerator += rawSum;
+        totalDenominator += denom;
       }
 
-      const totalSumOutOf24 = totalClampedSum; // 추가질문 제외 5개 도메인 합산 점수 (최대 24*N)
-      const overallPercent = domainCount > 0 ? Math.round((totalClampedSum / (domainCount * 24)) * 100) : 0;
+      const totalSumOutOf24 = totalNumerator; // 추가질문 제외 5개 도메인 합산 점수
+      const overallPercent = totalDenominator > 0 ? Math.round((totalNumerator / totalDenominator) * 100) : 0;
       const overallStatus = overallPercent < 60 ? '위험' : overallPercent < 80 ? '주의' : '정상';
 
-      // 권장사항: requirements만 사용 (opinion_text는 별도 경고 배너에서만 표시)
+      // 자조(selfCare)가 아예 없을 수 있음 → 없으면 0/0으로 표기할 수 있게 플레이스홀더 생성
+      if (!scoresByKey.selfCare) {
+        scoresByKey.selfCare = {
+          score24: 0,
+          percent: 0,
+          status: '정보없음',
+          description: '자조',
+          outOf: 0
+        };
+      }
+
+      // 권장사항: requirements만 사용 (opinion_text는 경고 배너에서만 표시)
       const opinionText = agentReport?.final_opinion?.opinion_text || '';
       const recommendations = Array.isArray(agentReport?.final_opinion?.requirements)
         ? agentReport.final_opinion.requirements
@@ -376,7 +388,7 @@ function ReportDetailPage() {
     { title: '인지', key: 'problemSolving', type: 'score' },
     { title: '언어', key: 'communication', type: 'score' },
     { title: '사회성', key: 'personalSocial', type: 'score' },
-    { title: '추가질문', key: 'extraQuestions', type: 'flag' },
+    { title: '자조', key: 'selfCare', type: 'score' },
   ];
 
   if (loading) {
@@ -550,34 +562,12 @@ function ReportDetailPage() {
           </h2>
           <div className="scores-grid">
             {fixedDomains.map(({ title, key, type }) => {
-              if (type === 'flag') {
-                const extra = reportData?.extraQuestions;
-                const flagStatus = extra?.status || '문제없음';
-                return (
-                  <div key={title} className="score-card">
-                    <div className="score-card-header">
-                      <h3 className="score-domain">{title}</h3>
-                      <div className="score-status" style={{ color: getStatusColor(flagStatus) }}>
-                        {getStatusIcon(flagStatus)}
-                        <span>{flagStatus}</span>
-                      </div>
-                    </div>
-                    <div className="score-value">
-                      <span className="score-number">{flagStatus}</span>
-                    </div>
-                    <div className="score-progress">
-                      <div
-                        className="progress-bar"
-                        style={{ width: '100%', backgroundColor: getStatusColor(flagStatus) }}
-                      ></div>
-                    </div>
-                  </div>
-                );
-              }
+              // 현재 추가질문(flag)은 UI에서 분리됨 → type === 'flag' 케이스 제거
 
               const data = key ? reportData?.scores?.[key] : null;
               const score24 = typeof data?.score24 === 'number' ? data.score24 : null;
-              const percent = typeof data?.percent === 'number' ? data.percent : (score24 != null ? Math.round((score24 / 24) * 100) : null);
+              const outOf = typeof data?.outOf === 'number' ? data.outOf : 24;
+              const percent = typeof data?.percent === 'number' ? data.percent : (score24 != null && outOf > 0 ? Math.round((score24 / outOf) * 100) : null);
               const status = data?.status || '정보없음';
               return (
                 <div key={title} className="score-card">
@@ -590,7 +580,7 @@ function ReportDetailPage() {
                   </div>
                   <div className="score-value">
                     <span className="score-number">{score24 != null ? score24 : '-'}</span>
-                    <span className="score-max">{score24 != null ? '/24' : ''}</span>
+                    <span className="score-max">{score24 != null ? `/${outOf}` : outOf === 0 ? '/0' : ''}</span>
                   </div>
                   <div className="score-progress">
                     <div
