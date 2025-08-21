@@ -29,7 +29,7 @@ def get_model():
     """Sentence Transformer 모델을 싱글톤으로 반환"""
     global _model
     if _model is None:
-        _model = SentenceTransformer('jhgan/ko-sroberta-multitask')
+        _model = SentenceTransformer('BM-K/KoSimCSE-roberta-multitask')
     return _model
 
 def get_embedding(text):

@@ -10,7 +10,7 @@ import sqlite3
 from sentence_transformers import SentenceTransformer
 
 # 설정
-MODEL_NAME = 'jhgan/ko-sroberta-multitask'
+MODEL_NAME = 'BM-K/KoSimCSE-roberta-multitask'
 COLLECTION_NAME = "my_journal_on_disk"
 QDRANT_PATH = "../my_local_qdrant_db"
 EMBEDDING_DB_PATH = os.path.join(os.path.dirname(__file__), 'my_local_qdrant_db', 'diary_embeddings.db')
