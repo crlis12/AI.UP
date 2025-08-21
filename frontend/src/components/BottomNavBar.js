@@ -115,8 +115,8 @@ function BottomNavBar() {
         className={`nav-item ${getActiveClass('/settings')}`}
         onClick={() => navigate('/settings')}
       >
-        <FiSettings className="nav-icon" />
-        <span className="nav-text">설정</span>
+        {/* <FiSettings className="nav-icon" />
+        <span className="nav-text">설정</span> */}
       </button>
     </div>
   );

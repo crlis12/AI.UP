@@ -107,7 +107,7 @@ const validateChildData = (data) => {
 // 아동 등록
 router.post('/register', async (req, res) => {
   try {
-    const childData = req.body;
+    const childData = req.body || {};
 
     // 입력 데이터 검증
     const validation = validateChildData(childData);
@@ -333,7 +333,7 @@ router.get('/:childId', (req, res) => {
 router.put('/:childId', async (req, res) => {
   try {
     const childId = req.params.childId;
-    const updateData = req.body;
+    const updateData = req.body || {};
 
     if (!childId) {
       return res.status(400).json({

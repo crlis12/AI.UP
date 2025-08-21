@@ -42,6 +42,7 @@ function DiaryWritePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [hasExisting, setHasExisting] = useState(false);
   const [existingMedia, setExistingMedia] = useState(null); // 서버 저장된 파일명
+  const [existingFiles, setExistingFiles] = useState([]); // 서버 저장된 파일들
   const existingMediaUrl = existingMedia ? `${API_BASE}/uploads/diaries/${existingMedia}` : null;
 
   const handleFileChange = (event) => {
@@ -142,6 +143,7 @@ function DiaryWritePage() {
       setDateValue(normalizedDate);
       setContent(existingDiary.content || '');
       setExistingMedia(existingDiary.children_img || null);
+      setExistingFiles(existingDiary.files || []);
       setHasExisting(true);
       didInitDateRef.current = true; // 편집 모드에서도 플래그 설정
     }
@@ -165,15 +167,18 @@ function DiaryWritePage() {
           const first = data.diaries[0];
           setContent(first.content || '');
           setExistingMedia(first.children_img || null);
+          setExistingFiles(first.files || []);
           setHasExisting(true);
         } else {
           setHasExisting(false);
           setContent('');
           setExistingMedia(null);
+          setExistingFiles([]);
         }
       } catch (_) {
         setHasExisting(false);
         setExistingMedia(null);
+        setExistingFiles([]);
       }
     };
     fetchExisting();
@@ -230,31 +235,35 @@ function DiaryWritePage() {
         {/* 기존 서버 첨부 미리보기 */}
         {isEditMode && existingDiary && existingDiary.files && existingDiary.files.length > 0 && files.length === 0 && (
           <div className="diary-write__previews" style={{ marginTop: 12 }}>
-            <div style={{ marginBottom: '8px', fontSize: '14px', color: '#6c757d' }}>
-              현재 첨부된 파일들:
-            </div>
-            {existingDiary.files.map((file, index) => (
-              <div key={file.id || index} className="diary-write__preview" style={{ width: 120, height: 120 }}>
-                {file.file_type === 'video' ? (
-                  <video 
-                    src={file.file_path} 
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                    controls 
-                  />
-                ) : (
-                  <img 
-                    src={file.file_path} 
-                    alt="첨부" 
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                  />
-                )}
-              </div>
-            ))}
+            
+            {existingDiary.files.map((file, index) => {
+              // file_path가 이미 완전한 URL인지 확인
+              const isFullUrl = file.file_path.startsWith('http://') || file.file_path.startsWith('https://');
+              const fileUrl = isFullUrl ? file.file_path : `${API_BASE}${file.file_path}`;
+              
+              return (
+                <div key={file.id || index} className="diary-write__preview" style={{ width: 120, height: 120 }}>
+                  {file.file_type === 'video' ? (
+                    <video 
+                      src={fileUrl} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                      controls 
+                    />
+                  ) : (
+                    <img 
+                      src={fileUrl} 
+                      alt="첨부" 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 
         {/* 레거시 children_img 미리보기 (기존 호환성) */}
-        {existingMedia && files.length === 0 && !isEditMode && (
+        {existingMedia && files.length === 0 && (
           <div className="diary-write__previews" style={{ marginTop: 12 }}>
             <div className="diary-write__preview" style={{ width: 120, height: 120 }}>
               {/\.(mp4|webm|ogg)$/i.test(existingMedia) ? (
@@ -285,6 +294,70 @@ function DiaryWritePage() {
                 <FiX />
               </button>
             </div>
+          </div>
+        )}
+
+        {/* 일반 모드에서 기존 파일들 미리보기 */}
+        {!isEditMode && existingFiles.length > 0 && files.length === 0 && (
+          <div className="diary-write__previews" style={{ marginTop: 12 }}>
+            
+            {existingFiles.map((file, index) => {
+              // file_path가 이미 완전한 URL인지 확인
+              const isFullUrl = file.file_path.startsWith('http://') || file.file_path.startsWith('https://');
+              const fileUrl = isFullUrl ? file.file_path : `${API_BASE}${file.file_path}`;
+              
+              return (
+                <div key={file.id || index} className="diary-write__preview" style={{ width: 120, height: 120 }}>
+                  {file.file_type === 'video' ? (
+                    <video 
+                      src={fileUrl}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                      controls 
+                    />
+                  ) : (
+                    <img 
+                      src={fileUrl}
+                      alt="첨부" 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
+                  )}
+                  <button
+                    type="button"
+                    className="diary-write__remove"
+                    onClick={async () => {
+                      if (!window.confirm('이 첨부파일을 삭제하시겠습니까?')) return;
+                      try {
+                        // 현재 날짜의 일기 ID를 찾아서 파일 삭제
+                        const findResp = await fetch(`${API_BASE}/diaries/child/${childId}?date=${dateValue}`);
+                        const findData = await findResp.json();
+                        const targetId = findData?.diaries?.[0]?.id;
+                        if (!targetId) throw new Error('일지를 찾을 수 없습니다.');
+                        
+                        // 개별 파일 삭제 API 호출
+                        const del = await fetch(`${API_BASE}/diaries/${targetId}/files/${file.id}`, { 
+                          method: 'DELETE' 
+                        });
+                        const delData = await del.json();
+                        
+                        if (!delData.success) {
+                          throw new Error(delData.message || '삭제 실패');
+                        }
+                        
+                        // 성공시 UI에서 파일 제거
+                        setExistingFiles(prev => prev.filter(f => f.id !== file.id));
+                        alert('파일이 성공적으로 삭제되었습니다.');
+                      } catch (e) {
+                        console.error('첨부파일 삭제 오류:', e);
+                        alert(`첨부파일 삭제 중 오류가 발생했습니다: ${e.message}`);
+                      }
+                    }}
+                    aria-label="첨부파일 삭제"
+                  >
+                    <FiX />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
 
