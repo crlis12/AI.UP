@@ -61,9 +61,10 @@ const REPORT_OUTPUT_SCHEMA = {
                     { type: 'null' }
                   ]
                 },
-                question: { type: 'string' }
+                question: { type: 'string' },
+                reason: { type: 'string' }
               },
-              required: ['question_number', 'question']
+              required: ['question_number', 'score','question', 'reason']
             }
           }
         },
