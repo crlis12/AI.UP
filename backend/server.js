@@ -18,30 +18,15 @@ const PORT = process.env.PORT || 3001;
 
 // 미들웨어 설정
 app.use(express.json()); // JSON 요청 본문 파싱
-app.use(cors()); // CORS 허용 (프론트엔드와 백엔드가 다른 포트에서 실행될 때 필요)
 // 업로드 파일 정적 제공
 const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// CORS 설정
-const allowedOrigins = [
-  'http://localhost:3000', // 로컬 개발 환경
-  'https://salmon-field-0d3db0a00.1.azurestaticapps.net', // 메인 URL
-  'https://salmon-field-0d3db0a00-preview.eastasia.1.azurestaticapps.net', // 프리뷰 URL
-];
-
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // 허용된 origin이거나 origin이 없는 경우 (예: Postman, 같은 출처 요청) 허용
-      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-  })
-);
+// CORS 설정 - 모든 origin 허용 (개발 환경용)
+app.use(cors({
+  origin: true, // 모든 origin 허용
+  credentials: true
+}));
 
 // 라우터 등록 로그
 console.log('=== 라우터 등록 시작 ===');
