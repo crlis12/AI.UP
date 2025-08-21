@@ -227,12 +227,35 @@ router.get('/child/:childId', (req, res) => {
     query += ' ORDER BY date DESC, created_at DESC';
   }
 
-  db.query(query, params, (err, results) => {
+  db.query(query, params, async (err, results) => {
     if (err) {
       console.error('일기 조회 DB 오류:', err);
       return res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
     }
-    res.json({ success: true, diaries: results });
+
+    // 각 일기에 대해 첨부파일 정보도 함께 조회
+    try {
+      const diariesWithFiles = await Promise.all(
+        results.map(async (diary) => {
+          return new Promise((resolve, reject) => {
+            const filesQuery = 'SELECT id, file_path, file_type FROM diary_files WHERE diary_id = ? ORDER BY created_at ASC';
+            db.query(filesQuery, [diary.id], (fileErr, files) => {
+              if (fileErr) {
+                console.error('파일 조회 오류:', fileErr);
+                resolve({ ...diary, files: [] });
+              } else {
+                resolve({ ...diary, files: files || [] });
+              }
+            });
+          });
+        })
+      );
+
+      res.json({ success: true, diaries: diariesWithFiles });
+    } catch (fileError) {
+      console.error('파일 정보 조회 중 오류:', fileError);
+      res.json({ success: true, diaries: results.map(diary => ({ ...diary, files: [] })) });
+    }
   });
 });
 
@@ -298,6 +321,59 @@ router.delete('/:diaryId/image', (req, res) => {
   });
 });
 
+// 개별 파일 삭제
+router.delete('/:diaryId/files/:fileId', (req, res) => {
+  const { diaryId, fileId } = req.params;
+  
+  // 먼저 파일 정보를 조회
+  db.query('SELECT file_path FROM diary_files WHERE id = ? AND diary_id = ?', [fileId, diaryId], (selErr, rows) => {
+    if (selErr) {
+      console.error('파일 조회 오류:', selErr);
+      return res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+    }
+    
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({ success: false, message: '파일을 찾을 수 없습니다.' });
+    }
+    
+    const filePath = rows[0].file_path;
+    
+    // DB에서 파일 정보 삭제
+    db.query('DELETE FROM diary_files WHERE id = ? AND diary_id = ?', [fileId, diaryId], (delErr, result) => {
+      if (delErr) {
+        console.error('파일 삭제 DB 오류:', delErr);
+        return res.status(500).json({ success: false, message: '파일 삭제 중 오류가 발생했습니다.' });
+      }
+      
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ success: false, message: '파일을 찾을 수 없습니다.' });
+      }
+      
+      // 실제 파일도 디스크에서 삭제 (best-effort)
+      if (filePath) {
+        try {
+          // filePath가 완전한 URL인 경우 파일명만 추출
+          let fileName = filePath;
+          if (filePath.includes('/uploads/')) {
+            fileName = filePath.split('/uploads/')[1];
+          }
+          
+          const fullPath = path.join(__dirname, '..', 'uploads', fileName);
+          fs.unlink(fullPath, (unlinkErr) => {
+            if (unlinkErr) {
+              console.warn('디스크 파일 삭제 실패:', unlinkErr.message);
+            }
+          });
+        } catch (fsErr) {
+          console.warn('파일 삭제 시도 중 오류:', fsErr.message);
+        }
+      }
+      
+      res.json({ success: true, message: '파일이 성공적으로 삭제되었습니다.' });
+    });
+  });
+});
+
 // 일지 삭제
 router.delete('/:diaryId', (req, res) => {
   const { diaryId } = req.params;
@@ -336,7 +412,7 @@ function normalizeToDateOnly(input) {
 
 // 새로운 일지 생성 또는 같은 날짜의 기존 일지 업데이트(업서트)
 router.post('/', upload.array('files', 10), (req, res) => {
-  const { child_id, content, date } = req.body;
+  const { child_id, content, date } = req.body || {};
 
   if (!child_id || !content) {
     return res
@@ -448,7 +524,7 @@ router.post('/', upload.array('files', 10), (req, res) => {
 // 일기 수정
 router.put('/:diaryId', async (req, res) => {
   const { diaryId } = req.params;
-  const { date, content, child_id } = req.body;
+  const { date, content, child_id } = req.body || {};
 
   if (!date || !content) {
     return res.status(400).json({ success: false, message: '날짜와 내용은 필수입니다.' });

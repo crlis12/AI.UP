@@ -178,7 +178,7 @@ router.get('/:counselorId', (req, res) => {
 // 상담사 매칭 요청 (매칭 테이블이 없으므로 로그만 기록)
 router.post('/match', (req, res) => {
   try {
-    const { child_id, counselor_id, message } = req.body;
+    const { child_id, counselor_id, message } = req.body || {};
 
     if (!child_id || !counselor_id) {
       return res.status(400).json({

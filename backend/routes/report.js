@@ -477,7 +477,6 @@ router.post('/kdst-generate-report', async (req, res) => {
       model: 'gemini-2.5-pro',
       temperature: 0,
       systemPrompt: `전문적인 아동 발달 전문가로써 주어진 과제를 달성하라.
-
 한국 영유아 발달검사 (K-DST) 체크리스트와 육아일기가 입력으로 주어진다.
 육아일기 내용을 바탕으로 K-DST 문항을 채점해 점수를 매기고, 정해진 양식에 맞게 output을 출력하라.
 

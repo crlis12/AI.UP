@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import API_BASE, { questionsAPI } from '../utils/api';
 import '../App.css';
 
-import { FiChevronDown, FiBell, FiPlus, FiChevronRight, FiUserPlus } from 'react-icons/fi';
+import { FiChevronDown, FiPlus, FiChevronRight } from 'react-icons/fi';
 import MessageInput from './MessageInput';
 import babyProfile from '../assets/baby_image.png';
 import { useNavigate } from 'react-router-dom';
@@ -563,8 +563,12 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
             <FiChevronDown />
           </button>
           <div className="fig-header__right">
-            <button className="icon-button" aria-label="알림">
-              <FiBell />
+            <button 
+              className="logout-button" 
+              onClick={handleAddChildClick}
+              aria-label="아이 추가"
+            >
+              아이 추가
             </button>
             <button className="logout-button" onClick={handleLogoutClick} aria-label="로그아웃">
               로그아웃
@@ -647,17 +651,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                     className="profile-hero__image"
                     onClick={handleEditChildClick}
                   />
-                  <button
-                    className="main-screen__add-child-button-new"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAddChildClick();
-                    }}
-                    title="아이 추가하기"
-                  >
-                    <FiUserPlus size={16} />
-                    <span>아이 추가</span>
-                  </button>
+
                 </div>
                 <div className="profile-hero__name">{children[currentChildIndex]?.name}</div>
                 <div className="profile-hero__months">

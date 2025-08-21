@@ -119,15 +119,7 @@ function DiaryDetailPage() {
           <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
             <button
               className="diary-action-button"
-              onClick={() => {
-                navigate(`/diary/${diary.child_id}`, {
-                  state: {
-                    mode: 'edit',
-                    diaryId: diary.id,
-                    existingDiary: diary
-                  }
-                });
-              }}
+              onClick={() => navigate(`/diary/${diary.child_id}`)}
             >
               수정하기
             </button>
