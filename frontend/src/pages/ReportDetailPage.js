@@ -48,26 +48,12 @@ function ReportDetailPage() {
           });
         }
 
-        // 리포트 데이터 조회 (실제 API 엔드포인트는 백엔드 구현에 따라 수정 필요)
-        console.log('리포트 데이터 조회 시작');
-        const reportResponse = await fetch(`${API_BASE}/reports/${childId}`);
-        console.log('리포트 응답 상태:', reportResponse.status);
-
-        const reportResult = await reportResponse.json();
-        console.log('리포트 응답 데이터:', reportResult);
-
-        if (reportResult.success) {
-          setReportData(reportResult.report);
-        } else {
-          // 샘플 데이터 (실제 데이터가 없을 경우)
-          console.log('리포트 데이터 없음, 샘플 데이터 사용');
-          setReportData(generateSampleData());
-        }
+        // 기존 JSON은 사용하지 않고, ReportAgent 스키마 샘플을 파싱해서 UI 데이터로 세팅
+        console.log('ReportAgent 샘플 데이터를 UI 구조로 변환합니다.');
+        setReportData(transformAgentReportToUI(SAMPLE_AGENT_REPORT));
       } catch (error) {
         console.error('리포트 데이터 조회 중 오류:', error);
         setError('리포트 데이터를 불러오는데 실패했습니다.');
-        // 에러 시에도 샘플 데이터 표시
-        setReportData(generateSampleData());
       } finally {
         setLoading(false);
       }
@@ -82,28 +68,189 @@ function ReportDetailPage() {
     }
   }, [childId]);
 
-  // 샘플 데이터 생성 함수
-  const generateSampleData = () => {
-    return {
-      assessmentDate: '2024-01-15',
-      ageInMonths: 24,
-      scores: {
-        selfCare: { score: 85, status: '정상', description: '자조 능력' },
-        communication: { score: 78, status: '주의', description: '의사소통' },
-        grossMotor: { score: 92, status: '정상', description: '대근육운동' },
-        fineMotor: { score: 88, status: '정상', description: '소근육운동' },
-        problemSolving: { score: 82, status: '정상', description: '문제해결' },
-        personalSocial: { score: 75, status: '주의', description: '개인사회성' },
+  // ReportAgent 스키마 → UI 스키마 변환 함수
+  const transformAgentReportToUI = (agentReport) => {
+    try {
+      const domains = Array.isArray(agentReport?.domains) ? agentReport.domains : [];
+
+      // 도메인명 → 내부 키 매핑
+      const mapDomainNameToKey = (name) => {
+        const normalized = String(name || '').replace(/\s|-/g, '');
+        if (normalized.includes('대근육')) return 'grossMotor';
+        if (normalized.includes('소근육')) return 'fineMotor';
+        if (normalized.includes('인지')) return 'problemSolving';
+        if (normalized.includes('언어')) return 'communication';
+        if (normalized.includes('사회')) return 'personalSocial';
+        if (normalized.includes('자조')) return 'selfCare';
+        return null;
+      };
+
+      const scoresByKey = {};
+      let totalNumerator = 0;   // 각 도메인 합산 점수 (null은 0)
+      let totalDenominator = 0; // 각 도메인 분모 합 (null이 아닌 항목 수 * 3)
+
+      let extraQuestionsScore = 0; // domain_id 6 합계
+      for (const d of domains) {
+        const key = mapDomainNameToKey(d?.domain_name);
+        const questions = Array.isArray(d?.questions) ? d.questions : [];
+
+        // 추가질문: domain_id 6 처리 (점수 표기로는 사용하지 않음)
+        if (Number(d?.domain_id) === 6) {
+          extraQuestionsScore = questions.reduce((acc, q) => acc + (q?.score == null ? 0 : Number(q.score)), 0);
+          continue;
+        }
+
+        if (!key) continue; // UI에 없는 도메인은 스킵
+        const rawSum = questions.reduce((acc, q) => acc + (q?.score == null ? 0 : Number(q.score)), 0);
+        const denom = questions.reduce((acc, q) => acc + (q?.score == null ? 0 : 3), 0); // non-null 개수 * 3
+        const percent = denom > 0 ? Math.round((rawSum / denom) * 100) : 0;
+        const status = denom === 0 ? '정보없음' : percent < 60 ? '위험' : percent < 80 ? '주의' : '정상';
+
+        scoresByKey[key] = {
+          score24: rawSum,
+          percent,
+          status,
+          description: d?.domain_name || '',
+          outOf: denom
+        };
+
+        totalNumerator += rawSum;
+        totalDenominator += denom;
+      }
+
+      const totalSumOutOf24 = totalNumerator; // 추가질문 제외 5개 도메인 합산 점수
+      const overallPercent = totalDenominator > 0 ? Math.round((totalNumerator / totalDenominator) * 100) : 0;
+      const overallStatus = overallPercent < 60 ? '위험' : overallPercent < 80 ? '주의' : '정상';
+
+      // 자조(selfCare)가 아예 없을 수 있음 → 없으면 0/0으로 표기할 수 있게 플레이스홀더 생성
+      if (!scoresByKey.selfCare) {
+        scoresByKey.selfCare = {
+          score24: 0,
+          percent: 0,
+          status: '정보없음',
+          description: '자조',
+          outOf: 0
+        };
+      }
+
+      // 권장사항: requirements만 사용 (opinion_text는 경고 배너에서만 표시)
+      const opinionText = agentReport?.final_opinion?.opinion_text || '';
+      const recommendations = Array.isArray(agentReport?.final_opinion?.requirements)
+        ? agentReport.final_opinion.requirements
+        : [];
+
+      // 다음 평가일: 오늘 기준 + 7일
+      const next = new Date();
+      next.setDate(next.getDate() + 7);
+      const nextAssessment = next.toISOString().split('T')[0];
+
+      return {
+        assessmentDate: getCurrentDate(),
+        ageInMonths: agentReport?.child_age_month || '정보 없음',
+        scores: scoresByKey,
+        totalScore: totalSumOutOf24,
+        overallStatus,
+        recommendations,
+        nextAssessment,
+        finalOpinionText: opinionText,
+        finalIsWarning: agentReport?.final_opinion?.isWarning ?? null,
+        extraQuestions: {
+          status: extraQuestionsScore > 0 ? '경고' : '문제없음',
+          total: extraQuestionsScore
+        }
+      };
+    } catch (e) {
+      console.error('ReportAgent 결과 변환 오류:', e);
+      return null;
+    }
+  };
+
+  // 제공된 ReportAgent 샘플 데이터 (null은 0으로 계산)
+  const SAMPLE_AGENT_REPORT = {
+    child_age_month: '정보 없음',
+    child_name: '하이',
+    domains: [
+      {
+        domain_id: 1,
+        domain_name: '대근육 운동',
+        questions: [
+          { question: '등을 대고 누운 자세에서 반쯤 뒤집는다.', question_number: 1, score: 3 },
+          { question: '엎드려 놓으면 고개를 잠깐 들었다 내린다.', question_number: 2, score: 3 },
+          { question: '누운 자세에서 두 팔을 잡고 일으켜 앉힐 때 목이 뒤로 쳐지지 않고 따라 올라온다.', question_number: 3, score: 3 },
+          { question: '엎드린 자세에서 가슴을 들고 양팔로 버틴다.', question_number: 4, score: 3 },
+          { question: '엎드린 자세에서 뒤집는다.', question_number: 5, score: 3 },
+          { question: '등을 대고 누운 자세에서 엎드린 자세로 뒤집는다', question_number: 6, score: 3 },
+          { question: '누워 있을 때 자기 발을 잡고 논다.', question_number: 7, score: 3 },
+          { question: '앉혀주면 양손을 짚고 30초 이상 혼자 버티고 앉아 있다.', question_number: 8, score: 3 }
+        ]
       },
-      totalScore: 83,
-      overallStatus: '정상',
-      recommendations: [
-        '의사소통 영역에서 더 많은 상호작용과 대화 시간을 늘려보세요.',
-        '개인사회성 발달을 위해 또래와의 놀이 활동을 권장합니다.',
-        '전반적으로 양호한 발달 상태를 보이고 있습니다.',
-      ],
-      nextAssessment: '2024-04-15',
-    };
+      {
+        domain_id: 2,
+        domain_name: '소근육 운동',
+        questions: [
+          { question: '등을 대고 누운 자세에서 두 손을 가슴 부분에 모은다.', question_number: 9, score: 3 },
+          { question: '손에 딸랑이를 쥐여 주면 잠시 쥐고 있다.', question_number: 10, score: 3 },
+          { question: '앉은 자세로 안겨있을 때 양손을 모아 쥐거나 손가락을 만진다.', question_number: 11, score: 3 },
+          { question: '손에 쥐고 있는 딸랑이를 자기 입으로 가져간다.', question_number: 12, score: 3 },
+          { question: '딸랑이를 손 가까이 주면 잡는다.', question_number: 13, score: 3 },
+          { question: '앉은 자세로 안겨있을 때 탁자 위의 장난감을 향해 손을 뻗는다', question_number: 14, score: 3 },
+          { question: '작은 장난감을 집어들 때, 손바닥에 대고 손가락으로 감싸 쥔다.', question_number: 15, score: 3 },
+          { question: '딸랑이를 쥐고 있는 손에 다른 장난감을 주면 쥐고 있던 딸랑이를 떨어뜨리고 새 장난감을 잡는다.', question_number: 16, score: 3 }
+        ]
+      },
+      {
+        domain_id: 3,
+        domain_name: '인지',
+        questions: [
+          { question: '소리 나는 곳을 쳐다본다.', question_number: 17, score: null },
+          { question: '눈앞에서 장난감을 움직이면 시선이 장난감의 움직임을 따라간다.', question_number: 18, score: null },
+          { question: '어떤 소리를 듣고 있다가 새로운 소리가 들리면 거기로 관심을 돌린다.', question_number: 19, score: null },
+          { question: '자기 손과 손가락을 자세히 바라본다.', question_number: 20, score: null },
+          { question: '딸랑이를 흔들거나 바라보거나 입에 넣는 등 딸랑이를 가지고 논다.', question_number: 21, score: null },
+          { question: '딸랑이나 숟가락과 같은 물건을 바닥에 두드리면서 논다.', question_number: 22, score: 3 },
+          { question: '장난감이 떨어져 있는 곳을 쳐다본다.', question_number: 23, score: null }
+        ]
+      },
+      {
+        domain_id: 4,
+        domain_name: '언어',
+        questions: [
+          { question: '"아", "우", "이" 등 의미 없는 발성을 한다.', question_number: 25, score: null },
+          { question: '아이를 어르거나 달래면 옹알이로 반응한다.', question_number: 26, score: null },
+          { question: '웃을 때 소리를 내며 웃는다.', question_number: 27, score: null },
+          { question: '장난감이나 사람을 보고 소리를 내어 반응한다.', question_number: 28, score: null },
+          { question: '두 입술을 떨어서 내는 투레질 소리', question_number: 29, score: null },
+          { question: '"브", "쁘", "프", "므"와 비슷한 소리를 낸다.', question_number: 30, score: null },
+          { question: '"엄마" 또는 "아빠"와 비슷한 소리를 낸다', question_number: 31, score: null },
+          { question: '아이에게 "안돼요."라고 하면, 짧은 순간이라도 하던 행동을 멈추고 목소리에 반응한다.', question_number: 32, score: null }
+        ]
+      },
+      {
+        domain_id: 5,
+        domain_name: '사회-정서',
+        questions: [
+          { question: '친숙한 어른이 안으려고 하면 팔을 벌린다.', question_number: 24, score: null },
+          { question: '엄마(보호자)가 자리를 비웠다가 다시 나타나면 엄마(보호자)를 알아보고 울음을 그친다.', question_number: 33, score: null },
+          { question: '아이가 엄마(보호자)와 이야기를 하거나 놀 때 엄마(보호자)의 얼굴을 바라본다.', question_number: 34, score: null },
+          { question: '어른이 아이를 보며 말하거나 웃기 전에, 어른을 보고 먼저 웃는다.', question_number: 35, score: null },
+          { question: '어른들의 얼굴(머리카락, 코, 안경 등)을 만져보거나 잡아당긴다.', question_number: 36, score: null },
+          { question: '거울 속에 보이는 자신의 모습을 보고 웃거나 웅얼거린다.', question_number: 37, score: null },
+          { question: '아이의 이름을 부르면 듣고 쳐다본다.', question_number: 38, score: null },
+          { question: '가족 등 친숙한 사람을 보면 다가가려고 한다.', question_number: 39, score: 3 },
+          { question: '낯가림을 한다', question_number: 40, score: null }
+        ]
+      }
+    ],
+    final_opinion: {
+      isWarning: null,
+      opinion_text:
+        '육아일기 내용을 바탕으로 하이의 발달 상황을 살펴보았습니다. 일기에 기록된 \"혼자 걷기\", \"숟가락 사용 시도\" 등의 모습을 볼 때, 하이의 대근육과 소근육 발달은 매우 훌륭하게 이루어지고 있는 것으로 보입니다. 현재 아이의 발달 수준이 검사 문항이 대상으로 하는 시기(생후 4~6개월)보다 훨씬 앞서 있기 때문에, 대근육 및 소근육 관련 항목들은 모두 \"잘 할 수 있다\"로 평가되었습니다. 다만, 현재 육아일기 내용만으로는 인지, 언어, 사회-정서 발달 영역을 정확히 평가하기에는 정보가 다소 부족합니다. 아이의 전반적인 발달 상황을 더 잘 이해하기 위해서는 아래 \"요구사항\"에 제안된 내용들을 관찰하여 일기에 꾸준히 기록해주시는 것이 큰 도움이 될 것입니다.',
+      requirements: [
+        '언어 발달: 아이가 어떤 소리를 내는지, 예를 들어 \"마마\", \"바바\" 같은 옹알이나 의미 있는 단어를 말하려 하는지, 이름을 불렀을 때 반응하는지 등을 기록해주세요.',
+        '인지 발달: 장난감을 가지고 어떻게 노는지(예: 숨기면 찾으려 하는지, 블록 쌓기 등), \"까꿍 놀이\"에 어떻게 반응하는지 등을 구체적으로 적어주시면 좋습니다.',
+        '사회-정서 발달: 낯선 사람에 대한 반응(낯가림), 부모님과 눈을 맞추고 상호작용하는 모습, 거울 속 자신을 보고 보이는 반응 등을 관찰하여 기록해주세요.'
+      ]
+    }
   };
 
   const getStatusColor = (status) => {
@@ -113,6 +260,10 @@ function ReportDetailPage() {
       case '주의':
         return '#ffc107';
       case '위험':
+        return '#dc3545';
+      case '문제없음':
+        return '#28a745';
+      case '경고':
         return '#dc3545';
       default:
         return '#6c757d';
@@ -126,6 +277,10 @@ function ReportDetailPage() {
       case '주의':
         return <FiAlertTriangle />;
       case '위험':
+        return <FiAlertTriangle />;
+      case '문제없음':
+        return <FiCheckCircle />;
+      case '경고':
         return <FiAlertTriangle />;
       default:
         return <FiBarChart2 />;
@@ -225,6 +380,16 @@ function ReportDetailPage() {
   };
 
   const titleStyle = { fontSize: '16px', color: '#000000', fontWeight: 'bold' };
+
+  // 점수 카드 표시 순서 및 타이틀을 하드코딩
+  const fixedDomains = [
+    { title: '대근육운동', key: 'grossMotor', type: 'score' },
+    { title: '소근육운동', key: 'fineMotor', type: 'score' },
+    { title: '인지', key: 'problemSolving', type: 'score' },
+    { title: '언어', key: 'communication', type: 'score' },
+    { title: '사회성', key: 'personalSocial', type: 'score' },
+    { title: '자조', key: 'selfCare', type: 'score' },
+  ];
 
   if (loading) {
     return (
@@ -330,6 +495,10 @@ function ReportDetailPage() {
                       const parsed = data?.report?.content ? JSON.parse(data.report.content) : null;
                       if (parsed) {
                         console.log('LLM 응답 JSON 파싱 결과:', parsed);
+                        const uiData = transformAgentReportToUI(parsed);
+                        if (uiData) {
+                          setReportData(uiData);
+                        }
                       }
                     } catch (e) {
                       console.log('LLM 응답은 JSON이 아니거나 파싱 불가:', e?.message);
@@ -392,30 +561,39 @@ function ReportDetailPage() {
             영역별 발달 점수
           </h2>
           <div className="scores-grid">
-            {Object.entries(reportData?.scores || {}).map(([key, data]) => (
-              <div key={key} className="score-card">
-                <div className="score-card-header">
-                  <h3 className="score-domain">{data.description}</h3>
-                  <div className="score-status" style={{ color: getStatusColor(data.status) }}>
-                    {getStatusIcon(data.status)}
-                    <span>{data.status}</span>
+            {fixedDomains.map(({ title, key, type }) => {
+              // 현재 추가질문(flag)은 UI에서 분리됨 → type === 'flag' 케이스 제거
+
+              const data = key ? reportData?.scores?.[key] : null;
+              const score24 = typeof data?.score24 === 'number' ? data.score24 : null;
+              const outOf = typeof data?.outOf === 'number' ? data.outOf : 24;
+              const percent = typeof data?.percent === 'number' ? data.percent : (score24 != null && outOf > 0 ? Math.round((score24 / outOf) * 100) : null);
+              const status = data?.status || '정보없음';
+              return (
+                <div key={title} className="score-card">
+                  <div className="score-card-header">
+                    <h3 className="score-domain">{title}</h3>
+                    <div className="score-status" style={{ color: getStatusColor(status) }}>
+                      {getStatusIcon(status)}
+                      <span>{status}</span>
+                    </div>
+                  </div>
+                  <div className="score-value">
+                    <span className="score-number">{score24 != null ? score24 : '-'}</span>
+                    <span className="score-max">{score24 != null ? `/${outOf}` : outOf === 0 ? '/0' : ''}</span>
+                  </div>
+                  <div className="score-progress">
+                    <div
+                      className="progress-bar"
+                      style={{
+                        width: `${percent != null ? percent : 0}%`,
+                        backgroundColor: getStatusColor(status),
+                      }}
+                    ></div>
                   </div>
                 </div>
-                <div className="score-value">
-                  <span className="score-number">{data.score}</span>
-                  <span className="score-max">/100</span>
-                </div>
-                <div className="score-progress">
-                  <div
-                    className="progress-bar"
-                    style={{
-                      width: `${data.score}%`,
-                      backgroundColor: getStatusColor(data.status),
-                    }}
-                  ></div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -441,8 +619,10 @@ function ReportDetailPage() {
             </button>
           </div>
 
-          {buildAlertMessage(reportData?.scores) && (
-            <div className="checklist-alert">{buildAlertMessage(reportData?.scores)}</div>
+          {(reportData?.finalOpinionText || buildAlertMessage(reportData?.scores)) && (
+            <div className="checklist-alert">
+              {reportData?.finalOpinionText || buildAlertMessage(reportData?.scores)}
+            </div>
           )}
 
           <button
