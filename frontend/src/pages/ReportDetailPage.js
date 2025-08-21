@@ -121,11 +121,11 @@ function ReportDetailPage() {
       const overallPercent = domainCount > 0 ? Math.round((totalClampedSum / (domainCount * 24)) * 100) : 0;
       const overallStatus = overallPercent < 60 ? '위험' : overallPercent < 80 ? '주의' : '정상';
 
-      // 권장사항: opinion_text + requirements
+      // 권장사항: requirements만 사용 (opinion_text는 별도 경고 배너에서만 표시)
       const opinionText = agentReport?.final_opinion?.opinion_text || '';
-      const opinion = opinionText ? [opinionText] : [];
-      const reqs = Array.isArray(agentReport?.final_opinion?.requirements) ? agentReport.final_opinion.requirements : [];
-      const recommendations = [...opinion, ...reqs];
+      const recommendations = Array.isArray(agentReport?.final_opinion?.requirements)
+        ? agentReport.final_opinion.requirements
+        : [];
 
       // 다음 평가일: 오늘 기준 + 7일
       const next = new Date();
