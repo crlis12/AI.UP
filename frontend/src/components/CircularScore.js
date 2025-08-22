@@ -12,6 +12,7 @@ function CircularScore({
   contentOffsetY = 0,
   labelPosition = 'top',
   displayValue = null,
+  scoreColor = '#056125', // 기본 색상
 }) {
   const normalizedScore = Math.max(0, Math.min(100, Number(score) || 0));
   const radius = (size - strokeWidth) / 2;
@@ -55,7 +56,7 @@ function CircularScore({
             {label}
           </div>
         )}
-        <div className="circular-score__value">{valueText}점</div>
+        <div className="circular-score__value" style={{ color: scoreColor }}>{valueText}점</div>
       </div>
       {label && labelPosition === 'bottom' && <div className="circular-score__label">{label}</div>}
     </div>
