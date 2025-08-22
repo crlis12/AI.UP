@@ -1178,47 +1178,35 @@ function ReportDetailPage() {
           </div>
         </div>
 
-        {/* 우리 아이에게 필요한 체크리스트 */}
-        <div className="report-checklist-section">
-          <h2 className="section-title">우리 아이에게 필요한 체크리스트</h2>
-          <p className="checklist-headline">{buildChecklistHeadline(reportData?.scores)}</p>
-          <div className="checklist-card">
-            {buildChecklistItems(reportData?.scores).map((text, idx) => (
-              <button key={idx} type="button" className="checklist-item">
-                <span className="checklist-item__icon">
-                  <FiUser />
-                </span>
-                <span className="checklist-item__text">{text}</span>
-              </button>
-            ))}
-            <button
-              type="button"
-              className="checklist-more-link"
-              onClick={() => navigate('/kdst-checklist', { state: { childId } })}
-            >
-              K-DST 발달 체크리스트 더보기
-            </button>
-          </div>
-
-          {(reportData?.finalOpinionText || buildAlertMessage(reportData?.scores)) && (
-            <div className="checklist-alert">
-              {reportData?.finalOpinionText || buildAlertMessage(reportData?.scores)}
-            </div>
-          )}
-
+        <div style={{ marginTop: '10px' }}>
           <button
             type="button"
-            className="connect-counselor-button"
-            onClick={() => navigate('/counselor-matching', { 
-              state: { 
-                childId: childId, 
-                childName: childInfo?.name || '자녀' 
-              } 
-            })}
+            className="checklist-more-link"
+            onClick={() => navigate('/kdst-checklist', { state: { childId } })}
+            style={{ width: '100%' }}
           >
-            상담사 연결하기
+            K-DST 발달 체크리스트 더보기
           </button>
         </div>
+
+        {(reportData?.finalOpinionText || buildAlertMessage(reportData?.scores)) && (
+          <div className="checklist-alert">
+            {reportData?.finalOpinionText || buildAlertMessage(reportData?.scores)}
+          </div>
+        )}
+
+        <button
+          type="button"
+          className="connect-counselor-button"
+          onClick={() => navigate('/counselor-matching', { 
+            state: { 
+              childId: childId, 
+              childName: childInfo?.name || '자녀' 
+            } 
+          })}
+        >
+          상담사 연결하기
+        </button>
 
         {/* 권장사항 */}
         <div className="report-recommendations-section">
