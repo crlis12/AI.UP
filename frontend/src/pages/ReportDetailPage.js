@@ -30,14 +30,13 @@ function ReportDetailPage() {
       );
     }
 
-    const paddingX = 8;
-    const paddingY = 10;
-    const leftGutter = 22; // Y축 라벨 최소 여백
-    const height = 120;
-    const stepX = 56; // 포인트 간 고정 간격
+    const paddingX = 6;
+    const paddingY = 10; // 상하 간격 더 축소
+    const height = 140; // 박스(차트) 세로 크기 약간 확장
+    const stepX = 48; // 포인트 간 간격 축소
     const intervals = Math.max((series.length - 1), 4); // 최소 5주(4간격) 뷰포트
     const innerWidth = intervals * stepX;
-    const width = leftGutter + paddingX + innerWidth + paddingX;
+    const width = paddingX + innerWidth + paddingX + 20; // 마지막 주차 우측 여백 축소
     const ticks = [0, 20, 40, 60, 80, 100];
 
     const toPercent = (v) => {
@@ -50,7 +49,7 @@ function ReportDetailPage() {
       return Math.min(100, n);
     };
 
-    const xStart = leftGutter + paddingX;
+    const xStart = paddingX;
     const xEnd = xStart + innerWidth;
 
     const getX = (index) => {
@@ -67,27 +66,33 @@ function ReportDetailPage() {
       .join(' ');
 
     return (
-      <div className="weekly-trend-chart">
-        <svg viewBox={`0 0 ${width} ${height}`} width={`${width}px`} height="130">
-          <g transform="translate(0,-8)">
-            {ticks.map((t) => {
-              const y = getYFromPercent(t);
-              return (
-                <g key={t}>
-                  <line x1={xStart} x2={xEnd} y1={y} y2={y} className="weekly-trend-grid" />
-                  <text x={leftGutter - 4} y={y + 3} textAnchor="end" className="weekly-trend-ytext">{t}</text>
-                </g>
-              );
-            })}
-            <polyline points={points} fill="none" stroke="#056125" strokeWidth="2" />
-            {series.map((d, i) => (
-              <circle key={i} cx={getX(i)} cy={getYFromPercent(toPercent(d.value))} r="3.5" className="weekly-trend-dot" />
-            ))}
-            {series.map((d, i) => (
-              <text key={`x-${i}`} x={getX(i)} y={height - 2} textAnchor="middle" className="weekly-trend-xtext">{`${d.week}주`}</text>
-            ))}
-          </g>
-        </svg>
+              <div className="weekly-trend-chart">
+          <div className="weekly-trend-inner" style={{ height: 180 }}>
+            <div className="weekly-trend-ycol" style={{ height: 180 }}>
+              {ticks.map((t) => (
+                <div key={t} className="weekly-trend-ylabel" style={{ top: getYFromPercent(t) - 5 }}>{t}</div>
+              ))}
+            </div>
+            <div className="weekly-trend-xscroll">
+              <svg viewBox={`0 0 ${width} ${height + 40}`} width={`${width}px`} height="180">
+                <g transform="translate(0,-6)">
+                {ticks.map((t) => {
+                  const y = getYFromPercent(t);
+                  return (
+                    <line key={t} x1={0} x2={xEnd} y1={y} y2={y} className="weekly-trend-grid" />
+                  );
+                })}
+                <polyline points={points} fill="none" stroke="#056125" strokeWidth="2" />
+                {series.map((d, i) => (
+                  <circle key={i} cx={getX(i)} cy={getYFromPercent(toPercent(d.value))} r="3.5" className="weekly-trend-dot" />
+                ))}
+                                 {series.map((d, i) => (
+                   <text key={`x-${i}`} x={getX(i)} y={height + 10} textAnchor="middle" className="weekly-trend-xtext">{`${d.week}주`}</text>
+                 ))}
+              </g>
+            </svg>
+          </div>
+        </div>
       </div>
     );
   };
