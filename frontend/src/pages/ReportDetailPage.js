@@ -1095,8 +1095,18 @@ function ReportDetailPage() {
         <div className="report-summary-card">
           <div className="summary-score-container">
             <div className="total-score">
-              <span className="score-number">{reportData?.totalScore}</span>
-              <span className="score-label">점</span>
+              <span 
+                className="score-number" 
+                style={{ color: getStatusColor(reportData?.overallStatus) }}
+              >
+                {reportData?.totalScore}
+              </span>
+              <span 
+                className="score-label" 
+                style={{ color: getStatusColor(reportData?.overallStatus) }}
+              >
+                점
+              </span>
             </div>
             <div className="overall-status">
               <div
@@ -1140,8 +1150,18 @@ function ReportDetailPage() {
                     </div>
                   </div>
                   <div className="score-value">
-                    <span className="score-number">{score24 != null ? score24 : '-'}</span>
-                    <span className="score-max">{score24 != null ? `/${outOf}` : outOf === 0 ? '/0' : ''}</span>
+                    <span 
+                      className="score-number" 
+                      style={{ color: getStatusColor(status) }}
+                    >
+                      {score24 != null ? score24 : '-'}
+                    </span>
+                    <span 
+                      className="score-max" 
+                      style={{ color: getStatusColor(status) }}
+                    >
+                      {score24 != null ? `/${outOf}` : outOf === 0 ? '/0' : ''}
+                    </span>
                   </div>
                   <div className="score-progress">
                     <div
