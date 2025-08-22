@@ -11,11 +11,15 @@ function CircularScore({
   showRing = true,
   contentOffsetY = 0,
   labelPosition = 'top',
+  displayValue = null,
 }) {
   const normalizedScore = Math.max(0, Math.min(100, Number(score) || 0));
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const dashOffset = circumference * (1 - normalizedScore / 100);
+  const valueText = (displayValue !== null && displayValue !== undefined)
+    ? (typeof displayValue === 'number' ? Math.round(displayValue) : displayValue)
+    : normalizedScore;
 
   return (
     <div className="circular-score" style={{ width: size, height: size }}>
@@ -51,8 +55,7 @@ function CircularScore({
             {label}
           </div>
         )}
-        <div className="circular-score__value">{normalizedScore}점</div>
-        {subLabel && <div className="circular-score__sublabel">{subLabel}</div>}
+        <div className="circular-score__value">{valueText}점</div>
       </div>
       {label && labelPosition === 'bottom' && <div className="circular-score__label">{label}</div>}
     </div>

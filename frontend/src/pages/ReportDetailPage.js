@@ -18,6 +18,185 @@ function ReportDetailPage() {
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [hasReportData, setHasReportData] = useState(false);
+
+  // 리포트 데이터를 데이터베이스에 저장하는 함수
+  const saveReportToDatabase = async (agentReport, transformedData) => {
+    try {
+      console.log('리포트 DB 저장 시작');
+      console.log('원본 agentReport:', agentReport);
+      console.log('변환된 데이터:', transformedData);
+
+      // 현재 사용자 정보 가져오기
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      if (!currentUser.id) {
+        throw new Error('사용자 정보를 찾을 수 없습니다.');
+      }
+
+      // 점수 데이터 추출 (null -> 0 변환)
+      const scores = transformedData?.scores || {};
+      const nullToZero = (value) => (value === null || value === undefined || isNaN(value)) ? 0 : Number(value);
+
+      // checklist-alert 메시지 추출 (finalOpinionText 또는 buildAlertMessage 결과)
+      const alertMessage = transformedData?.finalOpinionText || buildAlertMessage(transformedData?.scores) || null;
+
+      const reportData = {
+        parent_id: currentUser.id,
+        child_id: parseInt(childId),
+        gross_motor_score: nullToZero(scores.grossMotor?.score24),
+        fine_motor_score: nullToZero(scores.fineMotor?.score24),
+        cognitive_score: nullToZero(scores.problemSolving?.score24),
+        language_score: nullToZero(scores.communication?.score24),
+        social_score: nullToZero(scores.personalSocial?.score24),
+        self_help_score: nullToZero(scores.selfCare?.score24),
+        additional_question: nullToZero(transformedData?.extraQuestions?.total),
+        alert_message: alertMessage,
+        week_number: null // 자동 계산되도록 null로 설정
+      };
+
+      console.log('저장할 리포트 데이터:', reportData);
+
+      const response = await fetch(`${API_BASE}/reports`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reportData)
+      });
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || '리포트 저장에 실패했습니다.');
+      }
+
+      console.log('리포트 DB 저장 성공:', result);
+      return result;
+    } catch (error) {
+      console.error('리포트 DB 저장 오류:', error);
+      throw error;
+    }
+  };
+
+  // 데이터베이스 리포트 데이터를 UI 형식으로 변환하는 함수
+  const transformDatabaseReportToUI = (dbReport, childInfo) => {
+    try {
+      console.log('DB 리포트를 UI 형식으로 변환:', dbReport);
+
+      // 점수를 백분율로 변환 (각 영역 최대 점수를 가정)
+      // KDST에서 각 영역별 최대 점수는 보통 다르지만, 여기서는 간단히 처리
+      const calculatePercent = (score, maxScore = 24) => {
+        if (!score || score === 0) return 0;
+        return Math.min(100, Math.round((score / maxScore) * 100));
+      };
+
+      const getStatus = (percent) => {
+        if (percent === 0) return '정보없음';
+        if (percent < 60) return '위험';
+        if (percent < 80) return '주의';
+        return '정상';
+      };
+
+      // 각 영역별 점수와 상태 계산
+      const scores = {
+        grossMotor: {
+          score24: dbReport.gross_motor_score || 0,
+          percent: calculatePercent(dbReport.gross_motor_score),
+          status: getStatus(calculatePercent(dbReport.gross_motor_score)),
+          description: '대근육운동',
+          outOf: dbReport.gross_motor_score ? 24 : 0
+        },
+        fineMotor: {
+          score24: dbReport.fine_motor_score || 0,
+          percent: calculatePercent(dbReport.fine_motor_score),
+          status: getStatus(calculatePercent(dbReport.fine_motor_score)),
+          description: '소근육운동',
+          outOf: dbReport.fine_motor_score ? 24 : 0
+        },
+        problemSolving: {
+          score24: dbReport.cognitive_score || 0,
+          percent: calculatePercent(dbReport.cognitive_score),
+          status: getStatus(calculatePercent(dbReport.cognitive_score)),
+          description: '인지',
+          outOf: dbReport.cognitive_score ? 24 : 0
+        },
+        communication: {
+          score24: dbReport.language_score || 0,
+          percent: calculatePercent(dbReport.language_score),
+          status: getStatus(calculatePercent(dbReport.language_score)),
+          description: '언어',
+          outOf: dbReport.language_score ? 24 : 0
+        },
+        personalSocial: {
+          score24: dbReport.social_score || 0,
+          percent: calculatePercent(dbReport.social_score),
+          status: getStatus(calculatePercent(dbReport.social_score)),
+          description: '사회성',
+          outOf: dbReport.social_score ? 24 : 0
+        },
+        selfCare: {
+          score24: dbReport.self_help_score || 0,
+          percent: calculatePercent(dbReport.self_help_score),
+          status: getStatus(calculatePercent(dbReport.self_help_score)),
+          description: '자조',
+          outOf: dbReport.self_help_score ? 24 : 0
+        }
+      };
+
+      // 전체 점수 계산
+      const totalScore = Object.values(scores).reduce((sum, score) => sum + score.score24, 0);
+      const totalMaxScore = Object.values(scores).reduce((sum, score) => sum + (score.outOf || 0), 0);
+      const overallPercent = totalMaxScore > 0 ? Math.round((totalScore / totalMaxScore) * 100) : 0;
+      const overallStatus = getStatus(overallPercent);
+
+      // 자녀 나이 계산
+      const calculateAgeInMonths = (birthDate) => {
+        if (!birthDate) return '정보 없음';
+        const today = new Date();
+        const birth = new Date(birthDate);
+        const months = (today.getFullYear() - birth.getFullYear()) * 12 + (today.getMonth() - birth.getMonth());
+        return months > 0 ? months : '정보 없음';
+      };
+
+      // 리포트 날짜 포맷팅
+      const formatReportDate = (dateString) => {
+        if (!dateString) return getCurrentDate();
+        const date = new Date(dateString);
+        return date.toISOString().split('T')[0];
+      };
+
+      // 다음 평가일 계산 (리포트 날짜 + 30일)
+      const calculateNextAssessment = (reportDate) => {
+        const date = new Date(reportDate || Date.now());
+        date.setDate(date.getDate() + 30);
+        return date.toISOString().split('T')[0];
+      };
+
+      return {
+        assessmentDate: formatReportDate(dbReport.report_date),
+        ageInMonths: calculateAgeInMonths(childInfo?.birth_date),
+        scores: scores,
+        totalScore: totalScore,
+        overallStatus: overallStatus,
+        recommendations: [
+          '정기적인 발달 검사를 통해 자녀의 성장을 지속적으로 모니터링하세요.',
+          '각 발달 영역에서 부족한 부분이 있다면 전문가와 상담해보세요.',
+          '일상생활에서 다양한 활동을 통해 균형잡힌 발달을 도와주세요.'
+        ],
+        nextAssessment: calculateNextAssessment(dbReport.report_date),
+        finalOpinionText: dbReport.alert_message || `전체적으로 ${overallStatus} 수준의 발달을 보이고 있습니다.`,
+        finalIsWarning: overallPercent < 60,
+        extraQuestions: {
+          status: (dbReport.additional_question || 0) > 0 ? '경고' : '문제없음',
+          total: dbReport.additional_question || 0
+        },
+        weekNumber: dbReport.week_number || 1 // 주차 정보 추가
+      };
+    } catch (error) {
+      console.error('DB 리포트 변환 오류:', error);
+      return null;
+    }
+  };
 
   useEffect(() => {
     const fetchReportData = async () => {
@@ -48,9 +227,39 @@ function ReportDetailPage() {
           });
         }
 
-        // 기존 JSON은 사용하지 않고, ReportAgent 스키마 샘플을 파싱해서 UI 데이터로 세팅
-        console.log('ReportAgent 샘플 데이터를 UI 구조로 변환합니다.');
-        setReportData(transformAgentReportToUI(SAMPLE_AGENT_REPORT));
+        // 데이터베이스에서 리포트 데이터 조회
+        console.log('데이터베이스에서 리포트 데이터 조회 시작');
+        try {
+          const reportResponse = await fetch(`${API_BASE}/reports/child/${childId}`);
+          console.log('리포트 데이터 응답 상태:', reportResponse.status);
+          
+          const reportData = await reportResponse.json();
+          console.log('리포트 데이터 응답:', reportData);
+
+          if (reportData.success && reportData.reports && reportData.reports.length > 0) {
+            // 가장 최신 리포트 사용
+            const latestReport = reportData.reports[0];
+            console.log('최신 리포트 데이터:', latestReport);
+            
+            // DB 데이터를 UI 형식으로 변환
+            const uiData = transformDatabaseReportToUI(latestReport, childData.child);
+            if (uiData) {
+              setReportData(uiData);
+              setHasReportData(true);
+              console.log('DB 리포트 데이터를 UI에 적용 완료');
+            } else {
+              console.log('DB 리포트 변환 실패, 리포트 생성 화면 표시');
+              setHasReportData(false);
+            }
+          } else {
+            console.log('저장된 리포트가 없음, 리포트 생성 화면 표시');
+            setHasReportData(false);
+          }
+        } catch (reportError) {
+          console.error('리포트 데이터 조회 오류:', reportError);
+          console.log('리포트 조회 실패, 샘플 데이터 사용');
+          setReportData(transformAgentReportToUI(SAMPLE_AGENT_REPORT));
+        }
       } catch (error) {
         console.error('리포트 데이터 조회 중 오류:', error);
         setError('리포트 데이터를 불러오는데 실패했습니다.');
@@ -411,6 +620,237 @@ function ReportDetailPage() {
     );
   }
 
+  // 리포트 데이터가 없을 때 리포트 생성 화면 표시
+  if (!hasReportData) {
+    return (
+      <PageLayout title="주간 리포트" titleStyle={titleStyle} showNavBar={true} backTo="/main">
+        <div className="weekly-report-container">
+          {/* 주간 리포트 생성하기 화면 */}
+          <div className="weekly-report-header">
+            <div className="period-navigation">
+              <button className="period-nav-btn">
+                <span>‹</span>
+              </button>
+              <span className="period-text">발달 리포트</span>
+              <button className="period-nav-btn">
+                <span>›</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="empty-state">
+            <div className="empty-message">
+              아직 {childInfo?.name || '자녀'}의 발달 리포트를 찾을 수 없어요.
+            </div>
+            
+            <button
+              type="button"
+              className="generate-report-btn"
+              onClick={async () => {
+                try {
+                  if (!childId) return;
+                  const qRes = await fetch(`${API_BASE}/questions/child/${childId}`);
+                  const qData = await qRes.json();
+                  const questions = Array.isArray(qData?.questions)
+                    ? qData.questions.map((q) => q?.question_text).filter(Boolean)
+                    : [];
+                  if (questions.length === 0) {
+                    alert('생성할 KDST 문항을 찾지 못했습니다.');
+                    return;
+                  }
+
+                  const isValidContent = (content) => {
+                    if (!content || content.trim() === '') return false;
+                    if (content === '[]') return false;
+                    try {
+                      const parsed = JSON.parse(content);
+                      return parsed && typeof parsed === 'object' && parsed !== null;
+                    } catch {
+                      return false;
+                    }
+                  };
+
+                  const requestOnce = async () => {
+                    const response = await fetch(`${API_BASE}/report/kdst-generate-report`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        questions,
+                        reportInput: 'KDST 문제들로 아기 발달 보고서 작성',
+                        reportConfig: { vendor: 'gemini', model: 'gemini-2.5-pro' },
+                        reportSpec: { language: 'Korean', reportType: '대화 보고서' },
+                      }),
+                    });
+                    return await response.json();
+                  };
+
+                  let data;
+                  let lastError;
+                  const maxRetries = 2;
+                  let attempt = 0;
+
+                  while (attempt <= maxRetries) {
+                    try {
+                      attempt += 1;
+                      console.log(`[Report] 생성 요청 시도 ${attempt}/${maxRetries + 1}`);
+                      data = await requestOnce();
+                      if (!data?.success) throw new Error(data?.message || '리포트 생성 실패');
+                      const content = data?.report?.content;
+                      if (isValidContent(content)) {
+                        break; // 성공
+                      } else {
+                        console.warn('[Report] report.content가 비어있거나 [] 입니다. 재시도합니다.');
+                        if (attempt <= maxRetries) {
+                          await new Promise((r) => setTimeout(r, attempt * 600));
+                          continue;
+                        }
+                      }
+                    } catch (e) {
+                      console.error(`[Report] 시도 ${attempt} 실패:`, e);
+                      lastError = e;
+                      if (attempt <= maxRetries) {
+                        await new Promise((r) => setTimeout(r, attempt * 600));
+                        continue;
+                      }
+                    }
+                    break;
+                  }
+
+                  if (!data?.success || !isValidContent(data?.report?.content)) {
+                    throw new Error(lastError?.message || '리포트 생성에 여러 번 실패했습니다. 잠시 후 다시 시도해주세요.');
+                  }
+
+                  console.group('[Report] 생성 결과');
+                  console.log('원본 응답 객체:', data);
+                  console.log('LLM 응답 본문 (report.content):', data?.report?.content);
+                  
+                  let savedToDatabase = false;
+                  try {
+                    const parsed = data?.report?.content ? JSON.parse(data.report.content) : null;
+                    if (parsed) {
+                      console.log('LLM 응답 JSON 파싱 결과:', parsed);
+                      const uiData = transformAgentReportToUI(parsed);
+                      if (uiData) {
+                        setReportData(uiData);
+                        setHasReportData(true);
+                        
+                        // 데이터베이스에 저장
+                        try {
+                          await saveReportToDatabase(parsed, uiData);
+                          savedToDatabase = true;
+                          console.log('✅ 리포트가 데이터베이스에 저장되었습니다.');
+                        } catch (saveError) {
+                          console.error('❌ 리포트 DB 저장 실패:', saveError);
+                          // 저장 실패해도 UI는 표시
+                        }
+                      }
+                    }
+                  } catch (e) {
+                    console.log('LLM 응답은 JSON이 아니거나 파싱 불가:', e?.message);
+                  }
+                  console.groupEnd();
+                  
+                  // 사용자에게 결과 알림
+                  if (savedToDatabase) {
+                    alert('리포트 생성 및 저장이 완료되었습니다.');
+                  } else {
+                    alert('리포트 생성이 완료되었습니다.\n(저장 중 오류가 발생했을 수 있습니다.)');
+                  }
+                } catch (e) {
+                  console.error('리포트 생성 오류:', e);
+                  alert(e?.message || '리포트 생성 중 오류가 발생했습니다.');
+                }
+              }}
+            >
+              리포트 생성하기
+            </button>
+          </div>
+        </div>
+
+        <style jsx>{`
+          .weekly-report-container {
+            min-height: 100vh;
+            background: #f5f5f5;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .weekly-report-header {
+            margin-bottom: 40px;
+          }
+
+          .period-navigation {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+          }
+
+          .period-nav-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #666;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+          }
+
+          .period-nav-btn:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+          }
+
+          .period-text {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            min-width: 150px;
+            text-align: center;
+          }
+
+          .empty-state {
+            text-align: center;
+            max-width: 400px;
+          }
+
+          .empty-message {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 40px;
+            line-height: 1.5;
+          }
+
+          .generate-report-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+            min-width: 200px;
+          }
+
+          .generate-report-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+          }
+
+          .generate-report-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+          }
+        `}</style>
+      </PageLayout>
+    );
+  }
+
   return (
     <PageLayout title="리포트" titleStyle={titleStyle} showNavBar={true} backTo="/main">
       <div className="report-detail__content">
@@ -418,10 +858,20 @@ function ReportDetailPage() {
         <div className="report-detail__header">
           <div className="report-header-info">
             <div className="report-header-top">
-              <h1 className="report-detail__title">발달 평가 리포트</h1>
+              <h1 className="report-detail__title">
+                발달 평가 리포트 {reportData?.weekNumber && `(${reportData.weekNumber}주차)`}
+              </h1>
               <button
                 type="button"
                 className="report-generate-button"
+                onClick={() => setHasReportData(false)}
+              >
+                새 리포트 생성
+              </button>
+              <button
+                type="button"
+                className="report-generate-button"
+                style={{ marginLeft: '10px', background: '#2196F3' }}
                 onClick={async () => {
                   try {
                     if (!childId) return;
@@ -487,10 +937,11 @@ function ReportDetailPage() {
                       throw new Error(lastError?.message || '리포트 생성에 여러 번 실패했습니다. 잠시 후 다시 시도해주세요.');
                     }
 
-                    alert('리포트 생성이 완료되었습니다.');
                     console.group('[Report] 생성 결과');
                     console.log('원본 응답 객체:', data);
                     console.log('LLM 응답 본문 (report.content):', data?.report?.content);
+                    
+                    let savedToDatabase = false;
                     try {
                       const parsed = data?.report?.content ? JSON.parse(data.report.content) : null;
                       if (parsed) {
@@ -498,19 +949,37 @@ function ReportDetailPage() {
                         const uiData = transformAgentReportToUI(parsed);
                         if (uiData) {
                           setReportData(uiData);
+                          setHasReportData(true);
+                          
+                          // 데이터베이스에 저장
+                          try {
+                            await saveReportToDatabase(parsed, uiData);
+                            savedToDatabase = true;
+                            console.log('✅ 리포트가 데이터베이스에 저장되었습니다.');
+                          } catch (saveError) {
+                            console.error('❌ 리포트 DB 저장 실패:', saveError);
+                            // 저장 실패해도 UI는 표시
+                          }
                         }
                       }
                     } catch (e) {
                       console.log('LLM 응답은 JSON이 아니거나 파싱 불가:', e?.message);
                     }
                     console.groupEnd();
+                    
+                    // 사용자에게 결과 알림
+                    if (savedToDatabase) {
+                      alert('리포트 생성 및 저장이 완료되었습니다.');
+                    } else {
+                      alert('리포트 생성이 완료되었습니다.\n(저장 중 오류가 발생했을 수 있습니다.)');
+                    }
                   } catch (e) {
                     console.error('리포트 생성 오류:', e);
                     alert(e?.message || '리포트 생성 중 오류가 발생했습니다.');
                   }
                 }}
               >
-                리포트 생성
+                리포트 업데이트
               </button>
             </div>
             <div className="report-child-info">

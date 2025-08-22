@@ -1,140 +1,202 @@
 const express = require('express');
 const router = express.Router();
+const db = require('../db');
 
-// 임시 샘플 데이터 생성 함수
-const generateSampleReportData = (childId) => {
-  return {
-    childId: parseInt(childId),
-    assessmentDate: '2024-01-15',
-    ageInMonths: 24,
-    scores: {
-      selfCare: { score: 85, status: '정상', description: '자조 능력' },
-      communication: { score: 78, status: '주의', description: '의사소통' },
-      grossMotor: { score: 92, status: '정상', description: '대근육운동' },
-      fineMotor: { score: 88, status: '정상', description: '소근육운동' },
-      problemSolving: { score: 82, status: '정상', description: '문제해결' },
-      personalSocial: { score: 75, status: '주의', description: '개인사회성' },
-    },
-    totalScore: 83,
-    overallStatus: '정상',
-    recommendations: [
-      '의사소통 영역에서 더 많은 상호작용과 대화 시간을 늘려보세요.',
-      '개인사회성 발달을 위해 또래와의 놀이 활동을 권장합니다.',
-      '전반적으로 양호한 발달 상태를 보이고 있습니다.',
-    ],
-    nextAssessment: '2024-04-15',
-  };
-};
-
-// 특정 아동의 리포트 조회
-router.get('/:childId', async (req, res) => {
+// 리포트 저장
+router.post('/', async (req, res) => {
   try {
-    const { childId } = req.params;
-
-    // TODO: 실제 데이터베이스에서 child_scores 테이블 조회
-    // 현재는 샘플 데이터 반환
-    const reportData = generateSampleReportData(childId);
-
-    res.json({
-      success: true,
-      report: reportData,
-    });
-  } catch (error) {
-    console.error('리포트 조회 오류:', error);
-    res.status(500).json({
-      success: false,
-      message: '리포트 조회 중 오류가 발생했습니다.',
-    });
-  }
-});
-
-// 새로운 평가 결과 저장
-router.post('/:childId', async (req, res) => {
-  try {
-    const { childId } = req.params;
     const {
-      ageInMonths,
-      assessmentDate,
-      selfCareScore,
-      communicationScore,
-      grossMotorScore,
-      fineMotorScore,
-      problemSolvingScore,
-      personalSocialScore,
-      notes,
-    } = req.body;
+      parent_id,
+      child_id,
+      gross_motor_score,
+      fine_motor_score,
+      cognitive_score,
+      language_score,
+      social_score,
+      self_help_score,
+      additional_question,
+      alert_message,
+      week_number
+    } = req.body || {};
 
-    // TODO: 실제 데이터베이스에 child_scores 테이블에 저장
-    // 현재는 성공 응답만 반환
-
-    const totalScore = Math.round(
-      (selfCareScore +
-        communicationScore +
-        grossMotorScore +
-        fineMotorScore +
-        problemSolvingScore +
-        personalSocialScore) /
-        6
-    );
-
-    let assessmentStatus = '정상';
-    if (totalScore < 60) {
-      assessmentStatus = '위험';
-    } else if (totalScore < 80) {
-      assessmentStatus = '주의';
+    // 필수 필드 검증
+    if (!parent_id || !child_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'parent_id와 child_id는 필수입니다.'
+      });
     }
 
-    res.json({
-      success: true,
-      message: '평가 결과가 저장되었습니다.',
-      data: {
-        childId: parseInt(childId),
-        totalScore,
-        assessmentStatus,
-      },
+    // null 값을 0으로 변환하는 함수
+    const nullToZero = (value) => {
+      return (value === null || value === undefined || isNaN(value)) ? 0 : Number(value);
+    };
+
+    // 점수 데이터 정리 (null -> 0 변환)
+    const scores = {
+      gross_motor_score: nullToZero(gross_motor_score),
+      fine_motor_score: nullToZero(fine_motor_score),
+      cognitive_score: nullToZero(cognitive_score),
+      language_score: nullToZero(language_score),
+      social_score: nullToZero(social_score),
+      self_help_score: nullToZero(self_help_score),
+      additional_question: nullToZero(additional_question)
+    };
+
+    // 주차 번호 자동 계산 (해당 자녀의 기존 리포트 개수 + 1)
+    const getNextWeekNumber = () => {
+      return new Promise((resolve, reject) => {
+        if (week_number && week_number > 0) {
+          // 명시적으로 주차가 제공된 경우
+          resolve(week_number);
+        } else {
+          // 자동 계산: 해당 자녀의 기존 리포트 개수 + 1
+          db.query(
+            'SELECT MAX(week_number) as max_week FROM reports WHERE child_id = ?',
+            [child_id],
+            (err, result) => {
+              if (err) {
+                reject(err);
+              } else {
+                const maxWeek = result[0]?.max_week || 0;
+                resolve(maxWeek + 1);
+              }
+            }
+          );
+        }
+      });
+    };
+
+    const nextWeekNumber = await getNextWeekNumber();
+
+    console.log('리포트 저장 데이터:', {
+      parent_id,
+      child_id,
+      week_number: nextWeekNumber,
+      alert_message: alert_message || null,
+      ...scores
+    });
+
+    const insertQuery = `
+      INSERT INTO reports (
+        parent_id,
+        child_id,
+        gross_motor_score,
+        fine_motor_score,
+        cognitive_score,
+        language_score,
+        social_score,
+        self_help_score,
+        additional_question,
+        alert_message,
+        week_number,
+        report_date
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+    `;
+
+    const values = [
+      parent_id,
+      child_id,
+      scores.gross_motor_score,
+      scores.fine_motor_score,
+      scores.cognitive_score,
+      scores.language_score,
+      scores.social_score,
+      scores.self_help_score,
+      scores.additional_question,
+      alert_message || null,
+      nextWeekNumber
+    ];
+
+    db.query(insertQuery, values, (err, result) => {
+      if (err) {
+        console.error('리포트 저장 DB 오류:', err);
+        return res.status(500).json({
+          success: false,
+          message: '리포트 저장 중 오류가 발생했습니다.',
+          error: err.message
+        });
+      }
+
+      console.log('리포트 저장 성공, ID:', result.insertId);
+      res.json({
+        success: true,
+        message: '리포트가 성공적으로 저장되었습니다.',
+        reportId: result.insertId
+      });
     });
   } catch (error) {
     console.error('리포트 저장 오류:', error);
     res.status(500).json({
       success: false,
-      message: '리포트 저장 중 오류가 발생했습니다.',
+      message: '서버 오류가 발생했습니다.',
+      error: error.message
     });
   }
 });
 
-// 아동의 평가 이력 조회
-router.get('/:childId/history', async (req, res) => {
-  try {
-    const { childId } = req.params;
+// 특정 자녀의 리포트 목록 조회
+router.get('/child/:childId', (req, res) => {
+  const { childId } = req.params;
 
-    // TODO: 실제 데이터베이스에서 해당 아동의 모든 평가 이력 조회
-    // 현재는 샘플 데이터 반환
-    const historyData = [
-      {
-        id: 1,
-        assessmentDate: '2024-01-15',
-        totalScore: 83,
-        assessmentStatus: '정상',
-      },
-      {
-        id: 2,
-        assessmentDate: '2023-10-15',
-        totalScore: 78,
-        assessmentStatus: '주의',
-      },
-    ];
+  const query = `
+    SELECT r.*, u.username as parent_name, c.name as child_name
+    FROM reports r
+    LEFT JOIN users u ON r.parent_id = u.id
+    LEFT JOIN children c ON r.child_id = c.id
+    WHERE r.child_id = ?
+    ORDER BY r.report_date DESC
+  `;
+
+  db.query(query, [childId], (err, results) => {
+    if (err) {
+      console.error('리포트 조회 DB 오류:', err);
+      return res.status(500).json({
+        success: false,
+        message: '리포트 조회 중 오류가 발생했습니다.'
+      });
+    }
 
     res.json({
       success: true,
-      history: historyData,
+      reports: results
     });
-  } catch (error) {
-    console.error('리포트 이력 조회 오류:', error);
-    res.status(500).json({
-      success: false,
-      message: '리포트 이력 조회 중 오류가 발생했습니다.',
+  });
+});
+
+// 특정 리포트 상세 조회
+router.get('/:reportId', (req, res) => {
+  const { reportId } = req.params;
+
+  const query = `
+    SELECT r.*, u.username as parent_name, c.name as child_name
+    FROM reports r
+    LEFT JOIN users u ON r.parent_id = u.id
+    LEFT JOIN children c ON r.child_id = c.id
+    WHERE r.id = ?
+  `;
+
+  db.query(query, [reportId], (err, results) => {
+    if (err) {
+      console.error('리포트 상세 조회 DB 오류:', err);
+      return res.status(500).json({
+        success: false,
+        message: '리포트 조회 중 오류가 발생했습니다.'
+      });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: '리포트를 찾을 수 없습니다.'
+      });
+    }
+
+    res.json({
+      success: true,
+      report: results[0]
     });
-  }
+  });
 });
 
 module.exports = router;

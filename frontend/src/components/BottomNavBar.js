@@ -111,13 +111,13 @@ function BottomNavBar() {
         <FiMessageSquare className="nav-icon" />
         <span className="nav-text">AI챗</span>
       </button>
-      <button
+      {/* <button
         className={`nav-item ${getActiveClass('/settings')}`}
         onClick={() => navigate('/settings')}
       >
-        {/* <FiSettings className="nav-icon" />
-        <span className="nav-text">설정</span> */}
-      </button>
+        <FiSettings className="nav-icon" />
+        <span className="nav-text">설정</span>
+      </button> */}
     </div>
   );
 }
