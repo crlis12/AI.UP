@@ -19,6 +19,83 @@ function ReportDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hasReportData, setHasReportData] = useState(false);
+  const [weeklyAverages, setWeeklyAverages] = useState([]);
+
+  // 주차별 평균 점수 간단 라인 차트 (SVG)
+  const WeeklyAverageChart = ({ data }) => {
+    const series = Array.isArray(data) ? data : [];
+    if (series.length === 0) {
+      return (
+        <div className="weekly-trend-empty">주차별 데이터가 없습니다.</div>
+      );
+    }
+
+    const paddingX = 6;
+    const paddingY = 10; // 상하 간격 더 축소
+    const height = 140; // 박스(차트) 세로 크기 약간 확장
+    const stepX = 48; // 포인트 간 간격 축소
+    const intervals = Math.max((series.length - 1), 4); // 최소 5주(4간격) 뷰포트
+    const innerWidth = intervals * stepX;
+    const width = paddingX + innerWidth + paddingX + 20; // 마지막 주차 우측 여백 축소
+    const ticks = [0, 20, 40, 60, 80, 100];
+
+    const toPercent = (v) => {
+      const n = Number(v);
+      if (!isFinite(n)) return 0;
+      if (n <= 0) return 0;
+      // 평균 점수가 0~24 범위일 수 있으므로 24 기준으로 백분율 환산
+      if (n <= 24) return Math.min(100, (n / 24) * 100);
+      // 이미 0~100 스케일이라고 판단되면 그대로 사용
+      return Math.min(100, n);
+    };
+
+    const xStart = paddingX;
+    const xEnd = xStart + innerWidth;
+
+    const getX = (index) => {
+      return xStart + stepX * index;
+    };
+    const getYFromPercent = (p) => {
+      const usableHeight = height - paddingY * 2;
+      const v = Math.max(0, Math.min(100, Number(p) || 0));
+      return paddingY + usableHeight * (1 - v / 100);
+    };
+
+    const points = series
+      .map((d, i) => `${getX(i)},${getYFromPercent(toPercent(d.value))}`)
+      .join(' ');
+
+    return (
+              <div className="weekly-trend-chart">
+          <div className="weekly-trend-inner" style={{ height: 180 }}>
+            <div className="weekly-trend-ycol" style={{ height: 180 }}>
+              {ticks.map((t) => (
+                <div key={t} className="weekly-trend-ylabel" style={{ top: getYFromPercent(t) - 5 }}>{t}</div>
+              ))}
+            </div>
+            <div className="weekly-trend-xscroll">
+              <svg viewBox={`0 0 ${width} ${height + 40}`} width={`${width}px`} height="180">
+                <g transform="translate(0,-6)">
+                {ticks.map((t) => {
+                  const y = getYFromPercent(t);
+                  return (
+                    <line key={t} x1={0} x2={xEnd} y1={y} y2={y} className="weekly-trend-grid" />
+                  );
+                })}
+                <polyline points={points} fill="none" stroke="#056125" strokeWidth="2" />
+                {series.map((d, i) => (
+                  <circle key={i} cx={getX(i)} cy={getYFromPercent(toPercent(d.value))} r="3.5" className="weekly-trend-dot" />
+                ))}
+                                 {series.map((d, i) => (
+                   <text key={`x-${i}`} x={getX(i)} y={height + 10} textAnchor="middle" className="weekly-trend-xtext">{`${d.week}주`}</text>
+                 ))}
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // 리포트 데이터를 데이터베이스에 저장하는 함수
   const saveReportToDatabase = async (agentReport, transformedData) => {
@@ -237,6 +314,13 @@ function ReportDetailPage() {
           console.log('리포트 데이터 응답:', reportData);
 
           if (reportData.success && reportData.reports && reportData.reports.length > 0) {
+            // 주차별 평균 점수 시리즈 구성
+            const trend = [...reportData.reports]
+              .filter((r) => r && r.week_number != null && r.average_score != null)
+              .sort((a, b) => (Number(a.week_number || 0) - Number(b.week_number || 0)))
+              .map((r) => ({ week: Number(r.week_number), value: Number(r.average_score) }));
+            setWeeklyAverages(trend);
+
             // 가장 최신 리포트 사용
             const latestReport = reportData.reports[0];
             console.log('최신 리포트 데이터:', latestReport);
@@ -999,12 +1083,30 @@ function ReportDetailPage() {
           </div>
         </div>
 
+        {/* 주차별 평균 점수 그래프 */}
+        <div className="report-summary-card report-weekly-trend" style={{ overflowX: 'auto' }}>
+          <h2 className="weekly-trend-title">
+            <FiTrendingUp className="section-icon" /> 주차별 평균 점수
+          </h2>
+          <WeeklyAverageChart data={weeklyAverages} />
+        </div>
+
         {/* 전체 점수 카드 */}
         <div className="report-summary-card">
           <div className="summary-score-container">
             <div className="total-score">
-              <span className="score-number">{reportData?.totalScore}</span>
-              <span className="score-label">점</span>
+              <span 
+                className="score-number" 
+                style={{ color: getStatusColor(reportData?.overallStatus) }}
+              >
+                {reportData?.totalScore}
+              </span>
+              <span 
+                className="score-label" 
+                style={{ color: getStatusColor(reportData?.overallStatus) }}
+              >
+                점
+              </span>
             </div>
             <div className="overall-status">
               <div
@@ -1048,8 +1150,18 @@ function ReportDetailPage() {
                     </div>
                   </div>
                   <div className="score-value">
-                    <span className="score-number">{score24 != null ? score24 : '-'}</span>
-                    <span className="score-max">{score24 != null ? `/${outOf}` : outOf === 0 ? '/0' : ''}</span>
+                    <span 
+                      className="score-number" 
+                      style={{ color: getStatusColor(status) }}
+                    >
+                      {score24 != null ? score24 : '-'}
+                    </span>
+                    <span 
+                      className="score-max" 
+                      style={{ color: getStatusColor(status) }}
+                    >
+                      {score24 != null ? `/${outOf}` : outOf === 0 ? '/0' : ''}
+                    </span>
                   </div>
                   <div className="score-progress">
                     <div
