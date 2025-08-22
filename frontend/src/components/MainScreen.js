@@ -22,6 +22,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
   const [currentChildIndex, setCurrentChildIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [diaries, setDiaries] = useState([]); // 최신 일지 목록 상태 추가
+  const [latestReportScore, setLatestReportScore] = useState(null); // 최신 리포트 총점
   const [isChildMenuOpen, setIsChildMenuOpen] = useState(false);
   const childMenuRef = useRef(null);
   const [, setChildQuestions] = useState([]); // 자녀별 질문 데이터 (console 출력용)
@@ -108,6 +109,9 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
           setDiaries([]); // 일지가 없을 경우
         }
 
+        // 최신 리포트 총점도 불러오기
+        await fetchLatestReportScore(selectedChildId);
+
         // 첫 번째 자녀의 질문 데이터는 별도 useEffect에서 처리
       } else {
         console.log('자녀가 없음 또는 조회 실패');
@@ -188,6 +192,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
         const newChildName = children[index].name;
         localStorage.setItem('currentChildId', newChildId);
         await fetchDiaries(newChildId);
+        await fetchLatestReportScore(newChildId);
         // 질문 데이터는 useEffect에서 자동으로 로드됨
         setIsChildMenuOpen(false);
     };
@@ -535,6 +540,27 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     return d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
   };
 
+  // 최신 리포트 총점 조회
+  const fetchLatestReportScore = async (childId) => {
+    try {
+      if (!childId) {
+        setLatestReportScore(null);
+        return;
+      }
+      const resp = await fetch(`${API_BASE}/reports/child/${childId}`);
+      const data = await resp.json();
+      if (data?.success && Array.isArray(data.reports) && data.reports.length > 0) {
+        const latest = data.reports[0];
+        const total = Number(latest?.total_score);
+        setLatestReportScore(Number.isFinite(total) ? Math.round(total) : 0);
+      } else {
+        setLatestReportScore(null);
+      }
+    } catch (e) {
+      setLatestReportScore(null);
+    }
+  };
+
   const formatFullDateKorean = (dateString) => {
     const d = new Date(dateString);
     if (isNaN(d)) return String(dateString);
@@ -709,11 +735,12 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                   </div>
                   <div className="card__center">
                     <CircularScore
-                      score={90}
+                      score={latestReportScore ?? 0}
+                      displayValue={latestReportScore ?? 0}
                       size={110}
                       strokeWidth={8}
                       label="종합발달점수"
-                      subLabel="상위 10%"
+                      subLabel={latestReportScore == null ? '리포트 없음' : undefined}
                       showRing={false}
                       contentOffsetY={10}
                       labelPosition="top"

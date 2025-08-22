@@ -74,25 +74,38 @@ def upsert_diary(diary_data):
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+
+        # 마이그레이션: parent_id, child_id 컬럼 없으면 추가
+        try:
+            cursor.execute('ALTER TABLE diary_embeddings ADD COLUMN parent_id INTEGER')
+        except Exception:
+            pass
+        try:
+            cursor.execute('ALTER TABLE diary_embeddings ADD COLUMN child_id INTEGER')
+        except Exception:
+            pass
         
         # 기존 데이터 확인
         cursor.execute('SELECT id FROM diary_embeddings WHERE diary_id = ?', (diary_data['id'],))
         existing = cursor.fetchone()
         
+        parent_id = diary_data.get('parent_id')
+        child_id = diary_data.get('child_id')
+
         if existing:
             # 업데이트
             cursor.execute('''
                 UPDATE diary_embeddings 
-                SET text = ?, embedding = ?, date = ?, created_at = CURRENT_TIMESTAMP
+                SET text = ?, embedding = ?, date = ?, parent_id = ?, child_id = ?, created_at = CURRENT_TIMESTAMP
                 WHERE diary_id = ?
-            ''', (text, json.dumps(embedding), diary_data.get('date', ''), diary_data['id']))
+            ''', (text, json.dumps(embedding), diary_data.get('date', ''), parent_id, child_id, diary_data['id']))
             action = "updated"
         else:
             # 새로 생성
             cursor.execute('''
-                INSERT INTO diary_embeddings (diary_id, text, embedding, date)
-                VALUES (?, ?, ?, ?)
-            ''', (diary_data['id'], text, json.dumps(embedding), diary_data.get('date', '')))
+                INSERT INTO diary_embeddings (diary_id, text, embedding, date, parent_id, child_id)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (diary_data['id'], text, json.dumps(embedding), diary_data.get('date', ''), parent_id, child_id))
             action = "created"
         
         conn.commit()

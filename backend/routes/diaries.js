@@ -441,9 +441,10 @@ router.post('/', upload.array('files', 10), (req, res) => {
     const fetchIdAndHandleFiles = async (diaryId) => {
       const files = Array.isArray(req.files) ? req.files : [];
       if (files.length === 0) {
+        const parentId = 'unknown';
         // 파일이 없으면 캡션 없이 임베딩만
         try {
-          const embeddingData = { id: diaryId, content, date: dateOnly, child_id, captions: [] };
+          const embeddingData = { id: diaryId, content, date: dateOnly, child_id, captions: [], parent_id: parentId };
           console.log('벡터 임베딩 생성 시작(파일 없음):', { id: diaryId, date: dateOnly });
           const embeddingResult = await generateVectorEmbedding(embeddingData);
           console.log('벡터 임베딩 생성 결과:', embeddingResult);
@@ -495,7 +496,7 @@ router.post('/', upload.array('files', 10), (req, res) => {
 
           // 임베딩 생성 (캡션 포함하되 UI에는 노출하지 않음)
           try {
-            const embeddingData = { id: diaryId, content, date: dateOnly, child_id, captions };
+            const embeddingData = { id: diaryId, content, date: dateOnly, child_id, captions, parent_id: parentId };
             console.log('벡터 임베딩 생성 시작:', { id: diaryId, date: dateOnly, captions_len: captions.length });
             const embeddingResult = await generateVectorEmbedding(embeddingData);
             console.log('벡터 임베딩 생성 결과:', embeddingResult);
@@ -552,7 +553,7 @@ router.put('/:diaryId', async (req, res) => {
         if (fErr) {
           console.warn('일기 파일 조회 실패(캡션 생략):', fErr?.message || fErr);
           (async () => {
-            const embeddingData = { id: idNum, content, date, child_id, captions: [] };
+            const embeddingData = { id: idNum, content, date, child_id, captions: [], parent_id: parentId };
             const embeddingResult = await generateVectorEmbedding(embeddingData);
             console.log('벡터 임베딩 업데이트 결과(텍스트만):', embeddingResult);
           })();
@@ -561,7 +562,7 @@ router.put('/:diaryId', async (req, res) => {
 
         if (!rows || rows.length === 0) {
           (async () => {
-            const embeddingData = { id: idNum, content, date, child_id, captions: [] };
+            const embeddingData = { id: idNum, content, date, child_id, captions: [], parent_id: parentId };
             const embeddingResult = await generateVectorEmbedding(embeddingData);
             console.log('벡터 임베딩 업데이트 결과(파일 없음):', embeddingResult);
           })();
@@ -589,7 +590,7 @@ router.put('/:diaryId', async (req, res) => {
             console.warn('멀티모달 캡션 생성 실패(업데이트):', capErr?.message || capErr);
             captions = [];
           }
-          const embeddingData = { id: idNum, content, date, child_id, captions };
+          const embeddingData = { id: idNum, content, date, child_id, captions, parent_id: parentId };
           const embeddingResult = await generateVectorEmbedding(embeddingData);
           console.log('벡터 임베딩 업데이트 결과(캡션 포함):', embeddingResult);
         });
