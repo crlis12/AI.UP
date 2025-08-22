@@ -19,6 +19,78 @@ function ReportDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hasReportData, setHasReportData] = useState(false);
+  const [weeklyAverages, setWeeklyAverages] = useState([]);
+
+  // 주차별 평균 점수 간단 라인 차트 (SVG)
+  const WeeklyAverageChart = ({ data }) => {
+    const series = Array.isArray(data) ? data : [];
+    if (series.length === 0) {
+      return (
+        <div className="weekly-trend-empty">주차별 데이터가 없습니다.</div>
+      );
+    }
+
+    const paddingX = 8;
+    const paddingY = 10;
+    const leftGutter = 22; // Y축 라벨 최소 여백
+    const height = 120;
+    const stepX = 56; // 포인트 간 고정 간격
+    const intervals = Math.max((series.length - 1), 4); // 최소 5주(4간격) 뷰포트
+    const innerWidth = intervals * stepX;
+    const width = leftGutter + paddingX + innerWidth + paddingX;
+    const ticks = [0, 20, 40, 60, 80, 100];
+
+    const toPercent = (v) => {
+      const n = Number(v);
+      if (!isFinite(n)) return 0;
+      if (n <= 0) return 0;
+      // 평균 점수가 0~24 범위일 수 있으므로 24 기준으로 백분율 환산
+      if (n <= 24) return Math.min(100, (n / 24) * 100);
+      // 이미 0~100 스케일이라고 판단되면 그대로 사용
+      return Math.min(100, n);
+    };
+
+    const xStart = leftGutter + paddingX;
+    const xEnd = xStart + innerWidth;
+
+    const getX = (index) => {
+      return xStart + stepX * index;
+    };
+    const getYFromPercent = (p) => {
+      const usableHeight = height - paddingY * 2;
+      const v = Math.max(0, Math.min(100, Number(p) || 0));
+      return paddingY + usableHeight * (1 - v / 100);
+    };
+
+    const points = series
+      .map((d, i) => `${getX(i)},${getYFromPercent(toPercent(d.value))}`)
+      .join(' ');
+
+    return (
+      <div className="weekly-trend-chart">
+        <svg viewBox={`0 0 ${width} ${height}`} width={`${width}px`} height="130">
+          <g transform="translate(0,-8)">
+            {ticks.map((t) => {
+              const y = getYFromPercent(t);
+              return (
+                <g key={t}>
+                  <line x1={xStart} x2={xEnd} y1={y} y2={y} className="weekly-trend-grid" />
+                  <text x={leftGutter - 4} y={y + 3} textAnchor="end" className="weekly-trend-ytext">{t}</text>
+                </g>
+              );
+            })}
+            <polyline points={points} fill="none" stroke="#056125" strokeWidth="2" />
+            {series.map((d, i) => (
+              <circle key={i} cx={getX(i)} cy={getYFromPercent(toPercent(d.value))} r="3.5" className="weekly-trend-dot" />
+            ))}
+            {series.map((d, i) => (
+              <text key={`x-${i}`} x={getX(i)} y={height - 2} textAnchor="middle" className="weekly-trend-xtext">{`${d.week}주`}</text>
+            ))}
+          </g>
+        </svg>
+      </div>
+    );
+  };
 
   // 리포트 데이터를 데이터베이스에 저장하는 함수
   const saveReportToDatabase = async (agentReport, transformedData) => {
@@ -237,6 +309,13 @@ function ReportDetailPage() {
           console.log('리포트 데이터 응답:', reportData);
 
           if (reportData.success && reportData.reports && reportData.reports.length > 0) {
+            // 주차별 평균 점수 시리즈 구성
+            const trend = [...reportData.reports]
+              .filter((r) => r && r.week_number != null && r.average_score != null)
+              .sort((a, b) => (Number(a.week_number || 0) - Number(b.week_number || 0)))
+              .map((r) => ({ week: Number(r.week_number), value: Number(r.average_score) }));
+            setWeeklyAverages(trend);
+
             // 가장 최신 리포트 사용
             const latestReport = reportData.reports[0];
             console.log('최신 리포트 데이터:', latestReport);
@@ -997,6 +1076,14 @@ function ReportDetailPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* 주차별 평균 점수 그래프 */}
+        <div className="report-summary-card report-weekly-trend" style={{ overflowX: 'auto' }}>
+          <h2 className="weekly-trend-title">
+            <FiTrendingUp className="section-icon" /> 주차별 평균 점수
+          </h2>
+          <WeeklyAverageChart data={weeklyAverages} />
         </div>
 
         {/* 전체 점수 카드 */}
