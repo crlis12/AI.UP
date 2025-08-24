@@ -23,6 +23,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [diaries, setDiaries] = useState([]); // 최신 일지 목록 상태 추가
   const [latestReportScore, setLatestReportScore] = useState(null); // 최신 리포트 총점
+  const [latestReportStatus, setLatestReportStatus] = useState(null); // 최신 리포트 상태
   const [isChildMenuOpen, setIsChildMenuOpen] = useState(false);
   const childMenuRef = useRef(null);
   const [, setChildQuestions] = useState([]); // 자녀별 질문 데이터 (console 출력용)
@@ -540,11 +541,26 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
     return d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
   };
 
+  // 상태에 따른 색상 반환 함수
+  const getStatusColor = (status) => {
+    switch (status) {
+      case '정상':
+        return '#28a745';
+      case '주의':
+        return '#ffc107';
+      case '위험':
+        return '#dc3545';
+      default:
+        return '#6c757d';
+    }
+  };
+
   // 최신 리포트 총점 조회
   const fetchLatestReportScore = async (childId) => {
     try {
       if (!childId) {
         setLatestReportScore(null);
+        setLatestReportStatus(null);
         return;
       }
       const resp = await fetch(`${API_BASE}/reports/child/${childId}`);
@@ -552,12 +568,26 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
       if (data?.success && Array.isArray(data.reports) && data.reports.length > 0) {
         const latest = data.reports[0];
         const total = Number(latest?.total_score);
+        const totalMaxScore = Number(latest?.total_max_score) || 120; // 기본값 120 (5개 영역 * 24점)
+        const overallPercent = totalMaxScore > 0 ? Math.round((total / totalMaxScore) * 100) : 0;
+        
+        // 상태 계산
+        let status = '정보없음';
+        if (overallPercent > 0) {
+          if (overallPercent < 60) status = '위험';
+          else if (overallPercent < 80) status = '주의';
+          else status = '정상';
+        }
+        
         setLatestReportScore(Number.isFinite(total) ? Math.round(total) : 0);
+        setLatestReportStatus(status);
       } else {
         setLatestReportScore(null);
+        setLatestReportStatus(null);
       }
     } catch (e) {
       setLatestReportScore(null);
+      setLatestReportStatus(null);
     }
   };
 
@@ -744,6 +774,7 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
                       showRing={false}
                       contentOffsetY={10}
                       labelPosition="top"
+                      scoreColor={getStatusColor(latestReportStatus)}
                     />
                     <button
                       className="main-screen__report-button"
