@@ -1,29 +1,19 @@
 // Centralized API base URL
 function getDefaultApiBase() {
+  // 모든 환경에서 프론트 호스트 기준으로 포트만 3001로 매핑
   if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol; // 'http:' or 'https:'
     const hostname = window.location.hostname;
-    console.log('현재 hostname:', hostname);
-
-    // 로컬 호스트에서도 외부 백엔드로 연결
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      console.log('로컬 개발 환경 감지 - 외부 백엔드 사용');
-      return 'http://kfeq1.xn--h32bi4v.xn--3e0b707e:3001';
-    }
-
-    // If hosted on Azure Static Web Apps, point to the deployed backend
-    if (hostname.includes('azurestaticapps.net')) {
-      console.log('Azure 환경 감지 - 실서버 URL 사용');
-      return 'https://ai-up-backend.azurewebsites.net';
-    }
+    const mapped = `${protocol}//${hostname}:3001`;
+    console.log('동일 호스트 포트 매핑 API_BASE:', mapped);
+    return mapped;
   }
-
-  // Default fallback to external backend when not explicitly matched
-  console.log('기본값으로 외부 백엔드 사용: http://kfeq1.xn--h32bi4v.xn--3e0b707e:3001');
+  // window가 없는 환경일 경우 안전한 기본값
   return 'http://kfeq1.xn--h32bi4v.xn--3e0b707e:3001';
 }
 
-// 모든 환경에서 환경변수 우선, 없으면 기본값 함수 사용
-const API_BASE = process.env.REACT_APP_API_BASE_URL || getDefaultApiBase();
+// 무조건 동일 호스트 포트 매핑 사용
+const API_BASE = getDefaultApiBase();
 console.log('최종 API_BASE:', API_BASE);
 
 // Questions API 호출 함수들
