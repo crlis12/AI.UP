@@ -943,7 +943,9 @@ function ReportDetailPage() {
           <div className="report-header-info">
             <div className="report-header-top">
               <h1 className="report-detail__title">
-                발달 평가 리포트 {reportData?.weekNumber && `(${reportData.weekNumber}주차)`}
+                발달 평가 리포트 {reportData?.weekNumber && (
+                  <span style={{ whiteSpace: 'nowrap' }}>{`(${reportData.weekNumber}주차)`}</span>
+                )}
               </h1>
               <button
                 type="button"
