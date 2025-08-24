@@ -950,7 +950,7 @@ function ReportDetailPage() {
                 className="report-generate-button"
                 onClick={() => setHasReportData(false)}
               >
-                새 리포트 생성
+                리포트      생성
               </button>
               <button
                 type="button"
@@ -1063,7 +1063,7 @@ function ReportDetailPage() {
                   }
                 }}
               >
-                리포트      업데이트
+                리포트      갱신
               </button>
             </div>
             <div className="report-child-info">
