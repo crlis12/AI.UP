@@ -242,10 +242,10 @@ function ReportDetailPage() {
         return date.toISOString().split('T')[0];
       };
 
-      // 다음 평가일 계산 (리포트 날짜 + 30일)
+      // 다음 평가일 계산 (리포트 날짜 + 7일) - 현재 이거 사용중
       const calculateNextAssessment = (reportDate) => {
         const date = new Date(reportDate || Date.now());
-        date.setDate(date.getDate() + 30);
+        date.setDate(date.getDate() + 7);
         return date.toISOString().split('T')[0];
       };
 
@@ -1063,7 +1063,7 @@ function ReportDetailPage() {
                   }
                 }}
               >
-                리포트 업데이트
+                리포트      업데이트
               </button>
             </div>
             <div className="report-child-info">
