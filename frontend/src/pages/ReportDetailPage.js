@@ -181,42 +181,42 @@ function ReportDetailPage() {
           percent: calculatePercent(dbReport.gross_motor_score),
           status: getStatus(calculatePercent(dbReport.gross_motor_score)),
           description: '대근육운동',
-          outOf: dbReport.gross_motor_score ? 24 : 0
+          outOf: dbReport.gross_motor_score ? 24 : 24
         },
         fineMotor: {
           score24: dbReport.fine_motor_score || 0,
           percent: calculatePercent(dbReport.fine_motor_score),
           status: getStatus(calculatePercent(dbReport.fine_motor_score)),
           description: '소근육운동',
-          outOf: dbReport.fine_motor_score ? 24 : 0
+          outOf: dbReport.fine_motor_score ? 24 : 24
         },
         problemSolving: {
           score24: dbReport.cognitive_score || 0,
           percent: calculatePercent(dbReport.cognitive_score),
           status: getStatus(calculatePercent(dbReport.cognitive_score)),
           description: '인지',
-          outOf: dbReport.cognitive_score ? 24 : 0
+          outOf: dbReport.cognitive_score ? 24 : 24
         },
         communication: {
           score24: dbReport.language_score || 0,
           percent: calculatePercent(dbReport.language_score),
           status: getStatus(calculatePercent(dbReport.language_score)),
           description: '언어',
-          outOf: dbReport.language_score ? 24 : 0
+          outOf: dbReport.language_score ? 24 : 24
         },
         personalSocial: {
           score24: dbReport.social_score || 0,
           percent: calculatePercent(dbReport.social_score),
           status: getStatus(calculatePercent(dbReport.social_score)),
           description: '사회성',
-          outOf: dbReport.social_score ? 24 : 0
+          outOf: dbReport.social_score ? 24 : 24
         },
         selfCare: {
           score24: dbReport.self_help_score || 0,
           percent: calculatePercent(dbReport.self_help_score),
           status: getStatus(calculatePercent(dbReport.self_help_score)),
           description: '자조',
-          outOf: dbReport.self_help_score ? 24 : 0
+          outOf: dbReport.self_help_score ? 24 : 24
         }
       };
 
@@ -1127,10 +1127,16 @@ function ReportDetailPage() {
 
         {/* 영역별 점수 */}
         <div className="report-scores-section">
-          <h2 className="section-title">
-            <FiTrendingUp className="section-icon" />
-            영역별 발달 점수
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h2 className="section-title">
+              <FiTrendingUp className="section-icon" />
+              영역별 발달 점수
+            </h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ display: 'inline-block', width: '42px', height: '6px', background: '#cbd5e1', borderRadius: '999px' }}></span>
+              <span style={{ color: '#6b7280', fontSize: '12px' }}>또래 평균: 15점</span>
+            </div>
+          </div>
           <div className="scores-grid">
             {fixedDomains.map(({ title, key, type }) => {
               // 현재 추가질문(flag)은 UI에서 분리됨 → type === 'flag' 케이스 제거
@@ -1139,6 +1145,8 @@ function ReportDetailPage() {
               const score24 = typeof data?.score24 === 'number' ? data.score24 : null;
               const outOf = typeof data?.outOf === 'number' ? data.outOf : 24;
               const percent = typeof data?.percent === 'number' ? data.percent : (score24 != null && outOf > 0 ? Math.round((score24 / outOf) * 100) : null);
+              const peerAvgPoints = 15;
+              const peerAvgPercent = outOf > 0 ? Math.round((peerAvgPoints / outOf) * 100) : 0;
               const status = data?.status || '정보없음';
               return (
                 <div key={title} className="score-card">
@@ -1171,6 +1179,10 @@ function ReportDetailPage() {
                         backgroundColor: getStatusColor(status),
                       }}
                     ></div>
+                  </div>
+                  {/* 또래 평균(15점) 회색 바 */}
+                  <div style={{ marginTop: 6, width: '100%', height: 6, background: '#eef2f7', borderRadius: 999 }}>
+                    <div style={{ width: `${peerAvgPercent}%`, height: '100%', background: '#cbd5e1', borderRadius: 999 }}></div>
                   </div>
                 </div>
               );
