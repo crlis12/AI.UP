@@ -17,7 +17,7 @@ const config = {
   
   // Python Script Configuration
   python: {
-    path: process.env.PYTHON_PATH || 'python3'
+    path: process.env.PYTHON_PATH || (process.env.WEBSITE_SITE_NAME ? 'python3' : 'python')
   },
   
   // Server Configuration

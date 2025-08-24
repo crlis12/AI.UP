@@ -11,7 +11,7 @@ function DiaryDetailPage() {
   const [diary, setDiary] = useState(null);
   const [loading, setLoading] = useState(true);
   const childIdFromState = location.state?.childId;
-  const backendBase = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+  const backendBase = API_BASE;
 
   const buildFileUrl = (path) => {
     if (!path) return '';
@@ -128,10 +128,7 @@ function DiaryDetailPage() {
               onClick={async () => {
                 if (!window.confirm('이 일지를 삭제하시겠습니까?')) return;
                 try {
-                  const resp = await fetch(
-                    `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/diaries/${diary.id}`,
-                    { method: 'DELETE' }
-                  );
+                  const resp = await fetch(`${API_BASE}/diaries/${diary.id}`, { method: 'DELETE' });
                   const data = await resp.json();
                   if (!data.success) throw new Error(data.message || '삭제 실패');
                   const backChildId = childIdFromState || diary.child_id;

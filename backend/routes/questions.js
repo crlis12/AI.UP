@@ -310,8 +310,16 @@ router.post('/kdst-rag', async (req, res) => {
     const pythonScriptPath = path.join(__dirname, '..', 'search-engine-py', 'kdst_rag_module.py');
     console.log('   - Python 스크립트 경로:', pythonScriptPath);
     
+    // Azure 환경에서 확실하게 python3 사용
+    let pythonPath;
+    if (process.env.WEBSITE_SITE_NAME) {
+      pythonPath = process.env.PYTHON_PATH || 'python3';
+    } else {
+      pythonPath = process.env.PYTHON_PATH || 'python';
+    }
+    
     // Python 프로세스 실행 (UTF-8 인코딩 설정)
-    const pythonProcess = spawn('python', [pythonScriptPath], {
+    const pythonProcess = spawn(pythonPath, [pythonScriptPath], {
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd: path.join(__dirname, '..', 'search-engine-py'),
       env: {
@@ -430,7 +438,15 @@ router.post('/kdst-rag/single', async (req, res) => {
     // 기존 RAG API 로직 재사용 (위의 코드와 동일)
     const pythonScriptPath = path.join(__dirname, '..', 'search-engine-py', 'kdst_rag_module.py');
     
-    const pythonProcess = spawn('python', [pythonScriptPath], {
+    // Azure 환경에서 확실하게 python3 사용
+    let pythonPath;
+    if (process.env.WEBSITE_SITE_NAME) {
+      pythonPath = process.env.PYTHON_PATH || 'python3';
+    } else {
+      pythonPath = process.env.PYTHON_PATH || 'python';
+    }
+    
+    const pythonProcess = spawn(pythonPath, [pythonScriptPath], {
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd: path.join(__dirname, '..', 'search-engine-py'),
       env: {
@@ -537,8 +553,16 @@ router.post('/kdst-rag/save-json', async (req, res) => {
     const pythonScriptPath = path.join(__dirname, '..', 'search-engine-py', 'save_kdst_rag_results.py');
     console.log('   - Python 스크립트 경로:', pythonScriptPath);
     
+    // Azure 환경에서 확실하게 python3 사용
+    let pythonPath;
+    if (process.env.WEBSITE_SITE_NAME) {
+      pythonPath = process.env.PYTHON_PATH || 'python3';
+    } else {
+      pythonPath = process.env.PYTHON_PATH || 'python';
+    }
+    
     // Python 프로세스 실행 (UTF-8 인코딩 설정)
-    const pythonProcess = spawn('python', [pythonScriptPath], {
+    const pythonProcess = spawn(pythonPath, [pythonScriptPath], {
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd: path.join(__dirname, '..', 'search-engine-py'),
       env: {

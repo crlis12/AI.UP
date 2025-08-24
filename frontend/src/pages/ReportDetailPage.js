@@ -104,42 +104,42 @@ function ReportDetailPage() {
           percent: calculatePercent(dbReport.gross_motor_score),
           status: getStatus(calculatePercent(dbReport.gross_motor_score)),
           description: '대근육운동',
-          outOf: dbReport.gross_motor_score ? 24 : 0
+          outOf: dbReport.gross_motor_score ? 21 : 24
         },
         fineMotor: {
           score24: dbReport.fine_motor_score || 0,
           percent: calculatePercent(dbReport.fine_motor_score),
           status: getStatus(calculatePercent(dbReport.fine_motor_score)),
           description: '소근육운동',
-          outOf: dbReport.fine_motor_score ? 24 : 0
+          outOf: dbReport.fine_motor_score ? 24 : 24
         },
         problemSolving: {
           score24: dbReport.cognitive_score || 0,
           percent: calculatePercent(dbReport.cognitive_score),
           status: getStatus(calculatePercent(dbReport.cognitive_score)),
           description: '인지',
-          outOf: dbReport.cognitive_score ? 24 : 0
+          outOf: dbReport.cognitive_score ? 24 : 24
         },
         communication: {
           score24: dbReport.language_score || 0,
           percent: calculatePercent(dbReport.language_score),
           status: getStatus(calculatePercent(dbReport.language_score)),
           description: '언어',
-          outOf: dbReport.language_score ? 24 : 0
+          outOf: dbReport.language_score ? 24 : 24
         },
         personalSocial: {
           score24: dbReport.social_score || 0,
           percent: calculatePercent(dbReport.social_score),
           status: getStatus(calculatePercent(dbReport.social_score)),
           description: '사회성',
-          outOf: dbReport.social_score ? 24 : 0
+          outOf: dbReport.social_score ? 24 : 24
         },
         selfCare: {
           score24: dbReport.self_help_score || 0,
           percent: calculatePercent(dbReport.self_help_score),
           status: getStatus(calculatePercent(dbReport.self_help_score)),
           description: '자조',
-          outOf: dbReport.self_help_score ? 24 : 0
+          outOf: dbReport.self_help_score ? 24 : 24
         }
       };
 

@@ -13,7 +13,14 @@ from sentence_transformers import SentenceTransformer
 MODEL_NAME = 'jhgan/ko-sroberta-multitask'
 COLLECTION_NAME = "my_journal_on_disk"
 QDRANT_PATH = "../my_local_qdrant_db"
-EMBEDDING_DB_PATH = os.path.join(os.path.dirname(__file__), 'my_local_qdrant_db', 'diary_embeddings.db')
+# Azure 환경 감지 및 적절한 경로 설정
+if os.environ.get('WEBSITE_SITE_NAME'):
+    # Azure App Service 환경 - 임시 디렉토리 사용
+    import tempfile
+    EMBEDDING_DB_PATH = os.path.join(tempfile.gettempdir(), 'vector_db', 'diary_embeddings.db')
+else:
+    # 로컬 환경
+    EMBEDDING_DB_PATH = os.path.join(os.path.dirname(__file__), 'my_local_qdrant_db', 'diary_embeddings.db')
 
 def setup_model_and_data():
     """임베딩 모델을 준비하고 기존 데이터를 로드합니다

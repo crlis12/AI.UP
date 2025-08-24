@@ -18,7 +18,14 @@ def delete_diary_embedding(diary_id):
     """벡터 DB에서 일기 임베딩을 삭제"""
     try:
         # SQLite DB에서 삭제
-        db_path = os.path.join(os.path.dirname(__file__), 'my_local_qdrant_db', 'diary_embeddings.db')
+        # Azure 환경 감지 및 적절한 경로 설정
+        if os.environ.get('WEBSITE_SITE_NAME'):
+            # Azure App Service 환경 - 임시 디렉토리 사용
+            import tempfile
+            db_path = os.path.join(tempfile.gettempdir(), 'vector_db', 'diary_embeddings.db')
+        else:
+            # 로컬 환경
+            db_path = os.path.join(os.path.dirname(__file__), 'my_local_qdrant_db', 'diary_embeddings.db')
         
         if not os.path.exists(db_path):
             return {"success": False, "message": "벡터 DB가 존재하지 않습니다."}

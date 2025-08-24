@@ -1,0 +1,15 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+README.md
+.env
+.nyc_output
+coverage
+.DS_Store
+*.log
+uploads/diaries/users/
+my_local_qdrant_db/
+search-engine-py/my_local_qdrant_db/
+__queuestorage__
+

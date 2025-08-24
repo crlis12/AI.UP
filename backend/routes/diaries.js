@@ -48,7 +48,25 @@ async function generateVectorEmbedding(diaryData) {
   return new Promise((resolve, reject) => {
     const pythonScriptPath = path.join(__dirname, '..', 'search-engine-py', 'upsert_diary.py');
     
-    const pythonProcess = spawn('python', [pythonScriptPath], {
+    // Azure 환경에서 확실하게 python3 사용
+    let pythonPath;
+    if (process.env.WEBSITE_SITE_NAME) {
+      // Azure App Service 환경 - 무조건 python3 사용
+      pythonPath = 'python3';
+    } else {
+      // 로컬 환경
+      pythonPath = process.env.PYTHON_PATH || 'python';
+    }
+    
+    // 디버깅 로그 추가
+    console.log('🐍 Python 벡터 임베딩 생성 시작');
+    console.log('   - Python 경로:', pythonPath);
+    console.log('   - 스크립트 경로:', pythonScriptPath);
+    console.log('   - 작업 디렉토리:', path.join(__dirname, '..', 'search-engine-py'));
+    console.log('   - Azure 환경:', !!process.env.WEBSITE_SITE_NAME);
+    console.log('   - 일기 ID:', diaryData.id);
+    
+    const pythonProcess = spawn(pythonPath, [pythonScriptPath], {
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd: path.join(__dirname, '..', 'search-engine-py'),
       env: { ...process.env, PYTHONIOENCODING: 'utf-8' }
@@ -66,22 +84,34 @@ async function generateVectorEmbedding(diaryData) {
     });
 
     pythonProcess.on('close', (code) => {
+      console.log('🐍 Python 프로세스 종료 코드:', code);
       if (code !== 0) {
-        console.error('Python 스크립트 오류:', errorString);
+        console.error('❌ Python 스크립트 오류:', errorString);
+        console.error('   - 환경 변수 WEBSITE_SITE_NAME:', process.env.WEBSITE_SITE_NAME);
+        console.error('   - 환경 변수 PYTHON_PATH:', process.env.PYTHON_PATH);
         return reject(new Error(`Python 스크립트 실행 실패 (code: ${code}): ${errorString}`));
       }
 
       try {
         const result = JSON.parse(dataString.trim());
+        console.log('✅ 벡터 임베딩 생성 성공:', result.success ? '성공' : '실패');
+        if (!result.success) {
+          console.warn('⚠️ 벡터 임베딩 생성 실패 메시지:', result.message);
+        }
         resolve(result);
       } catch (parseError) {
-        console.error('JSON 파싱 오류:', parseError, 'Raw output:', dataString);
+        console.error('❌ JSON 파싱 오류:', parseError, 'Raw output:', dataString);
         reject(new Error(`결과 파싱 실패: ${parseError.message}`));
       }
     });
 
     pythonProcess.on('error', (error) => {
-      console.error('Python 프로세스 실행 오류:', error);
+      console.error('❌ Python 프로세스 실행 오류:', error);
+      console.error('   - 사용된 Python 경로:', pythonPath);
+      console.error('   - 스크립트 경로:', pythonScriptPath);
+      
+
+      
       reject(error);
     });
 
@@ -611,7 +641,17 @@ async function deleteVectorEmbedding(diaryId) {
   return new Promise((resolve, reject) => {
     const pythonScriptPath = path.join(__dirname, '..', 'search-engine-py', 'delete_diary.py');
     
-    const pythonProcess = spawn('python', [pythonScriptPath], {
+    // Azure 환경에서 확실하게 python3 사용
+    let pythonPath;
+    if (process.env.WEBSITE_SITE_NAME) {
+      // Azure App Service 환경 - 무조건 python3 사용
+      pythonPath = 'python3';
+    } else {
+      // 로컬 환경
+      pythonPath = process.env.PYTHON_PATH || 'python';
+    }
+    
+    const pythonProcess = spawn(pythonPath, [pythonScriptPath], {
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd: path.join(__dirname, '..', 'search-engine-py'),
       env: { ...process.env, PYTHONIOENCODING: 'utf-8' }

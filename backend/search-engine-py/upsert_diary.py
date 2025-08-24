@@ -57,8 +57,17 @@ def upsert_diary(diary_data):
             return {"success": False, "message": "임베딩 생성 실패"}
         
         # SQLite DB에 저장 (간단한 벡터 저장소)
-        db_path = os.path.join(os.path.dirname(__file__), 'my_local_qdrant_db', 'diary_embeddings.db')
-        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        # Azure 환경 감지 및 적절한 경로 설정
+        if os.environ.get('WEBSITE_SITE_NAME'):
+            # Azure App Service 환경 - 임시 디렉토리 사용
+            import tempfile
+            db_dir = os.path.join(tempfile.gettempdir(), 'vector_db')
+            os.makedirs(db_dir, exist_ok=True)
+            db_path = os.path.join(db_dir, 'diary_embeddings.db')
+        else:
+            # 로컬 환경
+            db_path = os.path.join(os.path.dirname(__file__), 'my_local_qdrant_db', 'diary_embeddings.db')
+            os.makedirs(os.path.dirname(db_path), exist_ok=True)
         
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
