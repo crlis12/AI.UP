@@ -943,9 +943,7 @@ function ReportDetailPage() {
           <div className="report-header-info">
             <div className="report-header-top">
               <h1 className="report-detail__title">
-                발달 평가 리포트 {reportData?.weekNumber && (
-                  <span style={{ whiteSpace: 'nowrap' }}>{`(${reportData.weekNumber}주차)`}</span>
-                )}
+                발달 평가 리포트 <br></br> {reportData?.weekNumber && `(${reportData.weekNumber}주차)`}
               </h1>
               <button
                 type="button"
@@ -1164,7 +1162,7 @@ function ReportDetailPage() {
                       className="score-number" 
                       style={{ color: getStatusColor(status) }}
                     >
-                      {score24 != null ? score24 : '-'}
+                      {score24!= null ? score24 : '-'}
                     </span>
                     <span 
                       className="score-max" 
