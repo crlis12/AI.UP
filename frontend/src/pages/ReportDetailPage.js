@@ -549,77 +549,77 @@ function ReportDetailPage() {
 
   // 사용자가 요청한 즉시 표시용 샘플 데이터
   const INSTANT_SAMPLE_AGENT_REPORT = {
-    child_age_month: '5',
+    child_age_month: '5개월 (추정)',
     child_name: '쭈니',
     domains: [
       {
         domain_id: 1,
         domain_name: '대근육운동',
         questions: [
-          { question: '등을 대고 누운 자세에서 반쯤 뒤집는다.', question_number: 1, reason: '옆으로 몸을 비트는 시도는 있었으나, 반쯤 뒤집는 동작을 완성하지는 못했습니다.', score: 1 },
-          { question: '엎드려 놓으면 고개를 잠깐 들었다 내린다.', question_number: 2, reason: '엎드린 자세에서 잠깐 고개를 들 수 있지만, 오래 버티지 못하고 힘들어합니다.', score: 2 },
-          { question: '누운 자세에서 두 팔을 잡고 일으켜 앉힐 때 목이 뒤로 쳐지지 않고 따라 올라온다.', question_number: 3, reason: '일기 전반에 걸쳐 목을 제대로 가누지 못하고 불안정하다는 내용이 반복적으로 언급됩니다.', score: 1 },
-          { question: '엎드린 자세에서 가슴을 들고 양팔로 버틴다.', question_number: 4, reason: '팔로 버티려는 시도는 있으나, 아주 잠깐이며 곧 힘들어하며 웁니다.', score: 1 },
-          { question: '엎드린 자세에서 뒤집는다.', question_number: 5, reason: '엎드린 자세를 힘들어하며, 뒤집는다는 기록이 전혀 없습니다.', score: 0 },
-          { question: '등을 대고 누운 자세에서 엎드린 자세로 뒤집는다', question_number: 6, reason: '뒤집으려는 시도조차 하지 않는다는 내용이 일기에 명확히 기록되어 있습니다.', score: 0 },
-          { question: '누워 있을 때 자기 발을 잡고 논다.', question_number: 7, reason: '자료 부족', score: 0 },
-          { question: '앉혀주면 양손을 짚고 30초 이상 혼자 버티고 앉아 있다.', question_number: 8, reason: '목 가누기도 불안정한 상태로, 앉는 것에 대한 기록이 전혀 없습니다.', score: 0 }
+          { question: '등을 대고 누운 자세에서 반쯤 뒤집는다.', question_number: 1, reason: '9월 20일 일기에서 옆으로 몸을 비트는 시도를 했으나 금방 되돌아왔다는 기록이 있습니다.', score: 1 },
+          { question: '엎드려 놓으면 고개를 잠깐 들었다 내린다.', question_number: 2, reason: '9월 28일, 10월 3일 일기 등에서 엎드린 자세에서 잠깐 고개를 들지만 금방 떨어뜨린다는 내용이 반복적으로 나타납니다.', score: 2 },
+          { question: '누운 자세에서 두 팔을 잡고 일으켜 앉힐 때 목이 뒤로 쳐지지 않고 따라 올라온다.', question_number: 3, reason: '9월 1일, 9월 18일, 10월 13일 등 여러 일기에서 목 가누기가 불안정하고 고개가 툭 떨어진다는 우려가 기록되어 있습니다.', score: 0 },
+          { question: '엎드린 자세에서 가슴을 들고 양팔로 버틴다.', question_number: 4, reason: '엎드린 자세를 오래 버티지 못하고 금방 울음을 터뜨린다는 기록은 있으나, 팔로 버티거나 가슴을 든다는 기록은 없습니다.', score: 0 },
+          { question: '엎드린 자세에서 뒤집는다.', question_number: 5, reason: '뒤집기 시도 자체가 없다는 기록으로 보아 수행이 어려운 것으로 보입니다.', score: 0 },
+          { question: '등을 대고 누운 자세에서 엎드린 자세로 뒤집는다', question_number: 6, reason: '여러 일기(10월 5일 등)에서 뒤집으려는 시도조차 하지 않아 부모님께서 걱정하고 계십니다.', score: 0 },
+          { question: '누워 있을 때 자기 발을 잡고 논다.', question_number: 7, reason: '자료 부족', score: null },
+          { question: '앉혀주면 양손을 짚고 30초 이상 혼자 버티고 앉아 있다.', question_number: 8, reason: '10월 13일 일기에서 아직 목도 완전히 잡지 못한 상태라고 기록되어 있어, 앉기는 어려운 단계입니다.', score: 0 }
         ]
       },
       {
         domain_id: 2,
         domain_name: '소근육운동',
         questions: [
-          { question: '등을 대고 누운 자세에서 두 손을 가슴 부분에 모은다.', question_number: 9, reason: '손으로 자기 얼굴을 만지며 노는 것으로 보아, 양손을 몸 중앙으로 모으는 동작이 가능합니다.', score: 3 },
-          { question: '손에 딸랑이를 쥐여 주면 잠시 쥐고 있다.', question_number: 10, reason: '장난감을 능숙하게 쥐고 흔들며 놀 수 있다는 기록이 있습니다.', score: 3 },
-          { question: '앉은 자세로 안겨있을 때 양손을 모아 쥐거나 손가락을 만진다.', question_number: 11, reason: '자료 부족', score: 0 },
-          { question: '손에 쥐고 있는 딸랑이를 자기 입으로 가져간다.', question_number: 12, reason: '자료 부족', score: 0 },
-          { question: '딸랑이를 손 가까이 주면 잡는다.', question_number: 13, reason: '장난감을 주면 손을 뻗어 잡으려고 한다는 기록이 있습니다.', score: 3 },
-          { question: '앉은 자세로 안겨있을 때 탁자 위의 장난감을 향해 손을 뻗는다', question_number: 14, reason: '장난감을 향해 손을 뻗는 것은 가능하지만, 앉은 자세에서 특정 상황에 대한 기록은 부족합니다.', score: 2 },
-          { question: '작은 장난감을 집어들 때, 손바닥에 대고 손가락으로 감싸 쥔다.', question_number: 15, reason: '장난감을 능숙하게 쥘 수 있다는 기록으로 보아, 손바닥과 손가락을 이용한 잡기가 가능합니다.', score: 3 },
-          { question: '딸랑이를 쥐고 있는 손에 다른 장난감을 주면 쥐고 있던 딸랑이를 떨어뜨리고 새 장난감을 잡는다.', question_number: 16, reason: '자료 부족', score: 0 }
+          { question: '등을 대고 누운 자세에서 두 손을 가슴 부분에 모은다.', question_number: 9, reason: '자료 부족', score: null },
+          { question: '손에 딸랑이를 쥐여 주면 잠시 쥐고 있다.', question_number: 10, reason: '10월 11일 일기에서 장난감을 오래 붙잡고 있었다는 기록이 있어 능숙하게 수행하는 것으로 보입니다.', score: 3 },
+          { question: '앉은 자세로 안겨있을 때 양손을 모아 쥐거나 손가락을 만진다.', question_number: 11, reason: '자료 부족', score: null },
+          { question: '손에 쥐고 있는 딸랑이를 자기 입으로 가져간다.', question_number: 12, reason: '자료 부족', score: null },
+          { question: '딸랑이를 손 가까이 주면 잡는다.', question_number: 13, reason: '8월 30일, 10월 4일 등 여러 일기에서 장난감을 주면 손을 뻗어 잘 잡는다고 기록되어 있습니다.', score: 3 },
+          { question: '앉은 자세로 안겨있을 때 탁자 위의 장난감을 향해 손을 뻗는다', question_number: 14, reason: '8월 24일, 10월 4일 일기 등에서 장난감을 향해 손을 뻗는 행동을 잘한다고 기록되어 있습니다.', score: 3 },
+          { question: '작은 장난감을 집어들 때, 손바닥에 대고 손가락으로 감싸 쥔다.', question_number: 15, reason: '10월 1일 일기에서 손 힘이 좋다고 언급되었고, 장난감을 잘 잡는다는 기록이 많아 잘 수행할 것으로 보입니다.', score: 3 },
+          { question: '딸랑이를 쥐고 있는 손에 다른 장난감을 주면 쥐고 있던 딸랑이를 떨어뜨리고 새 장난감을 잡는다.', question_number: 16, reason: '자료 부족', score: null }
         ]
       },
       {
         domain_id: 3,
         domain_name: '인지',
         questions: [
-          { question: '소리 나는 곳을 쳐다본다.', question_number: 17, reason: '소리에 잘 반응한다는 내용이 반복적으로 기록되어 있습니다.', score: 3 },
-          { question: '눈앞에서 장난감을 움직이면 시선이 장난감의 움직임을 따라간다.', question_number: 18, reason: '움직이는 장난감을 향해 손을 뻗는 것으로 보아, 시선으로 움직임을 따라가는 것이 가능합니다.', score: 3 },
-          { question: '어떤 소리를 듣고 있다가 새로운 소리가 들리면 거기로 관심을 돌린다.', question_number: 19, reason: '자료 부족', score: 0 },
-          { question: '자기 손과 손가락을 자세히 바라본다.', question_number: 20, reason: '자료 부족', score: 0 },
-          { question: '딸랑이를 흔들거나 바라보거나 입에 넣는 등 딸랑이를 가지고 논다.', question_number: 21, reason: '장난감을 잡고 흔들며 놀 수 있다는 기록이 있습니다.', score: 3 },
-          { question: '딸랑이나 숟가락과 같은 물건을 바닥에 두드리면서 논다.', question_number: 22, reason: '자료 부족', score: 0 },
-          { question: '장난감이 떨어져 있는 곳을 쳐다본다.', question_number: 23, reason: '자료 부족', score: 0 },
-          { question: '친숙한 어른이 안으려고 하면 팔을 벌린다.', question_number: 24, reason: '자료 부족', score: 0 }
+          { question: '소리 나는 곳을 쳐다본다.', question_number: 17, reason: '9월 30일, 10월 22일 일기에서 작은 소리에도 잘 반응한다고 명확히 기록되어 있습니다.', score: 3 },
+          { question: '눈앞에서 장난감을 움직이면 시선이 장난감의 움직임을 따라간다.', question_number: 18, reason: '자료 부족', score: null },
+          { question: '어떤 소리를 듣고 있다가 새로운 소리가 들리면 거기로 관심을 돌린다.', question_number: 19, reason: '자료 부족', score: null },
+          { question: '자기 손과 손가락을 자세히 바라본다.', question_number: 20, reason: '9월 4일 일기에서 손으로 자기 얼굴을 만지며 놀았다는 기록으로 보아, 자신의 손에 대한 인지가 발달하고 있는 것으로 보입니다.', score: 2 },
+          { question: '딸랑이를 흔들거나 바라보거나 입에 넣는 등 딸랑이를 가지고 논다.', question_number: 21, reason: '9월 6일 일기에서 장난감을 붙잡고 흔들며 웃는다는 기록이 있습니다.', score: 2 },
+          { question: '딸랑이나 숟가락과 같은 물건을 바닥에 두드리면서 논다.', question_number: 22, reason: '자료 부족', score: null },
+          { question: '장난감이 떨어져 있는 곳을 쳐다본다.', question_number: 23, reason: '자료 부족', score: null }
         ]
       },
       {
         domain_id: 4,
         domain_name: '언어',
         questions: [
-          { question: '아, 우, 이 등 의미 없는 발성을 한다.', question_number: 25, reason: '옹알이를 길게, 자주 한다는 기록이 여러 번 나타납니다.', score: 3 },
-          { question: '아이를 어르거나 달래면 옹알이로 반응한다.', question_number: 26, reason: '어른과 대화하듯이 옹알이를 한다는 기록이 있습니다.', score: 3 },
-          { question: '웃을 때 소리를 내며 웃는다.', question_number: 27, reason: '크게 웃거나 방긋방긋 웃는다는 표현으로 보아 소리 내어 웃는 것이 가능해 보입니다.', score: 3 },
-          { question: '장난감이나 사람을 보고 소리를 내어 반응한다.', question_number: 28, reason: '장난감을 가지고 놀거나 사람을 보며 옹알이를 하거나 웃는다는 기록이 있습니다.', score: 3 },
-          { question: '두 입술을 떨어서 내는 투레질 소리', question_number: 29, reason: '자료 부족', score: 0 },
-          { question: '브, 쁘, 프, 므와 비슷한 소리를 낸다.', question_number: 30, reason: '자료 부족', score: 0 },
-          { question: '엄마 또는 아빠와 비슷한 소리를 낸다', question_number: 31, reason: '자료 부족', score: 0 },
-          { question: '아이에게 안돼요.라고 하면, 짧은 순간이라도 하던 행동을 멈추고 목소리에 반응한다.', question_number: 32, reason: '자료 부족', score: 0 }
+          { question: '친숙한 어른이 안으려고 하면 팔을 벌린다.', question_number: 24, reason: '자료 부족', score: null },
+          { question: '"아", "우", "이" 등 의미 없는 발성을 한다.', question_number: 25, reason: "일기 전반에 걸쳐 '옹알이'가 늘고 풍부해졌다는 기록이 꾸준히 나타납니다.", score: 3 },
+          { question: '아이를 어르거나 달래면 옹알이로 반응한다.', question_number: 26, reason: "9월 23일 일기에서 '대화하는 듯한 모습'이라는 표현으로 보아 상호작용적인 옹알이가 가능한 것으로 보입니다.", score: 3 },
+          { question: '웃을 때 소리를 내며 웃는다.', question_number: 27, reason: "9월 1일 '까르르 웃었다', 10월 26일 '웃음소리도 크고' 등 소리 내어 웃는다는 기록이 많습니다.", score: 3 },
+          { question: '장난감이나 사람을 보고 소리를 내어 반응한다.', question_number: 28, reason: '10월 18일 일기에서 장난감을 붙잡고 옹알이를 오래 했다는 기록이 있습니다.', score: 3 },
+          { question: '두 입술을 떨어서 내는 투레질 소리', question_number: 29, reason: '자료 부족', score: null },
+          { question: '"브", "쁘", "프", "므"와 비슷한 소리를 낸다.', question_number: 30, reason: '자료 부족', score: null },
+          { question: '"엄마" 또는 "아빠"와 비슷한 소리를 낸다', question_number: 31, reason: '자료 부족', score: null },
+          { question: '아이에게 "안돼요."라고 하면, 짧은 순간이라도 하던 행동을 멈추고 목소리에 반응한다.', question_number: 32, reason: '자료 부족', score: null }
         ]
       },
       {
         domain_id: 5,
         domain_name: '사회성',
         questions: [
-          { question: '엄마(보호자)가 자리를 비웠다가 다시 나타나면 엄마(보호자)를 알아보고 울음을 그친다.', question_number: 33, reason: '자료 부족', score: 0 },
-          { question: '아이가 엄마(보호자)와 이야기를 하거나 놀 때 엄마(보호자)의 얼굴을 바라본다.', question_number: 34, reason: '엄마 얼굴을 보고 크게 웃는다는 기록이 있습니다.', score: 3 },
-          { question: '어른이 아이를 보며 말하거나 웃기 전에, 어른을 보고 먼저 웃는다.', question_number: 35, reason: '웃음이 많고, 엄마 얼굴을 보고 웃는 등 사회적 상호작용이 좋으나, 먼저 웃음을 시작하는지에 대한 명확한 기록은 부족합니다.', score: 2 },
-          { question: '어른들의 얼굴(머리카락, 코, 안경 등)을 만져보거나 잡아당긴다.', question_number: 36, reason: '자료 부족', score: 0 },
-          { question: '거울 속에 보이는 자신의 모습을 보고 웃거나 웅얼거린다.', question_number: 37, reason: '거울 보는 것을 좋아한다는 기록이 있습니다.', score: 3 },
-          { question: '아이의 이름을 부르면 듣고 쳐다본다.', question_number: 38, reason: '자료 부족', score: 0 },
-          { question: '가족 등 친숙한 사람을 보면 다가가려고 한다.', question_number: 39, reason: '자료 부족', score: 0 },
-          { question: '낯가림을 한다', question_number: 40, reason: '자료 부족', score: 0 }
+          { question: '엄마(보호자)가 자리를 비웠다가 다시 나타나면 엄마(보호자)를 알아보고 울음을 그친다.', question_number: 33, reason: '자료 부족', score: null },
+          { question: '아이가 엄마(보호자)와 이야기를 하거나 놀 때 엄마(보호자)의 얼굴을 바라본다.', question_number: 34, reason: '일기 전반에 부모님 및 가족과 웃고 옹알이를 하며 상호작용하는 모습이 기록되어 있어 잘 수행할 것으로 판단됩니다.', score: 3 },
+          { question: '어른이 아이를 보며 말하거나 웃기 전에, 어른을 보고 먼저 웃는다.', question_number: 35, reason: "8월 31일 '웃음은 참 많아져서 집안이 환하다' 등 아이가 먼저 사회적 반응을 시작하는 모습이 엿보입니다.", score: 3 },
+          { question: '어른들의 얼굴(머리카락, 코, 안경 등)을 만져보거나 잡아당긴다.', question_number: 36, reason: '자료 부족', score: null },
+          { question: '거울 속에 보이는 자신의 모습을 보고 웃거나 웅얼거린다.', question_number: 37, reason: `9월 18일 일기에서 거울을 보여주니 '좋아한다'는 긍정적인 반응을 보였습니다.`, score: 2 },
+          { question: '아이의 이름을 부르면 듣고 쳐다본다.', question_number: 38, reason: '자료 부족', score: null },
+          { question: '가족 등 친숙한 사람을 보면 다가가려고 한다.', question_number: 39, reason: '자료 부족', score: null },
+          { question: '낯가림을 한다', question_number: 40, reason: '자료 부족', score: null }
         ]
       },
       { domain_id: 6, domain_name: '자조', questions: [] },
@@ -627,15 +627,13 @@ function ReportDetailPage() {
     ],
     final_opinion: {
       isWarning: true,
-      opinion_text:
-        '쭈니 부모님, 쭈니의 성장을 꼼꼼하게 기록하고 계신 모습이 정말 인상 깊습니다. 부모님의 사랑과 관심이 일기 곳곳에서 느껴집니다. 일기를 바탕으로 쭈니의 발달 상황을 살펴보니, 사회성, 언어, 소근육 발달은 아주 긍정적으로 잘 이루어지고 있습니다. 엄마와 눈을 맞추고 웃으며 상호작용하고, 옹알이로 대화하려는 모습, 장난감을 손으로 잘 잡고 노는 모습 모두 칭찬해 주고 싶은 부분입니다. 하지만 부모님께서 걱정하시는 것처럼, 대근육 발달 영역에서는 주의 깊게 살펴볼 필요가 있어 보입니다. 특히 개월 수에 비해 목 가누기가 여전히 불안정하고, 뒤집기를 전혀 시도하지 않으며, 엎드린 자세(터미타임)를 매우 힘들어하는 모습이 반복적으로 관찰됩니다. 이는 또래 발달 속도에 비해 다소 지연을 보이는 신호일 수 있습니다. 부모님의 걱정이 당연하며, 이는 결코 부모님의 잘못이 아닙니다. 아이들마다 발달 속도는 다르지만, 특정 영역에서 지속적인 지연이 관찰될 때는 전문가의 도움을 받아 원인을 파악하고 적절한 자극을 주는 것이 중요합니다. 가까운 시일 내에 소아청소년과 의사 또는 아동 발달 전문가와 상담하여 쭈니의 대근육 발달 상태를 정확하게 평가받아 보시기를 적극적으로 권장합니다. 조기에 전문가의 조언을 구하는 것이 쭈니의 건강한 성장에 큰 도움이 될 것입니다.',
+      opinion_text: `쭈니 부모님, 정성스럽게 작성해주신 육아일기를 바탕으로 쭈니의 발달 상황을 살펴보았습니다. 쭈니는 사회성, 언어, 소근육 영역에서 매우 긍정적인 발달을 보이고 있습니다. 가족들과 눈을 맞추고 소리 내어 웃으며, 옹알이로 소통하려는 모습은 사회성과 언어 발달이 잘 이루어지고 있다는 좋은 신호입니다. 또한, 장난감을 손으로 뻗어 잡고 쥐는 힘이 좋은 것으로 보아 소근육 발달도 순조롭게 진행 중입니다. 하지만 부모님께서 우려하시는 것처럼, 대근육 발달 영역에서는 주의 깊은 관찰이 필요해 보입니다. 특히 목 가누기, 뒤집기, 엎드려 버티기 등 현재 월령에서 기대되는 큰 움직임들이 아직 어려운 것으로 나타났습니다. 부모님의 걱정은 당연하며, 아이를 세심하게 관찰하고 계신 결과입니다. 이미 고려하고 계신 것처럼, 현재 상황에 대한 정확한 평가와 적절한 지원을 위해 소아청소년과 의사 또는 아동 발달 전문가와 상담을 받아보시기를 적극적으로 권유해 드립니다. 조기에 전문가의 도움을 받으면 아이의 발달에 큰 힘이 될 수 있습니다. 인지, 사회성 등 여러 영역에서 아직 정보가 부족한 항목들이 많습니다. 아래 '추가 관찰 사항'을 참고하여 일기를 작성해주시면 다음 분석에 더 큰 도움이 될 것입니다.`,
       requirements: [
-        '누워서 자기 발을 가지고 노는지 관찰해 주세요.',
-        '손에 쥔 장난감이나 물건을 입으로 가져가는지 확인해 주세요.',
-        '한 손에 장난감을 쥔 상태에서 다른 장난감을 주었을 때, 기존 장난감을 놓고 새것을 잡는지 관찰해 주세요.',
-        '쭈니의 이름을 불렀을 때 소리 나는 쪽으로 고개를 돌려 쳐다보는지 확인해 주세요.',
-        "옹알이를 할 때 '브', '므' 와 같은 입술 소리가 포함되는지 들어봐 주세요.",
-        '낯선 사람을 만났을 때 어떤 반응을 보이는지(낯가림) 기록해 주세요.'
+        '이름을 불렀을 때 소리나는 쪽으로 고개를 돌리는지 관찰해주세요.',
+        '엎드린 자세에서 팔로 바닥을 밀어 가슴을 들어 올리는지, 얼마나 버티는지 확인해주세요.',
+        '장난감이나 손을 입으로 가져가는 행동을 하는지 관찰해주세요.',
+        '안아달라는 표현으로 팔을 뻗거나 몸짓을 하는지 살펴보세요.',
+        '장난감을 가지고 놀 때, 한 손에서 다른 손으로 옮겨 잡는지 관찰해주세요.'
       ]
     }
   };
