@@ -1016,7 +1016,7 @@ html { overflow-y: auto; }
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 64px; /* 하단 네비게이션 위로 고정 */
+  bottom: 59px; /* 하단 네비게이션 위로 고정 */
   width: 100%;
   max-width: 390px;
   background-color: #FBFDF7;
