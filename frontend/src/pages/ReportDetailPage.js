@@ -747,13 +747,13 @@ function ReportDetailPage() {
   };
 
   const buildChecklistHeadline = (scores) => {
-    if (!scores) return '현재 발달 영역에서 가이드가 필요합니다.';
+    if (!scores) return '현재 발달 영역에서 추가 관찰이 필요합니다.';
     const target = Object.entries(scores).find(
       ([, v]) => v.status === '주의' || v.status === '위험'
     );
     if (!target) return '전반적으로 양호해요. 일상 속 체크리스트로 꾸준히 도와주세요.';
     const [, data] = target;
-    return `현재 ${data.description} 영역에서 가이드가 필요합니다.`;
+    return `현재 ${data.description} 영역에서 추가 관찰이 필요합니다.`;
   };
 
   const buildAlertMessage = (scores) => {
@@ -949,7 +949,7 @@ function ReportDetailPage() {
               <button
                 type="button"
                 className="report-generate-button"
-                style={{ marginLeft: '10px', background: '#2196F3' }}
+                style={{  background: '#2196F3' }}
                 onClick={async () => {
                   try {
                     if (!childId) return;
@@ -1186,7 +1186,7 @@ function ReportDetailPage() {
 
         {/* 우리 아이에게 필요한 체크리스트 */}
         <div className="report-checklist-section">
-          <h2 className="section-title">우리 아이에게 필요한 체크리스트</h2>
+          <h2 className="section-title">AI 종합 소견</h2>
           <p className="checklist-headline">{buildChecklistHeadline(reportData?.scores)}</p>
           <div className="checklist-card">
             {buildChecklistItems(reportData?.scores).map((text, idx) => (
@@ -1230,7 +1230,7 @@ function ReportDetailPage() {
         <div className="report-recommendations-section">
           <h2 className="section-title">
             <FiCheckCircle className="section-icon" />
-            발달 권장사항
+            발달 채크리스트
           </h2>
           <div className="recommendations-list">
             {reportData?.recommendations?.map((recommendation, index) => (
