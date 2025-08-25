@@ -20,6 +20,7 @@ function ReportDetailPage() {
   const [error, setError] = useState(null);
   const [hasReportData, setHasReportData] = useState(false);
   const [weeklyAverages, setWeeklyAverages] = useState([]);
+  const [showGenerateScreen, setShowGenerateScreen] = useState(true);
 
   // 주차별 평균 점수 간단 라인 차트 (SVG)
   const WeeklyAverageChart = ({ data }) => {
@@ -797,8 +798,8 @@ function ReportDetailPage() {
     );
   }
 
-  // 리포트 데이터가 없을 때 리포트 생성 화면 표시
-  if (!hasReportData) {
+  // 리포트 데이터가 없을 때 리포트 생성 화면 표시 (항상 먼저 노출)
+  if (showGenerateScreen) {
     return (
       <PageLayout title="주간 리포트" titleStyle={titleStyle} showNavBar={true} backTo="/main">
         <div className="weekly-report-container">
@@ -823,119 +824,19 @@ function ReportDetailPage() {
             <button
               type="button"
               className="generate-report-btn"
-              onClick={async () => {
+              onClick={() => {
                 try {
-                  if (!childId) return;
-                  const qRes = await fetch(`${API_BASE}/questions/child/${childId}`);
-                  const qData = await qRes.json();
-                  const questions = Array.isArray(qData?.questions)
-                    ? qData.questions.map((q) => q?.question_text).filter(Boolean)
-                    : [];
-                  if (questions.length === 0) {
-                    alert('생성할 KDST 문항을 찾지 못했습니다.');
-                    return;
-                  }
-
-                  const isValidContent = (content) => {
-                    if (!content || content.trim() === '') return false;
-                    if (content === '[]') return false;
-                    try {
-                      const parsed = JSON.parse(content);
-                      return parsed && typeof parsed === 'object' && parsed !== null;
-                    } catch {
-                      return false;
-                    }
-                  };
-
-                  const requestOnce = async () => {
-                    const response = await fetch(`${API_BASE}/report/kdst-generate-report`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        questions,
-                        reportInput: 'KDST 문제들로 아기 발달 보고서 작성',
-                        reportConfig: { vendor: 'gemini', model: 'gemini-2.5-pro' },
-                        reportSpec: { language: 'Korean', reportType: '대화 보고서' },
-                      }),
-                    });
-                    return await response.json();
-                  };
-
-                  let data;
-                  let lastError;
-                  const maxRetries = 2;
-                  let attempt = 0;
-
-                  while (attempt <= maxRetries) {
-                    try {
-                      attempt += 1;
-                      console.log(`[Report] 생성 요청 시도 ${attempt}/${maxRetries + 1}`);
-                      data = await requestOnce();
-                      if (!data?.success) throw new Error(data?.message || '리포트 생성 실패');
-                      const content = data?.report?.content;
-                      if (isValidContent(content)) {
-                        break; // 성공
-                      } else {
-                        console.warn('[Report] report.content가 비어있거나 [] 입니다. 재시도합니다.');
-                        if (attempt <= maxRetries) {
-                          await new Promise((r) => setTimeout(r, attempt * 600));
-                          continue;
-                        }
-                      }
-                    } catch (e) {
-                      console.error(`[Report] 시도 ${attempt} 실패:`, e);
-                      lastError = e;
-                      if (attempt <= maxRetries) {
-                        await new Promise((r) => setTimeout(r, attempt * 600));
-                        continue;
-                      }
-                    }
-                    break;
-                  }
-
-                  if (!data?.success || !isValidContent(data?.report?.content)) {
-                    throw new Error(lastError?.message || '리포트 생성에 여러 번 실패했습니다. 잠시 후 다시 시도해주세요.');
-                  }
-
-                  console.group('[Report] 생성 결과');
-                  console.log('원본 응답 객체:', data);
-                  console.log('LLM 응답 본문 (report.content):', data?.report?.content);
-                  
-                  let savedToDatabase = false;
-                  try {
-                    const parsed = data?.report?.content ? JSON.parse(data.report.content) : null;
-                    if (parsed) {
-                      console.log('LLM 응답 JSON 파싱 결과:', parsed);
-                      const uiData = transformAgentReportToUI(parsed);
-                      if (uiData) {
-                        setReportData(uiData);
-                        setHasReportData(true);
-                        
-                        // 데이터베이스에 저장
-                        try {
-                          await saveReportToDatabase(parsed, uiData);
-                          savedToDatabase = true;
-                          console.log('✅ 리포트가 데이터베이스에 저장되었습니다.');
-                        } catch (saveError) {
-                          console.error('❌ 리포트 DB 저장 실패:', saveError);
-                          // 저장 실패해도 UI는 표시
-                        }
-                      }
-                    }
-                  } catch (e) {
-                    console.log('LLM 응답은 JSON이 아니거나 파싱 불가:', e?.message);
-                  }
-                  console.groupEnd();
-                  
-                  // 사용자에게 결과 알림
-                  if (savedToDatabase) {
-                    alert('리포트 생성 및 저장이 완료되었습니다.');
+                  const uiData = transformAgentReportToUI(INSTANT_SAMPLE_AGENT_REPORT);
+                  if (uiData) {
+                    setReportData(uiData);
+                    setHasReportData(true);
+                    setShowGenerateScreen(false);
                   } else {
-                    alert('리포트 생성이 완료되었습니다.\n(저장 중 오류가 발생했을 수 있습니다.)');
+                    alert('샘플 데이터를 렌더링할 수 없습니다.');
                   }
                 } catch (e) {
-                  console.error('리포트 생성 오류:', e);
-                  alert(e?.message || '리포트 생성 중 오류가 발생했습니다.');
+                  console.error('샘플 렌더링 오류:', e);
+                  alert('샘플 렌더링 중 오류가 발생했습니다.');
                 }
               }}
             >
@@ -1041,20 +942,7 @@ function ReportDetailPage() {
               <button
                 type="button"
                 className="report-generate-button"
-                onClick={() => {
-                  try {
-                    const uiData = transformAgentReportToUI(INSTANT_SAMPLE_AGENT_REPORT);
-                    if (uiData) {
-                      setReportData(uiData);
-                      setHasReportData(true);
-                    } else {
-                      alert('샘플 데이터를 렌더링할 수 없습니다.');
-                    }
-                  } catch (e) {
-                    console.error('샘플 렌더링 오류:', e);
-                    alert('샘플 렌더링 중 오류가 발생했습니다.');
-                  }
-                }}
+                onClick={() => setShowGenerateScreen(true)}
               >
                 리포트      생성
               </button>
