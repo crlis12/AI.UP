@@ -170,8 +170,8 @@ function ReportDetailPage() {
 
       const getStatus = (percent) => {
         if (percent === 0) return '정보없음';
-        if (percent < 60) return '위험';
-        if (percent < 80) return '주의';
+        if (percent < 30) return '위험';
+        if (percent < 70) return '주의';
         return '정상';
       };
 
@@ -398,7 +398,7 @@ function ReportDetailPage() {
         const rawSum = questions.reduce((acc, q) => acc + (q?.score == null ? 0 : Number(q.score)), 0);
         const denom = questions.reduce((acc, q) => acc + (q?.score == null ? 0 : 3), 0); // non-null 개수 * 3
         const percent = denom > 0 ? Math.round((rawSum / denom) * 100) : 0;
-        const status = denom === 0 ? '정보없음' : percent < 60 ? '위험' : percent < 80 ? '주의' : '정상';
+        const status = denom === 0 ? '정보없음' : percent < 30 ? '위험' : percent < 60 ? '주의' : '정상';
 
         scoresByKey[key] = {
           score24: rawSum,
@@ -1128,7 +1128,7 @@ function ReportDetailPage() {
             </h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ display: 'inline-block', width: '42px', height: '6px', background: '#cbd5e1', borderRadius: '999px' }}></span>
-              <span style={{ color: '#6b7280', fontSize: '12px' }}>또래 평균: 15점</span>
+              <span style={{ color: '#6b7280', fontSize: '12px' }}>또래 평균</span>
             </div>
           </div>
           <div className="scores-grid">
@@ -1139,8 +1139,8 @@ function ReportDetailPage() {
               const score24 = typeof data?.score24 === 'number' ? data.score24 : null;
               const outOf = typeof data?.outOf === 'number' ? data.outOf : 24;
               const percent = typeof data?.percent === 'number' ? data.percent : (score24 != null && outOf > 0 ? Math.round((score24 / outOf) * 100) : null);
-              const peerAvgPoints = 15;
-              const peerAvgPercent = outOf > 0 ? Math.round((peerAvgPoints / outOf) * 100) : 0;
+              // 또래 평균: 각 섹션 분모(outOf)의 2/3 지점에 해당하는 백분율
+              const peerAvgPercent = outOf > 0 ? Math.round((2 / 3) * 100) : 0;
               const status = data?.status || '정보없음';
               return (
                 <div key={title} className="score-card">
@@ -1174,7 +1174,7 @@ function ReportDetailPage() {
                       }}
                     ></div>
                   </div>
-                  {/* 또래 평균(15점) 회색 바 */}
+                  {/* 또래 평균(분모의 2/3) 회색 바 */}
                   <div style={{ marginTop: 6, width: '100%', height: 6, background: '#eef2f7', borderRadius: 999 }}>
                     <div style={{ width: `${peerAvgPercent}%`, height: '100%', background: '#cbd5e1', borderRadius: 999 }}></div>
                   </div>
@@ -1230,7 +1230,7 @@ function ReportDetailPage() {
         <div className="report-recommendations-section">
           <h2 className="section-title">
             <FiCheckCircle className="section-icon" />
-            발달 채크리스트
+            발달 체크리스트
           </h2>
           <div className="recommendations-list">
             {reportData?.recommendations?.map((recommendation, index) => (
