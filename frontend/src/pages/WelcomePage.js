@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom'; // Link 컴포넌트를 import 합니다.
-import logo from '../assets/background1.png'; // 로고 이미지 경로를 확인해주세요.
+import logo from '/Users/nemosquare/Documents/GitHub/AI.UP/frontend/src/assets/littletodack_logo.png'; // 로고 이미지 경로를 확인해주세요.
+
 import '../App.css';
 
 // onSeenWelcome 함수를 props로 받도록 수정합니다.
