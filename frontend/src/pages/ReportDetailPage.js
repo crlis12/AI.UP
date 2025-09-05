@@ -20,6 +20,7 @@ function ReportDetailPage() {
   const [error, setError] = useState(null);
   const [hasReportData, setHasReportData] = useState(false);
   const [weeklyAverages, setWeeklyAverages] = useState([]);
+  const [showGenerateScreen, setShowGenerateScreen] = useState(true);
 
   // 주차별 평균 점수 간단 라인 차트 (SVG)
   const WeeklyAverageChart = ({ data }) => {
@@ -169,8 +170,8 @@ function ReportDetailPage() {
 
       const getStatus = (percent) => {
         if (percent === 0) return '정보없음';
-        if (percent < 60) return '위험';
-        if (percent < 80) return '주의';
+        if (percent < 30) return '위험';
+        if (percent < 70) return '주의';
         return '정상';
       };
 
@@ -397,7 +398,7 @@ function ReportDetailPage() {
         const rawSum = questions.reduce((acc, q) => acc + (q?.score == null ? 0 : Number(q.score)), 0);
         const denom = questions.reduce((acc, q) => acc + (q?.score == null ? 0 : 3), 0); // non-null 개수 * 3
         const percent = denom > 0 ? Math.round((rawSum / denom) * 100) : 0;
-        const status = denom === 0 ? '정보없음' : percent < 60 ? '위험' : percent < 80 ? '주의' : '정상';
+        const status = denom === 0 ? '정보없음' : percent < 30 ? '위험' : percent < 60 ? '주의' : '정상';
 
         scoresByKey[key] = {
           score24: rawSum,
@@ -546,6 +547,97 @@ function ReportDetailPage() {
     }
   };
 
+  // 사용자가 요청한 즉시 표시용 샘플 데이터
+  const INSTANT_SAMPLE_AGENT_REPORT = {
+    child_age_month: '5개월 (추정)',
+    child_name: '쭈니',
+    domains: [
+      {
+        domain_id: 1,
+        domain_name: '대근육운동',
+        questions: [
+          { question: '등을 대고 누운 자세에서 반쯤 뒤집는다.', question_number: 1, reason: '9월 20일 일기에서 옆으로 몸을 비트는 시도를 했으나 금방 되돌아왔다는 기록이 있습니다.', score: 1 },
+          { question: '엎드려 놓으면 고개를 잠깐 들었다 내린다.', question_number: 2, reason: '9월 28일, 10월 3일 일기 등에서 엎드린 자세에서 잠깐 고개를 들지만 금방 떨어뜨린다는 내용이 반복적으로 나타납니다.', score: 2 },
+          { question: '누운 자세에서 두 팔을 잡고 일으켜 앉힐 때 목이 뒤로 쳐지지 않고 따라 올라온다.', question_number: 3, reason: '9월 1일, 9월 18일, 10월 13일 등 여러 일기에서 목 가누기가 불안정하고 고개가 툭 떨어진다는 우려가 기록되어 있습니다.', score: 0 },
+          { question: '엎드린 자세에서 가슴을 들고 양팔로 버틴다.', question_number: 4, reason: '엎드린 자세를 오래 버티지 못하고 금방 울음을 터뜨린다는 기록은 있으나, 팔로 버티거나 가슴을 든다는 기록은 없습니다.', score: 0 },
+          { question: '엎드린 자세에서 뒤집는다.', question_number: 5, reason: '뒤집기 시도 자체가 없다는 기록으로 보아 수행이 어려운 것으로 보입니다.', score: 0 },
+          { question: '등을 대고 누운 자세에서 엎드린 자세로 뒤집는다', question_number: 6, reason: '여러 일기(10월 5일 등)에서 뒤집으려는 시도조차 하지 않아 부모님께서 걱정하고 계십니다.', score: 0 },
+          { question: '누워 있을 때 자기 발을 잡고 논다.', question_number: 7, reason: '자료 부족', score: null },
+          { question: '앉혀주면 양손을 짚고 30초 이상 혼자 버티고 앉아 있다.', question_number: 8, reason: '10월 13일 일기에서 아직 목도 완전히 잡지 못한 상태라고 기록되어 있어, 앉기는 어려운 단계입니다.', score: 0 }
+        ]
+      },
+      {
+        domain_id: 2,
+        domain_name: '소근육운동',
+        questions: [
+          { question: '등을 대고 누운 자세에서 두 손을 가슴 부분에 모은다.', question_number: 9, reason: '자료 부족', score: null },
+          { question: '손에 딸랑이를 쥐여 주면 잠시 쥐고 있다.', question_number: 10, reason: '10월 11일 일기에서 장난감을 오래 붙잡고 있었다는 기록이 있어 능숙하게 수행하는 것으로 보입니다.', score: 3 },
+          { question: '앉은 자세로 안겨있을 때 양손을 모아 쥐거나 손가락을 만진다.', question_number: 11, reason: '자료 부족', score: null },
+          { question: '손에 쥐고 있는 딸랑이를 자기 입으로 가져간다.', question_number: 12, reason: '자료 부족', score: null },
+          { question: '딸랑이를 손 가까이 주면 잡는다.', question_number: 13, reason: '8월 30일, 10월 4일 등 여러 일기에서 장난감을 주면 손을 뻗어 잘 잡는다고 기록되어 있습니다.', score: 3 },
+          { question: '앉은 자세로 안겨있을 때 탁자 위의 장난감을 향해 손을 뻗는다', question_number: 14, reason: '8월 24일, 10월 4일 일기 등에서 장난감을 향해 손을 뻗는 행동을 잘한다고 기록되어 있습니다.', score: 3 },
+          { question: '작은 장난감을 집어들 때, 손바닥에 대고 손가락으로 감싸 쥔다.', question_number: 15, reason: '10월 1일 일기에서 손 힘이 좋다고 언급되었고, 장난감을 잘 잡는다는 기록이 많아 잘 수행할 것으로 보입니다.', score: 3 },
+          { question: '딸랑이를 쥐고 있는 손에 다른 장난감을 주면 쥐고 있던 딸랑이를 떨어뜨리고 새 장난감을 잡는다.', question_number: 16, reason: '자료 부족', score: null }
+        ]
+      },
+      {
+        domain_id: 3,
+        domain_name: '인지',
+        questions: [
+          { question: '소리 나는 곳을 쳐다본다.', question_number: 17, reason: '9월 30일, 10월 22일 일기에서 작은 소리에도 잘 반응한다고 명확히 기록되어 있습니다.', score: 3 },
+          { question: '눈앞에서 장난감을 움직이면 시선이 장난감의 움직임을 따라간다.', question_number: 18, reason: '자료 부족', score: null },
+          { question: '어떤 소리를 듣고 있다가 새로운 소리가 들리면 거기로 관심을 돌린다.', question_number: 19, reason: '자료 부족', score: null },
+          { question: '자기 손과 손가락을 자세히 바라본다.', question_number: 20, reason: '9월 4일 일기에서 손으로 자기 얼굴을 만지며 놀았다는 기록으로 보아, 자신의 손에 대한 인지가 발달하고 있는 것으로 보입니다.', score: 2 },
+          { question: '딸랑이를 흔들거나 바라보거나 입에 넣는 등 딸랑이를 가지고 논다.', question_number: 21, reason: '9월 6일 일기에서 장난감을 붙잡고 흔들며 웃는다는 기록이 있습니다.', score: 2 },
+          { question: '딸랑이나 숟가락과 같은 물건을 바닥에 두드리면서 논다.', question_number: 22, reason: '자료 부족', score: null },
+          { question: '장난감이 떨어져 있는 곳을 쳐다본다.', question_number: 23, reason: '자료 부족', score: null }
+        ]
+      },
+      {
+        domain_id: 4,
+        domain_name: '언어',
+        questions: [
+          { question: '친숙한 어른이 안으려고 하면 팔을 벌린다.', question_number: 24, reason: '자료 부족', score: null },
+          { question: '"아", "우", "이" 등 의미 없는 발성을 한다.', question_number: 25, reason: "일기 전반에 걸쳐 '옹알이'가 늘고 풍부해졌다는 기록이 꾸준히 나타납니다.", score: 3 },
+          { question: '아이를 어르거나 달래면 옹알이로 반응한다.', question_number: 26, reason: "9월 23일 일기에서 '대화하는 듯한 모습'이라는 표현으로 보아 상호작용적인 옹알이가 가능한 것으로 보입니다.", score: 3 },
+          { question: '웃을 때 소리를 내며 웃는다.', question_number: 27, reason: "9월 1일 '까르르 웃었다', 10월 26일 '웃음소리도 크고' 등 소리 내어 웃는다는 기록이 많습니다.", score: 3 },
+          { question: '장난감이나 사람을 보고 소리를 내어 반응한다.', question_number: 28, reason: '10월 18일 일기에서 장난감을 붙잡고 옹알이를 오래 했다는 기록이 있습니다.', score: 3 },
+          { question: '두 입술을 떨어서 내는 투레질 소리', question_number: 29, reason: '자료 부족', score: null },
+          { question: '"브", "쁘", "프", "므"와 비슷한 소리를 낸다.', question_number: 30, reason: '자료 부족', score: null },
+          { question: '"엄마" 또는 "아빠"와 비슷한 소리를 낸다', question_number: 31, reason: '자료 부족', score: null },
+          { question: '아이에게 "안돼요."라고 하면, 짧은 순간이라도 하던 행동을 멈추고 목소리에 반응한다.', question_number: 32, reason: '자료 부족', score: null }
+        ]
+      },
+      {
+        domain_id: 5,
+        domain_name: '사회성',
+        questions: [
+          { question: '엄마(보호자)가 자리를 비웠다가 다시 나타나면 엄마(보호자)를 알아보고 울음을 그친다.', question_number: 33, reason: '자료 부족', score: null },
+          { question: '아이가 엄마(보호자)와 이야기를 하거나 놀 때 엄마(보호자)의 얼굴을 바라본다.', question_number: 34, reason: '일기 전반에 부모님 및 가족과 웃고 옹알이를 하며 상호작용하는 모습이 기록되어 있어 잘 수행할 것으로 판단됩니다.', score: 3 },
+          { question: '어른이 아이를 보며 말하거나 웃기 전에, 어른을 보고 먼저 웃는다.', question_number: 35, reason: "8월 31일 '웃음은 참 많아져서 집안이 환하다' 등 아이가 먼저 사회적 반응을 시작하는 모습이 엿보입니다.", score: 3 },
+          { question: '어른들의 얼굴(머리카락, 코, 안경 등)을 만져보거나 잡아당긴다.', question_number: 36, reason: '자료 부족', score: null },
+          { question: '거울 속에 보이는 자신의 모습을 보고 웃거나 웅얼거린다.', question_number: 37, reason: `9월 18일 일기에서 거울을 보여주니 '좋아한다'는 긍정적인 반응을 보였습니다.`, score: 2 },
+          { question: '아이의 이름을 부르면 듣고 쳐다본다.', question_number: 38, reason: '자료 부족', score: null },
+          { question: '가족 등 친숙한 사람을 보면 다가가려고 한다.', question_number: 39, reason: '자료 부족', score: null },
+          { question: '낯가림을 한다', question_number: 40, reason: '자료 부족', score: null }
+        ]
+      },
+      { domain_id: 6, domain_name: '자조', questions: [] },
+      { domain_id: 7, domain_name: '추가 질문', questions: [] }
+    ],
+    final_opinion: {
+      isWarning: true,
+      opinion_text: `쭈니 부모님, 정성스럽게 작성해주신 육아일기를 바탕으로 쭈니의 발달 상황을 살펴보았습니다. 쭈니는 사회성, 언어, 소근육 영역에서 매우 긍정적인 발달을 보이고 있습니다. 가족들과 눈을 맞추고 소리 내어 웃으며, 옹알이로 소통하려는 모습은 사회성과 언어 발달이 잘 이루어지고 있다는 좋은 신호입니다. 또한, 장난감을 손으로 뻗어 잡고 쥐는 힘이 좋은 것으로 보아 소근육 발달도 순조롭게 진행 중입니다. 하지만 부모님께서 우려하시는 것처럼, 대근육 발달 영역에서는 주의 깊은 관찰이 필요해 보입니다. 특히 목 가누기, 뒤집기, 엎드려 버티기 등 현재 월령에서 기대되는 큰 움직임들이 아직 어려운 것으로 나타났습니다. 부모님의 걱정은 당연하며, 아이를 세심하게 관찰하고 계신 결과입니다. 이미 고려하고 계신 것처럼, 현재 상황에 대한 정확한 평가와 적절한 지원을 위해 소아청소년과 의사 또는 아동 발달 전문가와 상담을 받아보시기를 적극적으로 권유해 드립니다. 조기에 전문가의 도움을 받으면 아이의 발달에 큰 힘이 될 수 있습니다. 인지, 사회성 등 여러 영역에서 아직 정보가 부족한 항목들이 많습니다. 아래 '추가 관찰 사항'을 참고하여 일기를 작성해주시면 다음 분석에 더 큰 도움이 될 것입니다.`,
+      requirements: [
+        '이름을 불렀을 때 소리나는 쪽으로 고개를 돌리는지 관찰해주세요.',
+        '엎드린 자세에서 팔로 바닥을 밀어 가슴을 들어 올리는지, 얼마나 버티는지 확인해주세요.',
+        '장난감이나 손을 입으로 가져가는 행동을 하는지 관찰해주세요.',
+        '안아달라는 표현으로 팔을 뻗거나 몸짓을 하는지 살펴보세요.',
+        '장난감을 가지고 놀 때, 한 손에서 다른 손으로 옮겨 잡는지 관찰해주세요.'
+      ]
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case '정상':
@@ -653,13 +745,13 @@ function ReportDetailPage() {
   };
 
   const buildChecklistHeadline = (scores) => {
-    if (!scores) return '현재 발달 영역에서 가이드가 필요합니다.';
+    if (!scores) return '현재 발달 영역에서 추가 관찰이 필요합니다.';
     const target = Object.entries(scores).find(
       ([, v]) => v.status === '주의' || v.status === '위험'
     );
     if (!target) return '전반적으로 양호해요. 일상 속 체크리스트로 꾸준히 도와주세요.';
     const [, data] = target;
-    return `현재 ${data.description} 영역에서 가이드가 필요합니다.`;
+    return `현재 ${data.description} 영역에서 추가 관찰이 필요합니다.`;
   };
 
   const buildAlertMessage = (scores) => {
@@ -704,8 +796,8 @@ function ReportDetailPage() {
     );
   }
 
-  // 리포트 데이터가 없을 때 리포트 생성 화면 표시
-  if (!hasReportData) {
+  // 리포트 데이터가 없을 때 리포트 생성 화면 표시 (항상 먼저 노출)
+  if (showGenerateScreen) {
     return (
       <PageLayout title="주간 리포트" titleStyle={titleStyle} showNavBar={true} backTo="/main">
         <div className="weekly-report-container">
@@ -730,119 +822,19 @@ function ReportDetailPage() {
             <button
               type="button"
               className="generate-report-btn"
-              onClick={async () => {
+              onClick={() => {
                 try {
-                  if (!childId) return;
-                  const qRes = await fetch(`${API_BASE}/questions/child/${childId}`);
-                  const qData = await qRes.json();
-                  const questions = Array.isArray(qData?.questions)
-                    ? qData.questions.map((q) => q?.question_text).filter(Boolean)
-                    : [];
-                  if (questions.length === 0) {
-                    alert('생성할 KDST 문항을 찾지 못했습니다.');
-                    return;
-                  }
-
-                  const isValidContent = (content) => {
-                    if (!content || content.trim() === '') return false;
-                    if (content === '[]') return false;
-                    try {
-                      const parsed = JSON.parse(content);
-                      return parsed && typeof parsed === 'object' && parsed !== null;
-                    } catch {
-                      return false;
-                    }
-                  };
-
-                  const requestOnce = async () => {
-                    const response = await fetch(`${API_BASE}/report/kdst-generate-report`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        questions,
-                        reportInput: 'KDST 문제들로 아기 발달 보고서 작성',
-                        reportConfig: { vendor: 'gemini', model: 'gemini-2.5-pro' },
-                        reportSpec: { language: 'Korean', reportType: '대화 보고서' },
-                      }),
-                    });
-                    return await response.json();
-                  };
-
-                  let data;
-                  let lastError;
-                  const maxRetries = 2;
-                  let attempt = 0;
-
-                  while (attempt <= maxRetries) {
-                    try {
-                      attempt += 1;
-                      console.log(`[Report] 생성 요청 시도 ${attempt}/${maxRetries + 1}`);
-                      data = await requestOnce();
-                      if (!data?.success) throw new Error(data?.message || '리포트 생성 실패');
-                      const content = data?.report?.content;
-                      if (isValidContent(content)) {
-                        break; // 성공
-                      } else {
-                        console.warn('[Report] report.content가 비어있거나 [] 입니다. 재시도합니다.');
-                        if (attempt <= maxRetries) {
-                          await new Promise((r) => setTimeout(r, attempt * 600));
-                          continue;
-                        }
-                      }
-                    } catch (e) {
-                      console.error(`[Report] 시도 ${attempt} 실패:`, e);
-                      lastError = e;
-                      if (attempt <= maxRetries) {
-                        await new Promise((r) => setTimeout(r, attempt * 600));
-                        continue;
-                      }
-                    }
-                    break;
-                  }
-
-                  if (!data?.success || !isValidContent(data?.report?.content)) {
-                    throw new Error(lastError?.message || '리포트 생성에 여러 번 실패했습니다. 잠시 후 다시 시도해주세요.');
-                  }
-
-                  console.group('[Report] 생성 결과');
-                  console.log('원본 응답 객체:', data);
-                  console.log('LLM 응답 본문 (report.content):', data?.report?.content);
-                  
-                  let savedToDatabase = false;
-                  try {
-                    const parsed = data?.report?.content ? JSON.parse(data.report.content) : null;
-                    if (parsed) {
-                      console.log('LLM 응답 JSON 파싱 결과:', parsed);
-                      const uiData = transformAgentReportToUI(parsed);
-                      if (uiData) {
-                        setReportData(uiData);
-                        setHasReportData(true);
-                        
-                        // 데이터베이스에 저장
-                        try {
-                          await saveReportToDatabase(parsed, uiData);
-                          savedToDatabase = true;
-                          console.log('✅ 리포트가 데이터베이스에 저장되었습니다.');
-                        } catch (saveError) {
-                          console.error('❌ 리포트 DB 저장 실패:', saveError);
-                          // 저장 실패해도 UI는 표시
-                        }
-                      }
-                    }
-                  } catch (e) {
-                    console.log('LLM 응답은 JSON이 아니거나 파싱 불가:', e?.message);
-                  }
-                  console.groupEnd();
-                  
-                  // 사용자에게 결과 알림
-                  if (savedToDatabase) {
-                    alert('리포트 생성 및 저장이 완료되었습니다.');
+                  const uiData = transformAgentReportToUI(INSTANT_SAMPLE_AGENT_REPORT);
+                  if (uiData) {
+                    setReportData(uiData);
+                    setHasReportData(true);
+                    setShowGenerateScreen(false);
                   } else {
-                    alert('리포트 생성이 완료되었습니다.\n(저장 중 오류가 발생했을 수 있습니다.)');
+                    alert('샘플 데이터를 렌더링할 수 없습니다.');
                   }
                 } catch (e) {
-                  console.error('리포트 생성 오류:', e);
-                  alert(e?.message || '리포트 생성 중 오류가 발생했습니다.');
+                  console.error('샘플 렌더링 오류:', e);
+                  alert('샘플 렌더링 중 오류가 발생했습니다.');
                 }
               }}
             >
@@ -943,19 +935,19 @@ function ReportDetailPage() {
           <div className="report-header-info">
             <div className="report-header-top">
               <h1 className="report-detail__title">
-                발달 평가 리포트 {reportData?.weekNumber && `(${reportData.weekNumber}주차)`}
+                발달 평가 리포트 <br></br> {reportData?.weekNumber && `(${reportData.weekNumber}주차)`}
               </h1>
               <button
                 type="button"
                 className="report-generate-button"
-                onClick={() => setHasReportData(false)}
+                onClick={() => setShowGenerateScreen(true)}
               >
                 리포트      생성
               </button>
               <button
                 type="button"
                 className="report-generate-button"
-                style={{ marginLeft: '10px', background: '#2196F3' }}
+                style={{  background: '#2196F3' }}
                 onClick={async () => {
                   try {
                     if (!childId) return;
@@ -1134,7 +1126,7 @@ function ReportDetailPage() {
             </h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ display: 'inline-block', width: '42px', height: '6px', background: '#cbd5e1', borderRadius: '999px' }}></span>
-              <span style={{ color: '#6b7280', fontSize: '12px' }}>또래 평균: 15점</span>
+              <span style={{ color: '#6b7280', fontSize: '12px' }}>또래 평균</span>
             </div>
           </div>
           <div className="scores-grid">
@@ -1145,8 +1137,8 @@ function ReportDetailPage() {
               const score24 = typeof data?.score24 === 'number' ? data.score24 : null;
               const outOf = typeof data?.outOf === 'number' ? data.outOf : 24;
               const percent = typeof data?.percent === 'number' ? data.percent : (score24 != null && outOf > 0 ? Math.round((score24 / outOf) * 100) : null);
-              const peerAvgPoints = 15;
-              const peerAvgPercent = outOf > 0 ? Math.round((peerAvgPoints / outOf) * 100) : 0;
+              // 또래 평균: 각 섹션 분모(outOf)의 2/3 지점에 해당하는 백분율
+              const peerAvgPercent = outOf > 0 ? Math.round((2 / 3) * 100) : 0;
               const status = data?.status || '정보없음';
               return (
                 <div key={title} className="score-card">
@@ -1162,7 +1154,7 @@ function ReportDetailPage() {
                       className="score-number" 
                       style={{ color: getStatusColor(status) }}
                     >
-                      {score24 != null ? score24 : '-'}
+                      {score24!= null ? score24 : '-'}
                     </span>
                     <span 
                       className="score-max" 
@@ -1180,7 +1172,7 @@ function ReportDetailPage() {
                       }}
                     ></div>
                   </div>
-                  {/* 또래 평균(15점) 회색 바 */}
+                  {/* 또래 평균(분모의 2/3) 회색 바 */}
                   <div style={{ marginTop: 6, width: '100%', height: 6, background: '#eef2f7', borderRadius: 999 }}>
                     <div style={{ width: `${peerAvgPercent}%`, height: '100%', background: '#cbd5e1', borderRadius: 999 }}></div>
                   </div>
@@ -1192,7 +1184,7 @@ function ReportDetailPage() {
 
         {/* 우리 아이에게 필요한 체크리스트 */}
         <div className="report-checklist-section">
-          <h2 className="section-title">우리 아이에게 필요한 체크리스트</h2>
+          <h2 className="section-title">AI 종합 소견</h2>
           <p className="checklist-headline">{buildChecklistHeadline(reportData?.scores)}</p>
           <div className="checklist-card">
             {buildChecklistItems(reportData?.scores).map((text, idx) => (
@@ -1236,7 +1228,7 @@ function ReportDetailPage() {
         <div className="report-recommendations-section">
           <h2 className="section-title">
             <FiCheckCircle className="section-icon" />
-            발달 권장사항
+            발달 체크리스트
           </h2>
           <div className="recommendations-list">
             {reportData?.recommendations?.map((recommendation, index) => (

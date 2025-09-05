@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 load_dotenv('../.env.local')
 
 # 모델 로드
-model = SentenceTransformer('jhgan/ko-sroberta-multitask')
+model = SentenceTransformer('BM-K/KoSimCSE-roberta-multitask')
 
 def get_mysql_connection():
     """MySQL 연결"""
