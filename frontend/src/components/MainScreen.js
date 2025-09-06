@@ -571,11 +571,11 @@ export default function MainScreen({ onSendMessage, currentUser, onLogout }) {
         const totalMaxScore = Number(latest?.total_max_score) || 120; // 기본값 120 (5개 영역 * 24점)
         const overallPercent = totalMaxScore > 0 ? Math.round((total / totalMaxScore) * 100) : 0;
         
-        // 상태 계산
+        // 상태 계산 (리포트 기준과 동일: <30 위험, <70 주의, 그 외 정상)
         let status = '정보없음';
         if (overallPercent > 0) {
-          if (overallPercent < 60) status = '위험';
-          else if (overallPercent < 80) status = '주의';
+          if (overallPercent < 30) status = '위험';
+          else if (overallPercent < 70) status = '주의';
           else status = '정상';
         }
         

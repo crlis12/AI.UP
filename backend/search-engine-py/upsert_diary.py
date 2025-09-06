@@ -17,7 +17,7 @@ if sys.platform.startswith('win'):
     sys.stdin = codecs.getreader('utf-8')(sys.stdin.detach())
 
 # 모델 로드
-model = SentenceTransformer('jhgan/ko-sroberta-multitask')
+model = SentenceTransformer('BM-K/KoSimCSE-roberta-multitask')
 
 def get_embedding(text):
     """텍스트를 벡터로 변환"""
