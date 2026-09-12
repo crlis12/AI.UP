@@ -6,48 +6,28 @@ let multerInstance = null;
 function getMulter() {
   if (!multerInstance) {
     const multer = require('multer');
-    multerInstance = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
+    multerInstance = multer({
+      storage: multer.memoryStorage(),
+      limits: { fileSize: 50 * 1024 * 1024 },
+    });
   }
   return multerInstance;
 }
 
 async function loadLangChain() {
-  const [googleGenAI] = await Promise.all([
-    import('@langchain/google-genai'),
-  ]);
+  const [googleGenAI] = await Promise.all([import('@langchain/google-genai')]);
   const { ChatGoogleGenerativeAI } = googleGenAI;
   return { ChatGoogleGenerativeAI };
 }
 
 const { normalizeGeminiModel, getGeminiRestEndpoint } = require('../services/modelFactory');
 
+const { MULTIMODAL_AGENT_DEFAULT_CONFIG, MULTIMODAL_AGENT_PROMPT } = require('../services/multimodalAgent');
+
 function buildSystemPromptFromSpec({ systemPrompt, spec }) {
-  const base = systemPrompt || (spec && typeof spec === 'object' && spec.default) || 'You are a helpful multimodal captioning assistant.';
-  const lines = [base];
-  if (!spec || typeof spec !== 'object') return lines.join('\n');
-
-  for (const [key, value] of Object.entries(spec)) {
-    if (key === 'default') continue;
-    if (value === undefined || value === null) continue;
-    const keyLabel = String(key).trim();
-    if (Array.isArray(value)) {
-      if (value.length === 0) continue;
-      lines.push(`${keyLabel}:`);
-      for (const item of value) {
-        if (item === undefined || item === null || String(item).trim() === '') continue;
-        lines.push(`- ${typeof item === 'string' ? item : JSON.stringify(item)}`);
-      }
-      continue;
-    }
-    if (typeof value === 'object') {
-      lines.push(`${keyLabel}: ${JSON.stringify(value)}`);
-      continue;
-    }
-    const primitive = String(value).trim();
-    if (primitive !== '') lines.push(`${keyLabel}: ${primitive}`);
-  }
-
-  return lines.join('\n');
+  // 명시된 systemPrompt가 있으면 그것을, 없으면 백엔드 기본 멀티모달 프롬프트 사용
+  if (systemPrompt && String(systemPrompt).trim() !== '') return String(systemPrompt);
+  return MULTIMODAL_AGENT_PROMPT;
 }
 
 async function uploadToGeminiFiles({ fileBuffer, mimeType, displayName }) {
@@ -62,10 +42,7 @@ async function uploadToGeminiFiles({ fileBuffer, mimeType, displayName }) {
       '\r\n'
   );
 
-  const mediaHeader = Buffer.from(
-    `${delimiter}\r\n` +
-      `Content-Type: ${mimeType}\r\n\r\n`
-  );
+  const mediaHeader = Buffer.from(`${delimiter}\r\n` + `Content-Type: ${mimeType}\r\n\r\n`);
 
   const closing = Buffer.from(`\r\n${closeDelimiter}\r\n`);
 
@@ -108,9 +85,9 @@ router.post('/', async (req, res) => {
     let mimeType = null;
     let input = '';
     let mode = 'auto';
-    let model = 'gemini-2.5-flash';
-    let temperature = 0.2;
-    let spec = {};
+    let model = MULTIMODAL_AGENT_DEFAULT_CONFIG.model;
+    let temperature = MULTIMODAL_AGENT_DEFAULT_CONFIG.temperature;
+    let spec = undefined; // 별도 스키마/스펙 비사용
 
     if ((req.headers['content-type'] || '').includes('multipart/form-data')) {
       const upload = getMulter().single('file');
@@ -125,15 +102,17 @@ router.post('/', async (req, res) => {
       mode = req.body?.mode || 'auto';
       if (req.body?.config) {
         let cfg = req.body.config;
-        if (typeof cfg === 'string') { try { cfg = JSON.parse(cfg); } catch (_) { cfg = {}; } }
+        if (typeof cfg === 'string') {
+          try {
+            cfg = JSON.parse(cfg);
+          } catch (_) {
+            cfg = {};
+          }
+        }
         if (cfg.model) model = cfg.model;
         if (typeof cfg.temperature === 'number') temperature = cfg.temperature;
       }
-      if (req.body?.spec) {
-        let sp = req.body.spec;
-        if (typeof sp === 'string') { try { sp = JSON.parse(sp); } catch (_) { sp = {}; } }
-        spec = sp || {};
-      }
+      // spec은 더 이상 사용하지 않습니다 (무시)
     } else if (req.is('application/json')) {
       const body = req.body || {};
       input = body.input || '';
@@ -142,15 +121,13 @@ router.post('/', async (req, res) => {
         if (body.config.model) model = body.config.model;
         if (typeof body.config.temperature === 'number') temperature = body.config.temperature;
       }
-      if (body?.spec) {
-        spec = body.spec || {};
-      }
+      // spec은 더 이상 사용하지 않습니다 (무시)
     }
 
     const isImage = mimeType?.startsWith('image/');
     const isVideo = mimeType?.startsWith('video/');
 
-    // 텍스트 전용 입력 지원 (system 메시지 사용)
+    // 텍스트 전용 입력 (시스템 프롬프트는 백엔드 상수 사용)
     if (!fileBuffer) {
       const { ChatGoogleGenerativeAI } = await loadLangChain();
       const chat = new ChatGoogleGenerativeAI({
@@ -161,18 +138,25 @@ router.post('/', async (req, res) => {
       const sys = buildSystemPromptFromSpec({ systemPrompt: undefined, spec });
       const response = await chat.invoke([
         { role: 'system', content: sys },
-        { role: 'user', content: (input || '간결한 설명을 작성해 주세요.') },
+        { role: 'user', content: input || '간결한 설명을 작성해 주세요.' },
       ]);
-      const content = typeof response?.content === 'string'
-        ? response.content
-        : Array.isArray(response?.content)
-          ? response.content.map((p) => p?.text || '').join('\n')
-          : String(response?.content ?? '');
+      const content =
+        typeof response?.content === 'string'
+          ? response.content
+          : Array.isArray(response?.content)
+            ? response.content.map((p) => p?.text || '').join('\n')
+            : String(response?.content ?? '');
       return res.json({ success: true, content });
     }
 
-    if (mode === 'image' && !isImage) return res.status(400).json({ success: false, message: '이미지 모드에서 이미지 파일이 필요합니다.' });
-    if (mode === 'video' && !isVideo) return res.status(400).json({ success: false, message: '비디오 모드에서 비디오 파일이 필요합니다.' });
+    if (mode === 'image' && !isImage)
+      return res
+        .status(400)
+        .json({ success: false, message: '이미지 모드에서 이미지 파일이 필요합니다.' });
+    if (mode === 'video' && !isVideo)
+      return res
+        .status(400)
+        .json({ success: false, message: '비디오 모드에서 비디오 파일이 필요합니다.' });
 
     if (isImage || mode === 'image') {
       const { ChatGoogleGenerativeAI } = await loadLangChain();
@@ -186,36 +170,53 @@ router.post('/', async (req, res) => {
       const sys = buildSystemPromptFromSpec({ systemPrompt: undefined, spec });
       const response = await chat.invoke([
         { role: 'system', content: sys },
-        { role: 'user', content: [
-          { type: 'text', text: (input || '이미지에 대한 간결한 캡션을 작성해 주세요.') },
-          { type: 'image_url', image_url: dataUrl },
-        ]},
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: input || '이미지에 대한 간결한 캡션을 작성해 주세요.' },
+            { type: 'image_url', image_url: dataUrl },
+          ],
+        },
       ]);
-      const content = typeof response?.content === 'string'
-        ? response.content
-        : Array.isArray(response?.content)
-          ? response.content.map((p) => p?.text || '').join('\n')
-          : String(response?.content ?? '');
+      const content =
+        typeof response?.content === 'string'
+          ? response.content
+          : Array.isArray(response?.content)
+            ? response.content.map((p) => p?.text || '').join('\n')
+            : String(response?.content ?? '');
       return res.json({ success: true, content });
     }
 
     if (isVideo || mode === 'video') {
-      const fileUri = await uploadToGeminiFiles({ fileBuffer, mimeType, displayName: 'uploaded-video' });
+      const fileUri = await uploadToGeminiFiles({
+        fileBuffer,
+        mimeType,
+        displayName: 'uploaded-video',
+      });
       await waitForGeminiFileActive(fileUri);
       const sys = buildSystemPromptFromSpec({ systemPrompt: undefined, spec });
       const contents = [
-        { role: 'user', parts: [
-          { text: (input ? `요청:${input}` : '영상에 대한 간결한 캡션/요약을 작성해 주세요.') },
-          { fileData: { fileUri, mimeType } },
-        ]},
+        {
+          role: 'user',
+          parts: [
+            { text: input ? `요청:${input}` : '영상에 대한 간결한 캡션/요약을 작성해 주세요.' },
+            { fileData: { fileUri, mimeType } },
+          ],
+        },
       ];
-      const endpoint = getGeminiRestEndpoint(normalizeGeminiModel(model), process.env.GEMINI_API_KEY);
+      const endpoint = getGeminiRestEndpoint(
+        normalizeGeminiModel(model),
+        process.env.GEMINI_API_KEY
+      );
       const resp = await axios.post(endpoint, {
         contents,
         systemInstruction: { role: 'system', parts: [{ text: sys }] },
       });
       const candidateParts = resp?.data?.candidates?.[0]?.content?.parts || [];
-      const analysis = candidateParts.map((p) => p?.text || '').filter(Boolean).join('\n');
+      const analysis = candidateParts
+        .map((p) => p?.text || '')
+        .filter(Boolean)
+        .join('\n');
       const content = analysis || '분석 결과가 비어 있습니다.';
       return res.json({ success: true, content });
     }
@@ -223,11 +224,12 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ success: false, message: '지원하지 않는 파일 형식입니다.' });
   } catch (error) {
     console.error('Multimodal route error:', error?.response?.data || error);
-    const message = error?.response?.data?.error?.message || error.message || '멀티모달 처리 중 오류가 발생했습니다.';
+    const message =
+      error?.response?.data?.error?.message ||
+      error.message ||
+      '멀티모달 처리 중 오류가 발생했습니다.';
     return res.status(500).json({ success: false, message });
   }
 });
 
 module.exports = router;
-
-

@@ -2,8 +2,8 @@
 
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 // 아이콘이 필요하다면 import 합니다.
-import { FiPlus, FiX } from "react-icons/fi"; // FiX 아이콘 추가
-import { IoPaperPlaneOutline } from "react-icons/io5";
+import { FiPlus, FiX } from 'react-icons/fi'; // FiX 아이콘 추가
+import { IoPaperPlaneOutline } from 'react-icons/io5';
 
 // onSendMessage, isLoading 같은 props는 그대로 받습니다.
 const MessageInput = ({ onSendMessage, isLoading }) => {
@@ -31,7 +31,7 @@ const MessageInput = ({ onSendMessage, isLoading }) => {
       setInputText('');
       setSelectedFile(null);
       if (fileInputRef.current) {
-        fileInputRef.current.value = ""; // 파일 입력 값 초기화
+        fileInputRef.current.value = ''; // 파일 입력 값 초기화
       }
     }
   };
@@ -51,7 +51,7 @@ const MessageInput = ({ onSendMessage, isLoading }) => {
   const removeSelectedFile = () => {
     setSelectedFile(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = ""; // 파일 입력 값 초기화
+      fileInputRef.current.value = ''; // 파일 입력 값 초기화
     }
   };
 

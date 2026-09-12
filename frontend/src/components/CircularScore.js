@@ -2,7 +2,16 @@
 
 import React from 'react';
 
-function CircularScore({ score = 0, size = 180, strokeWidth = 12, label = '종합발달점수', subLabel = '상위 10%', showRing = true, contentOffsetY = 0, labelPosition = 'top' }) {
+function CircularScore({
+  score = 0,
+  size = 180,
+  strokeWidth = 12,
+  label = '종합발달점수',
+  subLabel = '상위 10%',
+  showRing = true,
+  contentOffsetY = 0,
+  labelPosition = 'top',
+}) {
   const normalizedScore = Math.max(0, Math.min(100, Number(score) || 0));
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -33,9 +42,14 @@ function CircularScore({ score = 0, size = 180, strokeWidth = 12, label = '종�
           />
         </svg>
       )}
-      <div className="circular-score__content" style={contentOffsetY ? { transform: `translateY(${contentOffsetY}px)` } : undefined}>
+      <div
+        className="circular-score__content"
+        style={contentOffsetY ? { transform: `translateY(${contentOffsetY}px)` } : undefined}
+      >
         {label && labelPosition === 'top' && (
-          <div className="circular-score__label" style={{ marginTop: 0, marginBottom: 6 }}>{label}</div>
+          <div className="circular-score__label" style={{ marginTop: 0, marginBottom: 6 }}>
+            {label}
+          </div>
         )}
         <div className="circular-score__value">{normalizedScore}점</div>
         {subLabel && <div className="circular-score__sublabel">{subLabel}</div>}
@@ -46,5 +60,3 @@ function CircularScore({ score = 0, size = 180, strokeWidth = 12, label = '종�
 }
 
 export default CircularScore;
-
-

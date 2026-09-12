@@ -8,6 +8,14 @@ from sentence_transformers import SentenceTransformer
 import sqlite3
 import os
 
+# UTF-8 인코딩 설정 (Windows 환경 대응)
+if sys.platform.startswith('win'):
+    import codecs
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout.detach())
+    sys.stderr = codecs.getwriter('utf-8')(sys.stderr.detach())
+    # stdin도 UTF-8로 설정
+    sys.stdin = codecs.getreader('utf-8')(sys.stdin.detach())
+
 # 모델 로드
 model = SentenceTransformer('jhgan/ko-sroberta-multitask')
 
@@ -23,15 +31,23 @@ def get_embedding(text):
 def upsert_diary(diary_data):
     """일기 데이터를 벡터 DB에 저장/업데이트"""
     try:
-        # 텍스트 준비 (날짜 + 제목 + 내용) - 예: "8월 12일 : 낮잠에서 깬 아기가..."
+        # 텍스트 준비 (날짜 + 제목 + 내용 + [비공개 캡션])
         date_str = diary_data.get('date', '')
         title = diary_data.get('title', '')
         content = diary_data.get('content', '')
+        captions = diary_data.get('captions') or []
+        if isinstance(captions, str):
+            # 잘못 전달된 경우 문자열을 리스트로 처리
+            captions = [captions]
+        if not isinstance(captions, list):
+            captions = []
         
         if date_str:
-            text = f"{date_str} : {content}".strip()
+            base_text = f"{date_str} : {content}".strip()
         else:
-            text = f"{title} {content}".strip()
+            base_text = f"{title} {content}".strip()
+        captions_text = " ".join([str(c).strip() for c in captions if str(c).strip()])
+        text = base_text if not captions_text else f"{base_text} {captions_text}".strip()
         if not text:
             return {"success": False, "message": "텍스트가 비어있습니다."}
         

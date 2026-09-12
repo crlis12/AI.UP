@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { runReportAgent } = require('../services/reportAgent');
+const { runReportAgent, REPORT_OUTPUT_SCHEMA } = require('../services/reportAgent');
 const path = require('path');
 const { spawn } = require('child_process');
 const config = require('../config');
@@ -8,145 +8,50 @@ const config = require('../config');
 // KDST RAG 검색을 위한 Python 스크립트 실행 함수
 async function runKDSTRAGScript(questions) {
   return new Promise((resolve, reject) => {
-    const scriptPath = path.join(__dirname, '..', 'search-engine-py', 'kdst_rag_module.py');
-    
-    const pythonProcess = spawn('python', [scriptPath]);
-    
-    let dataString = '';
-    let errorString = '';
-    
-    pythonProcess.stdout.on('data', (data) => {
-      dataString += data.toString();
-    });
-    
-    pythonProcess.stderr.on('data', (data) => {
-      errorString += data.toString();
-    });
-    
-    pythonProcess.on('close', (code) => {
-      if (code !== 0) {
-        reject(new Error(`Python 스크립트 실행 실패 (코드: ${code}): ${errorString}`));
-        return;
-      }
-      
-      try {
-        // Python 스크립트의 출력에서 JSON 부분 추출
-        const lines = dataString.trim().split('\n');
-        let jsonOutput = '';
-        let inJsonSection = false;
-        
-        for (const line of lines) {
-          if (line.includes('JSON 결과:') || line.includes('{')) {
-            inJsonSection = true;
-          }
-          if (inJsonSection) {
-            jsonOutput += line + '\n';
-          }
+    try {
+      const scriptPath = path.join(__dirname, '..', 'search-engine-py', 'kdst_rag_module.py');
+
+      const pythonProcess = spawn(config.python.path, [scriptPath], {
+        stdio: ['pipe', 'pipe', 'pipe'],
+        cwd: path.join(__dirname, '..', 'search-engine-py'),
+        env: {
+          ...process.env,
+          PYTHONIOENCODING: 'utf-8',
+          PYTHONPATH: path.join(__dirname, '..', 'search-engine-py'),
+        },
+      });
+
+      let outputData = '';
+      let errorData = '';
+
+      pythonProcess.stdout.on('data', (data) => {
+        outputData += data.toString('utf8');
+      });
+
+      pythonProcess.stderr.on('data', (data) => {
+        errorData += data.toString('utf8');
+      });
+
+      pythonProcess.on('close', (code) => {
+        if (code !== 0) {
+          reject(new Error(`Python 스크립트 실행 실패 (코드: ${code}): ${errorData}`));
+          return;
         }
-        
-        // JSON 파싱 시도
-        if (jsonOutput.trim()) {
-          const result = JSON.parse(jsonOutput);
+        try {
+          const result = JSON.parse(outputData);
           resolve(result);
-        } else {
-          // JSON이 없으면 하드코딩된 테스트 결과 반환
-          resolve({
-            success: true,
-            message: "KDST RAG 검색 완료 (테스트 모드)",
-            results: [
-              {
-                "문제": "엎드린 자세에서 뒤집는다.",
-                "일기": [
-                  {
-                    "diary_id": 21,
-                    "text": "8월 15일 : 오늘은 장난감을 한 손에서 다른 손으로 옮기는 걸 성공했다. 거울을 보여주자 자기 얼굴을 보며 활짝 웃는다. 스스로를 인식하진 못하겠지만, 무언가 재미있어 하는 게 분명하다.",
-                    "date": "8월 15일",
-                    "similarity": 0.3159
-                  },
-                  {
-                    "diary_id": 23,
-                    "text": "8월 17일 : 밤에 잠시 깼지만 내가 토닥여 주자 금세 다시 잠들었다. 낮에는 옆으로 데굴데굴 굴러 방 한쪽 끝까지 이동했다. 호기심이 점점 커지는 게 느껴졌다. 이번 주는 한층 더 활발하고 반응이 풍부해진 일주일이었다.",
-                    "date": "8월 17일",
-                    "similarity": 0.3006
-                  },
-                  {
-                    "diary_id": 19,
-                    "text": "8월 13일 : 잠깐 혼자 앉으려는 시도를 했다. 금세 휘청거리며 넘어지지만 조금씩 균형을 잡는다. 오늘은 이유식을 두세 숟갈 먹었는데, 처음보다 표정이 한결 여유롭다. 숟가락을 뺏으려는 모습까지 보여서 놀랐다.",
-                    "date": "8월 13일",
-                    "similarity": 0.2969
-                  }
-                ]
-              },
-              {
-                "문제": "등을 대고 누운 자세에서 엎드린 자세로 뒤집는다(팔이 몸통에 깔려 있지 않아야 한다).",
-                "일기": [
-                  {
-                    "diary_id": 19,
-                    "text": "8월 13일 : 잠깐 혼자 앉으려는 시도를 했다. 금세 휘청거리며 넘어지지만 조금씩 균형을 잡는다. 오늘은 이유식을 두세 숟갈 먹었는데, 처음보다 표정이 한결 여유롭다. 숟가락을 뺏으려는 모습까지 보여서 놀랐다.",
-                    "date": "8월 13일",
-                    "similarity": 0.3623
-                  },
-                  {
-                    "diary_id": 23,
-                    "text": "8월 17일 : 밤에 잠시 깼지만 내가 토닥여 주자 금세 다시 잠들었다. 낮에는 옆으로 데굴데굴 굴러 방 한쪽 끝까지 이동했다. 호기심이 점점 커지는 게 느껴졌다. 이번 주는 한층 더 활발하고 반응이 풍부해진 일주일이었다.",
-                    "date": "8월 17일",
-                    "similarity": 0.3376
-                  },
-                  {
-                    "diary_id": 18,
-                    "text": "8월 12일 : 낮잠에서 깬 아기가 혼자 웃음을 터뜨렸다. 다리를 번쩍 들고 발끝을 잡으려는 모습이 너무 귀엽다. 수유할 때 내 눈을 똑바로 바라보는데, 눈빛 속 교감이 깊어졌다.",
-                    "date": "8월 12일",
-                    "similarity": 0.3292
-                  }
-                ]
-              },
-              {
-                "문제": "누워 있을 때 자기 발을 잡고 논다",
-                "일기": [
-                  {
-                    "diary_id": 17,
-                    "text": "8월 11일 : 오늘은 아기가 혼자 뒤집은 뒤 장난감을 잡으려고 손을 뻗었다. 아직은 손끝이 서툴지만, 의지가 보여서 대견하다. \"바바바\" 옹알이를 하길래 따라 해주니 까르르 웃었다. 점점 소통이 되는 기분이다.",
-                    "date": "8월 11일",
-                    "similarity": 0.3653
-                  },
-                  {
-                    "diary_id": 21,
-                    "text": "8월 15일 : 오늘은 장난감을 한 손에서 다른 손으로 옮기는 걸 성공했다. 거울을 보여주자 자기 얼굴을 보며 활짝 웃는다. 스스로를 인식하진 못하겠지만, 무언가 재미있어 하는 게 분명하다.",
-                    "date": "8월 15일",
-                    "similarity": 0.3250
-                  },
-                  {
-                    "diary_id": 18,
-                    "text": "8월 12일 : 낮잠에서 깬 아기가 혼자 웃음을 터뜨렸다. 다리를 번쩍 들고 발끝을 잡으려는 모습이 너무 귀엽다. 수유할 때 내 눈을 똑바로 바라보는데, 눈빛 속 교감이 깊어졌다.",
-                    "date": "8월 12일",
-                    "similarity": 0.3203
-                  }
-                ]
-              }
-            ]
-          });
+        } catch (parseError) {
+          reject(new Error(`KDST 결과 파싱 실패: ${parseError.message}. Raw: ${outputData}`));
         }
-      } catch (parseError) {
-        // JSON 파싱 실패 시 하드코딩된 테스트 결과 반환
-        resolve({
-          success: true,
-          message: "KDST RAG 검색 완료 (테스트 모드 - 파싱 실패)",
-          results: [
-            {
-              "문제": "엎드린 자세에서 뒤집는다.",
-              "일기": [
-                {
-                  "diary_id": 21,
-                  "text": "8월 15일 : 오늘은 장난감을 한 손에서 다른 손으로 옮기는 걸 성공했다. 거울을 보여주자 자기 얼굴을 보며 활짝 웃는다. 스스로를 인식하진 못하겠지만, 무언가 재미있어 하는 게 분명하다.",
-                  "date": "8월 15일",
-                  "similarity": 0.3159
-                }
-              ]
-            }
-          ]
-        });
-      }
-    });
+      });
+
+      // stdin으로 질문 전달
+      const inputData = JSON.stringify({ questions });
+      pythonProcess.stdin.write(inputData, 'utf8');
+      pythonProcess.stdin.end();
+    } catch (err) {
+      reject(err);
+    }
   });
 }
 
@@ -197,7 +102,7 @@ async function runPythonSearchScript(queryData) {
 // POST /report/rag-search
 router.post('/rag-search', async (req, res) => {
   try {
-    const { query, limit = 5, score_threshold = 0.5 } = req.body;
+    const { query, limit = 3, score_threshold = 0.0 } = req.body;
     
     if (!query || typeof query !== 'string') {
       return res.status(400).json({ 
@@ -211,6 +116,8 @@ router.post('/rag-search', async (req, res) => {
       limit: limit,
       score_threshold: score_threshold
     });
+    console.log('[RAG][report] query:', query, 'limit:', limit, 'threshold:', score_threshold);
+    console.log('[RAG][report] raw result:', JSON.stringify(searchResult)?.slice(0, 500) + '...');
     
     if (searchResult.success) {
       return res.json({
@@ -245,8 +152,8 @@ router.post('/rag-report', async (req, res) => {
       history,         // 대화 히스토리
       config,          // Report 에이전트 설정
       spec,            // Report 스펙
-      limit = 5,       // 검색 결과 개수
-      score_threshold = 0.5  // 검색 점수 임계값
+      limit = 3,       // 검색 결과 개수
+      score_threshold = 0.0  // 검색 점수 임계값
     } = req.body;
 
     // 필수 파라미터 검증
@@ -270,6 +177,8 @@ router.post('/rag-report', async (req, res) => {
       limit: limit,
       score_threshold: score_threshold
     });
+    console.log('[RAG][report] query:', query, 'limit:', limit, 'threshold:', score_threshold);
+    console.log('[RAG][report] raw result:', JSON.stringify(searchResult)?.slice(0, 500) + '...');
 
     if (!searchResult.success) {
       return res.status(500).json({
@@ -278,20 +187,21 @@ router.post('/rag-report', async (req, res) => {
       });
     }
 
-    // 2단계: 검색 결과를 컨텍스트로 변환
-    let ragContext = `[RAG 검색 결과 - "${query}"에 대한 유사한 일기들]\n`;
-    ragContext += `총 ${searchResult.total_found}개의 유사한 일기를 찾았습니다.\n\n`;
-
-    if (searchResult.results && Array.isArray(searchResult.results)) {
-      searchResult.results.forEach((result, index) => {
-        ragContext += `--- 일기 ${index + 1} ---\n`;
-        ragContext += `날짜: ${result.date || result.payload?.date || 'N/A'}\n`;
-        ragContext += `내용: ${result.combined_text || result.payload?.combined_text || result.text || 'N/A'}\n`;
-        if (result.score !== undefined) {
-          ragContext += `유사도 점수: ${result.score.toFixed(3)}\n`;
+    // 2단계: 검색 결과를 컨텍스트로 변환 (JSON 원문이 아닌 "YYYY-MM-DD: content" 라인들만)
+    let ragContext = '';
+    if (Array.isArray(searchResult.results)) {
+      const lines = [];
+      for (const item of searchResult.results) {
+        try {
+          const content = item?.content || item?.combined_text || item?.payload?.combined_text || item?.text || item?.payload?.text || item?.content_preview || '';
+          const normalized = String(content || '').trim();
+          if (!normalized) continue;
+          lines.push(`${normalized}`);
+        } catch (_) {
+          // 개별 항목 오류는 무시
         }
-        ragContext += '\n';
-      });
+      }
+      ragContext = lines.join('\n');
     }
 
     // 3단계: Report 에이전트 실행 (RAG 컨텍스트 포함)
@@ -300,7 +210,7 @@ router.post('/rag-report', async (req, res) => {
       history, 
       context: ragContext,
       config, 
-      spec 
+      spec: { ...(spec || {}), outputSchema: REPORT_OUTPUT_SCHEMA } 
     });
 
     if (!reportResult.success) {
@@ -505,42 +415,106 @@ router.post('/kdst-generate-report', async (req, res) => {
     }
     
     console.log(`[${new Date().toISOString()}] KDST RAG 컨텍스트 생성 완료`);
-    
-    // 3단계: ReportAgent로 보고서 생성
+
+    // 3단계: 사용자 입력 컨텍스트 구성
+    // 3-1) K-DST 문항 블록 (번호. 문항텍스트 형태로 나열)
+    const kdstLines = [];
+    if (Array.isArray(questions)) {
+      for (let i = 0; i < questions.length; i++) {
+        const q = questions[i];
+        try {
+          if (q && typeof q === 'object') {
+            const num = (q.question_number != null ? String(q.question_number) : String(i + 1)).trim();
+            const text = String(q.question_text || '').trim();
+            if (!text) continue;
+            kdstLines.push(`${num}. ${text}`);
+          } else {
+            const text = String(q || '').trim();
+            if (!text) continue;
+            kdstLines.push(`${i + 1}. ${text}`);
+          }
+        } catch (_) {
+          // 개별 항목 오류 무시
+        }
+      }
+    }
+
+    const kdstBlock = kdstLines.length > 0
+      ? `K-DST 문항:\n${kdstLines.join('\n')}`
+      : '';
+
+    // 3-2) 육아일기 문항 블록 (RAG로 추출된 본문 라인들)
+    let diaryBlock = '';
+    if (kdstRagContext && Array.isArray(kdstRagContext.rag_results)) {
+      const diaryLines = [];
+      for (const result of kdstRagContext.rag_results) {
+        const diaries = Array.isArray(result?.일기) ? result.일기 : [];
+        for (const d of diaries) {
+          try {
+            const content = d?.content || d?.text || d?.내용 || d?.combined_text || d?.payload?.combined_text || '';
+            const normalized = String(content || '').trim();
+            if (!normalized) continue;
+            diaryLines.push(`${normalized}`);
+          } catch (_) {
+            // 개별 항목 오류 무시
+          }
+        }
+      }
+      if (diaryLines.length > 0) {
+        diaryBlock = `육아일기 문항:\n${diaryLines.join('\n')}`;
+      }
+    }
+
+    // 3-3) 최종 사용자 컨텍스트 결합
+    const parts = [];
+    if (kdstBlock) parts.push(kdstBlock);
+    if (diaryBlock) parts.push(diaryBlock);
+    const humanContext = parts.join('\n\n');
+
+    // 4단계: ReportAgent로 보고서 생성
     const defaultReportConfig = {
       vendor: 'gemini',
-      model: 'gemini-2.5-flash',
-      temperature: 0.7,
+      model: 'gemini-2.5-pro',
+      temperature: 0,
+      systemPrompt: `전문적인 아동 발달 전문가로써 주어진 과제를 달성하라.
+
+한국 영유아 발달검사 (K-DST) 체크리스트와 육아일기가 입력으로 주어진다.
+육아일기 내용을 바탕으로 K-DST 채점을 하고, 정해진 양식에 맞게 output을 출력하라.
+
+우선 다음 내용을 숙지하라.
+한국 영유아 발달선별검사(K-DST) 체크리스트 사용법:
+각 월령에 해당하는 모든 항목을 확인하고, 아이의 수행 수준에 가장 가까운 곳에 표시하십시오. 아이가 특정 행동을 할 수 있는지 확실하지 않다면, 직접 시켜본 후 답하는 것이 좋습니다.
+
+평가 기준:
+- 잘 할 수 있다 (3점): 아이가 해당 행동을 능숙하게 수행합니다.
+- 할 수 있는 편이다 (2점): 아이가 해당 행동을 어느 정도 수행하지만 완벽하지는 않습니다.
+- 하지 못하는 편이다 (1점): 아이가 해당 행동을 거의 수행하지 못합니다.
+- 전혀 할 수 없다 (0점): 아이가 해당 행동을 전혀 수행하지 못합니다.
+
+설명은 한국어로 작성하고, 부모가 이해하기 쉽게 기재하라.
+반드시 주어진 JSON 스키마 형태를 지켜 출력하라.
+
+마지막에 있는 "final_opinion" 객체는 다음 세 항목을 가진다.
+"isWarning": boolean 또는 null (true=문제 있음, false=문제 없음, null=정보가 많이 부족해 판별불가)
+"opinion_text": LLM이 작성한 한국어 소견 텍스트. 소견을 내기 힘들면 육아일기 내용이 부족하다 하고 부모에게 추가 자료로 써두면 좋은 내용을 추천하라.
+"requirements": 지금 당장 판별이 불가능한 내용을 정리해서 출력하라. 해당 섹션엔 부모에게 이런 부분을 살펴보고 일기에 적어두면 좋다고 권유하라.
+`,
       ...reportConfig
     };
     
+    // spec은 아예 빈 객체나 필요없으면 제거
     const defaultReportSpec = {
-      reportType: 'KDST Development Assessment Report',
-      audience: 'Child Development Professionals and Parents',
-      tone: 'Professional and Informative',
-      length: 'Comprehensive',
-      language: 'Korean',
-      format: 'Markdown',
-      includeSummary: true,
-      sections: [
-        'Executive Summary',
-        'KDST Question Analysis',
-        'Behavioral Observations',
-        'Development Assessment',
-        'Recommendations'
-      ],
       ...reportSpec
     };
     
     console.log(`[${new Date().toISOString()}] ReportAgent로 보고서 생성 시작...`);
-    
+
     const reportResult = await runReportAgent({
       input: reportInput,
       history: [],
-      context: {},
+      context: humanContext,
       config: defaultReportConfig,
-      spec: defaultReportSpec,
-      kdstRagContext: kdstRagContext
+      spec: { ...defaultReportSpec, outputSchema: REPORT_OUTPUT_SCHEMA }
     });
     
     console.log(`[${new Date().toISOString()}] KDST 보고서 생성 완료`);

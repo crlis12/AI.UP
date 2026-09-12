@@ -8,10 +8,17 @@ KDST RAG 모듈 - ReportAgent에서 사용
 
 import json
 import sys
+import os
+
+# UTF-8 인코딩 설정
+if sys.platform.startswith('win'):
+    import codecs
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout.detach())
+    sys.stderr = codecs.getwriter('utf-8')(sys.stderr.detach())
+
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import sqlite3
-import os
 from sklearn.metrics.pairwise import cosine_similarity
 from datetime import datetime
 
@@ -22,7 +29,7 @@ def get_model():
     """Sentence Transformer 모델을 싱글톤으로 반환"""
     global _model
     if _model is None:
-        _model = SentenceTransformer('jhgan/ko-sroberta-multitask')
+        _model = SentenceTransformer('BM-K/KoSimCSE-roberta-multitask')
     return _model
 
 def get_embedding(text):
@@ -227,27 +234,71 @@ def get_kdst_report_context(questions):
             "context": None
         }
 
-# 사용 예시
+# 사용 예시 및 CLI 인터페이스
 if __name__ == "__main__":
-    # 테스트
-    test_questions = [
-        "엎드린 자세에서 뒤집는다.",
-        "등을 대고 누운 자세에서 엎드린 자세로 뒤집는다(팔이 몸통에 깔려 있지 않아야 한다).",
-        "누워 있을 때 자기 발을 잡고 논다"
-    ]
-    
-    print("KDST RAG 모듈 테스트")
-    print("=" * 50)
-    
-    # RAG 검색
-    result = get_kdst_rag_result(test_questions)
-    print(f"RAG 검색 성공: {result['success']}")
-    
-    # 보고서 컨텍스트 생성
-    context = get_kdst_report_context(test_questions)
-    print(f"컨텍스트 생성 성공: {context['success']}")
-    
-    if context['success']:
-        print(f"총 문제 수: {context['context']['analysis_summary']['total_questions']}")
-        print(f"관련 일기가 있는 문제 수: {context['context']['analysis_summary']['questions_with_related_content']}")
-        print(f"평균 최고 유사도: {context['context']['analysis_summary']['average_top_similarity']:.4f}")
+    try:
+        # stdin에서 입력 받기 (Node.js에서 호출될 때)
+        if not sys.stdin.isatty():
+            input_data = sys.stdin.read().strip()
+            if input_data:
+                # JSON 파싱
+                data = json.loads(input_data)
+                questions = data.get('questions', [])
+                
+                if questions:
+                    # RAG 검색 수행
+                    result = get_kdst_rag_result(questions)
+                    
+                    # 결과를 JSON으로 출력 (Node.js에서 받을 수 있도록)
+                    output = json.dumps(result, ensure_ascii=False, indent=None)
+                    print(output, flush=True)
+                else:
+                    error_output = json.dumps({
+                        "success": False,
+                        "message": "질문이 제공되지 않았습니다."
+                    }, ensure_ascii=False)
+                    print(error_output, flush=True)
+            else:
+                error_output = json.dumps({
+                    "success": False,
+                    "message": "입력 데이터가 없습니다."
+                }, ensure_ascii=False)
+                print(error_output, flush=True)
+        else:
+            # 터미널에서 직접 실행될 때 (테스트)
+            test_questions = [
+                "엎드린 자세에서 뒤집는다.",
+                "등을 대고 누운 자세에서 엎드린 자세로 뒤집는다(팔이 몸통에 깔려 있지 않아야 한다).",
+                "누워 있을 때 자기 발을 잡고 논다"
+            ]
+            
+            print("KDST RAG 모듈 테스트")
+            print("=" * 50)
+            
+            # RAG 검색
+            result = get_kdst_rag_result(test_questions)
+            print(f"RAG 검색 성공: {result['success']}")
+            
+            # 보고서 컨텍스트 생성
+            context = get_kdst_report_context(test_questions)
+            print(f"컨텍스트 생성 성공: {context['success']}")
+            
+            if context['success']:
+                print(f"총 문제 수: {context['context']['analysis_summary']['total_questions']}")
+                print(f"관련 일기가 있는 문제 수: {context['context']['analysis_summary']['questions_with_related_content']}")
+                print(f"평균 최고 유사도: {context['context']['analysis_summary']['average_top_similarity']:.4f}")
+                
+    except json.JSONDecodeError as e:
+        error_output = json.dumps({
+            "success": False,
+            "message": f"JSON 파싱 오류: {str(e)}"
+        }, ensure_ascii=False)
+        print(error_output, file=sys.stderr, flush=True)
+        sys.exit(1)
+    except Exception as e:
+        error_output = json.dumps({
+            "success": False,
+            "message": f"예상치 못한 오류: {str(e)}"
+        }, ensure_ascii=False)
+        print(error_output, file=sys.stderr, flush=True)
+        sys.exit(1)

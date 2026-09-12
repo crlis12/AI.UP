@@ -8,7 +8,7 @@ import './DiaryListPage.css';
 const DiaryListPage = () => {
   const { childId } = useParams();
   const navigate = useNavigate();
-  
+
   const [diaries, setDiaries] = useState([]);
   const [child, setChild] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -18,17 +18,17 @@ const DiaryListPage = () => {
     console.log('=== DiaryListPage useEffect 실행 ===');
     console.log('childId:', childId);
     console.log('API_BASE:', API_BASE);
-    
+
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        
+
         if (!childId) {
           console.error('childId가 없습니다!');
           setIsLoading(false);
           return;
         }
-        
+
         // 아이 정보 불러오기
         console.log('아이 정보 요청 URL:', `${API_BASE}/children/${childId}`);
         const childResponse = await fetch(`${API_BASE}/children/${childId}`);
@@ -64,7 +64,7 @@ const DiaryListPage = () => {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      weekday: 'short'
+      weekday: 'short',
     });
   };
 
@@ -107,8 +107,7 @@ const DiaryListPage = () => {
 
           {/* 일기 작성 버튼 */}
           <button className="write-diary-btn" onClick={handleWriteDiary}>
-            <FiPlus className="btn-icon" />
-            새 일기 작성
+            <FiPlus className="btn-icon" />새 일기 작성
           </button>
 
           {/* 일기 목록 */}
@@ -124,8 +123,8 @@ const DiaryListPage = () => {
               </div>
             ) : (
               diaries.map((diary) => (
-                <div 
-                  key={diary.id} 
+                <div
+                  key={diary.id}
                   className="diary-item"
                   onClick={() => handleEditDiary(diary.id)}
                 >
@@ -135,13 +134,9 @@ const DiaryListPage = () => {
                       {formatDate(diary.date)}
                     </div>
                   </div>
-                  <div className="diary-preview">
-                    {getPreview(diary.content)}
-                  </div>
+                  <div className="diary-preview">{getPreview(diary.content)}</div>
                   <div className="diary-item-footer">
-                    <span className="diary-length">
-                      {diary.content.length}자
-                    </span>
+                    <span className="diary-length">{diary.content.length}자</span>
                     <FiEdit3 className="edit-icon" />
                   </div>
                 </div>

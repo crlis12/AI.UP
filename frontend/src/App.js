@@ -1,7 +1,7 @@
 // src/App.js (로그인 상태 비유지)
 
-import React, { useState, useEffect, useCallback } from 'react'; 
-import { Routes, Route, Navigate } from 'react-router-dom'; 
+import React, { useState, useEffect, useCallback } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 
 // 페이지 컴포넌트 임포트 (src/pages 폴더에 있다고 가정)
@@ -18,21 +18,22 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import DiaryPage from './pages/DiaryPage'; // DiaryPage 임포트 추가
 import DiaryWritePage from './pages/DiaryWritePage';
 import DiaryDetailPage from './pages/DiaryDetailPage'; // DiaryDetailPage 임포트 추가
+import ReportAgentTestPage from './pages/ReportAgentTestPage';
+import ReportDetailPage from './pages/ReportDetailPage';
+import CounselorMatchingPage from './pages/CounselorMatchingPage';
+import KdstChecklistPage from './pages/KdstChecklistPage';
 
 // 컴포넌트 임포트 (src/components 폴더에 있다고 가정)
 import MainScreen from './components/MainScreen';
 import ChatWindow from './components/ChatWindow';
 
 // LLM 호출을 백엔드 API로 위임합니다.
-import { HumanMessage, AIMessage } from "@langchain/core/messages";
+import { HumanMessage, AIMessage } from '@langchain/core/messages';
 import API_BASE, { questionsAPI } from './utils/api';
-
 
 // BASE URL은 공통 config 사용
 
-
 function App() {
-
   // 로그인 상태 관리 (localStorage에서 초기값 가져오기)
   const [isLoggedIn, setIsLoggedIn] = useState(false); // 초기값 false로 유지
   // 사용자 정보 상태 관리
@@ -54,7 +55,7 @@ function App() {
     console.log('localStorage isLoggedIn:', localStorage.getItem('isLoggedIn'));
     console.log('loggedIn 상태:', loggedIn);
     setIsLoggedIn(loggedIn);
-    
+
     // 사용자 정보 확인
     const savedUser = localStorage.getItem('currentUser');
     console.log('localStorage currentUser:', savedUser);
@@ -65,7 +66,7 @@ function App() {
     } else {
       console.log('저장된 사용자 정보가 없습니다');
     }
-    
+
     // **새로운 로직: 웰컴 화면을 봤는지 확인**
     const seenWelcome = localStorage.getItem('hasSeenWelcome') === 'true';
     setHasSeenWelcome(seenWelcome);
@@ -75,7 +76,7 @@ function App() {
     if (savedChildInfo) {
       setChildInfo(JSON.parse(savedChildInfo));
     }
-    
+
     console.log('=== App.js 초기화 완료 ===');
   }, []);
 
@@ -85,6 +86,8 @@ function App() {
     setCurrentUser(user);
     localStorage.setItem('isLoggedIn', 'true'); // 로그인 상태 유지 로직 유지
     localStorage.setItem('currentUser', JSON.stringify(user)); // 사용자 정보 저장
+    // 다른 계정의 자녀 ID가 남아있는 문제 방지: 로그인 시 초기화
+    localStorage.removeItem('currentChildId');
   };
 
   const handleSeenWelcome = () => {
@@ -98,6 +101,8 @@ function App() {
     setCurrentUser(null);
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('currentUser');
+    // 자녀 선택 상태도 초기화
+    localStorage.removeItem('currentChildId');
     // 메시지도 초기화
     setMessages([]);
   };
@@ -159,10 +164,115 @@ function App() {
       const data = await resp.json();
       if (!data.success) throw new Error(data.message || '에이전트 호출 실패');
       const aiMessage = new AIMessage(data.content);
-      setMessages(prev => [...prev, aiMessage]);
+      setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
       console.error('Agent API 호출 오류:', error);
       const errorMessage = new AIMessage('죄송합니다. 메시지를 처리하는 중 오류가 발생했습니다.');
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Report 에이전트로 메시지를 보내는 함수 (RAG + Report)
+  const handleSendReportMessage = async (messageText, file, childId) => {
+    if (isLoading) return;
+
+    const history = [...messages];
+
+    // 파일이 있어도 우선 텍스트 중심으로 처리 (리포트 에이전트는 파일 업로드 미사용)
+    if (file) {
+      const pendingMessages = [];
+      if (messageText && messageText.trim()) {
+        pendingMessages.push(new HumanMessage(messageText));
+      }
+      try {
+        const localUrl = URL.createObjectURL(file);
+        const mediaPart = file.type?.startsWith('image/')
+          ? { type: 'image_url', image_url: localUrl }
+          : file.type?.startsWith('video/')
+            ? { type: 'video_url', video_url: localUrl }
+            : { type: 'text', text: `첨부: ${file.name}` };
+        const mediaMessage = new HumanMessage({ content: [mediaPart] });
+        setMessages((prev) => [...prev, mediaMessage, ...pendingMessages]);
+      } catch (_) {
+        if (pendingMessages.length > 0) {
+          setMessages((prev) => [...prev, ...pendingMessages]);
+        }
+      }
+    } else {
+      const newUserTextMessage = new HumanMessage(messageText || '');
+      setMessages((prev) => [...prev, newUserTextMessage]);
+    }
+
+    setIsLoading(true);
+    try {
+      // 안전게이트: childId 없거나 질문 조회 실패 시 일반 report로 폴백
+      const tryKdst = !!childId;
+      if (tryKdst) {
+        try {
+          // 1) childId로 KDST 질문 조회
+          let questions = [];
+          const qRes = await fetch(`${API_BASE}/questions/child/${childId}`);
+          const qData = await qRes.json();
+          if (qData?.success && Array.isArray(qData.questions)) {
+            questions = qData.questions.map(q => q.question_text).filter(Boolean);
+          }
+          console.log('[KDST] 질문 로드 완료 - childId:', childId, '질문 수:', questions.length);
+
+          if (questions.length > 0) {
+            // 2) KDST 기반 보고서 생성 호출
+            console.log('[KDST] kdst-generate-report 호출 시작');
+            const resp = await fetch(`${API_BASE}/report/kdst-generate-report`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                questions,
+                reportInput: messageText || 'KDST 문제들로 아기 발달 보고서 작성',
+                reportConfig: { vendor: 'gemini', model: 'gemini-2.5-pro' },
+                reportSpec: { language: 'Korean', reportType: '대화 보고서' }
+              })
+            });
+            const data = await resp.json();
+            if (data?.success) {
+              console.log('[KDST] kdst-generate-report 성공');
+              const content = data.report?.content || data.report || '보고서 응답 본문이 없습니다.';
+              const aiMessage = new AIMessage(content);
+              setMessages(prev => [...prev, aiMessage]);
+              return;
+            }
+            console.warn('[KDST] kdst-generate-report 실패, 일반 report로 폴백합니다.', { status: resp.status, data });
+          } else {
+            console.info('[KDST] 해당 childId에 매칭되는 KDST 질문이 없어 일반 report로 폴백합니다.', { childId });
+          }
+        } catch (e) {
+          console.warn('KDST 흐름 실패, 일반 report로 폴백합니다.', e);
+        }
+      }
+
+      // 폴백: 일반 RAG Report 엔드포인트 사용 (기존 정상 동작 경로)
+      console.info('[FALLBACK] 일반 RAG Report 호출 시작', { query: messageText || '', childId: childId || null });
+      const resp = await fetch(`${API_BASE}/report/rag-report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: messageText || '',
+          input: messageText || '',
+          history,
+          config: { vendor: 'gemini', model: 'gemini-2.5-pro' },
+          spec: { language: 'Korean', reportType: '대화 보고서' },
+          limit: 5,
+          score_threshold: 0.5
+        })
+      });
+      const data = await resp.json();
+      if (!data.success) throw new Error(data.message || '리포트 에이전트 호출 실패');
+      console.info('[FALLBACK] 일반 RAG Report 성공');
+      const aiMessage = new AIMessage(data.report?.content || '보고서 응답 본문이 없습니다.');
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Report Agent API 호출 오류:', error);
+      const errorMessage = new AIMessage('죄송합니다. 리포트 에이전트 처리 중 오류가 발생했습니다.');
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
@@ -174,42 +284,59 @@ function App() {
     <div className="App">
       <Routes>
         {/* 앱의 초기 진입점: 웰컴 화면을 봤는지 여부에 따라 리다이렉트 */}
-        <Route 
-          path="/" 
-          element={hasSeenWelcome ? <Navigate to="/main" /> : <Navigate to="/login" />} 
+        <Route
+          path="/"
+          element={hasSeenWelcome ? <Navigate to="/main" /> : <Navigate to="/login" />}
         />
-
         {/* 로그인 관련 라우트 */}
         <Route path="/login" element={<WelcomePage onSeenWelcome={handleSeenWelcome} />} />
-
         <Route path="/signin" element={<SigninPage onLogin={handleLogin} />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} /> {/* 경로 복구 */}
         <Route path="/verify-code" element={<VerifyCodePage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        
         {/* 메인 화면 라우트 (이제 '/main' 경로로 접근) */}
         <Route
           path="/main"
           element={isLoggedIn ? <MainScreen onSendMessage={handleSendMessage} currentUser={currentUser} onLogout={handleLogout} /> : <Navigate to="/login" />}
         />
         
+        {/* 기본 채팅을 질문 에이전트(questionAgent)로 연결 */}
         <Route 
           path="/chat/:childId" 
           element={isLoggedIn ? <ChatWindow messages={messages} onSendMessage={handleSendMessage} isLoading={isLoading} /> : <Navigate to="/login" />} 
         />
-
         {/* 기타 보호된 라우트 */}
-
-        <Route path="/child-info" element={isLoggedIn ? <ChildInfoPage /> : <Navigate to="/login" />} />
-        <Route path="/child-detail/:childId" element={isLoggedIn ? <ChildDetailPage /> : <Navigate to="/login" />} />
+        <Route
+          path="/child-info"
+          element={isLoggedIn ? <ChildInfoPage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/child-detail/:childId"
+          element={isLoggedIn ? <ChildDetailPage /> : <Navigate to="/login" />}
+        />
         {/* 일지 작성 기본 경로 */}
-        <Route path="/diary/:childId" element={isLoggedIn ? <DiaryWritePage /> : <Navigate to="/login" />} />
+        <Route
+          path="/diary/:childId"
+          element={isLoggedIn ? <DiaryWritePage /> : <Navigate to="/login" />}
+        />
         {/* 일지 목록 경로 */}
         <Route path="/diary/list/:childId" element={isLoggedIn ? <DiaryPage /> : <Navigate to="/login" />} />
         <Route path="/diary/detail/:diaryId" element={isLoggedIn ? <DiaryDetailPage /> : <Navigate to="/login" />} /> {/* DiaryDetailPage 라우트 추가 */}
 
         <Route path="/ai-analysis" element={isLoggedIn ? <AIAnalysisPage /> : <Navigate to="/login" />} />
+
+        {/* 리포트 에이전트 테스트 라우트 */}
+        <Route path="/report/test" element={isLoggedIn ? <ReportAgentTestPage /> : <Navigate to="/login" />} />
+
+        {/* 리포트 상세 보기 라우트 */}
+        <Route path="/report/:childId" element={isLoggedIn ? <ReportDetailPage /> : <Navigate to="/login" />} />
+        
+        {/* 상담사 매칭 라우트 */}
+        <Route path="/counselor-matching" element={isLoggedIn ? <CounselorMatchingPage /> : <Navigate to="/login" />} />
+        
+        {/* KDST 체크리스트 라우트 */}
+        <Route path="/kdst-checklist" element={isLoggedIn ? <KdstChecklistPage /> : <Navigate to="/login" />} />
       </Routes>
     </div>
   );

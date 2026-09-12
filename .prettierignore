@@ -1,0 +1,14 @@
+node_modules
+build
+dist
+coverage
+.tmp
+.temp
+**/*.min.js
+**/*.min.css
+backend/uploads
+backend/deploy.zip
+backend/backend.zip
+frontend/public
+backend/temp-server.js
+frontend/src/App.css

@@ -3,7 +3,9 @@
  */
 
 function normalizeGeminiModel(model) {
-  const m = String(model || '').trim().toLowerCase();
+  const m = String(model || '')
+    .trim()
+    .toLowerCase();
   if (!m) return 'gemini-2.5-flash';
   if (m.includes('flash')) return 'gemini-2.5-flash';
   if (m.includes('pro')) return 'gemini-2.5-pro';
@@ -30,5 +32,3 @@ module.exports = {
   getGeminiRestEndpoint,
   createGeminiChat,
 };
-
-

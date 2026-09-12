@@ -4,31 +4,29 @@
   "private": true,
   "dependencies": {
     "@langchain/core": "^0.3.68",
-    "@react-oauth/google": "^0.12.2",
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/jest-dom": "^6.6.4",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^13.5.0",
     "axios": "^1.11.0",
-    
-    "mysql": "^2.18.1",
-    "pdfjs-dist": "^5.4.54",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.7.1",
-    "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "react-scripts": "5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
+    "format": "prettier --cache --write .",
+    "format:check": "prettier --check .",
+    "format:js": "prettier --cache --write \"src/**/*.{js,jsx}\"",
+    "format:check:js": "prettier --check \"src/**/*.{js,jsx}\"",
     "deploy": "npm run build && swa deploy ./build --app-name ai-up-frontend --resource-group ai-up-resource-group",
     "deploy:build-only": "npm run build",
     "deploy:upload-only": "swa deploy ./build --app-name ai-up-frontend --resource-group ai-up-resource-group",
     "start:local": "react-scripts start"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3"
   },
   "eslintConfig": {
     "extends": [
